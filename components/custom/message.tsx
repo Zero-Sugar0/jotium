@@ -206,8 +206,6 @@ export const Message = ({
                 /* Ensure all child elements take full width */
                 [&>*]:w-full
                 [&>*]:max-w-full
-                [&_div]:w-full
-                [&_div]:max-w-full
                 [&_pre]:w-full
                 [&_code]:max-w-full
                 [&_table]:w-full
