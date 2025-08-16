@@ -127,7 +127,7 @@ const CollapsibleCodeBlock = ({ language, children, codeContent }: { language: s
     const lines = codeContent.split('\n').length;
     setLineCount(lines);
     // Auto-collapse if more than 20 lines
-    setIsCollapsed(lines > 20);
+    setIsCollapsed(false);
   }, [codeContent]);
 
   const toggleCollapse = () => {
@@ -135,8 +135,8 @@ const CollapsibleCodeBlock = ({ language, children, codeContent }: { language: s
   };
 
   return (
-    <div className="my-2 sm:my-4 rounded-lg sm:rounded-xl border border-zinc-200 dark:border-zinc-700 overflow-hidden shadow-sm w-full -ml-1.5 sm:ml-0">
-      <div className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-2.5 bg-zinc-100/80 dark:bg-zinc-800/80 border-b border-zinc-200 dark:border-zinc-700">
+    <div className="my-2 sm:my-4 rounded-lg sm:rounded-xl border border-zinc-200/60 dark:border-zinc-700/60 overflow-hidden shadow-sm w-full -ml-1.5 sm:ml-0 -mr-4 sm:mr-0">
+      <div className="flex items-center justify-between px-2 sm:px-3 py-1 sm:py-1.5 bg-zinc-100/80 dark:bg-zinc-800/80 border-b border-zinc-200 dark:border-zinc-700">
         <div className="flex items-center gap-2">
           <span className="text-xs font-mono font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
             {language}
@@ -539,10 +539,10 @@ const NonMemoizedMarkdown = ({ children, showTypewriter = true }: { children: st
           const xKey = spec.xKey || "name";
           const yKeys: string[] = spec.yKeys || (spec.yKey ? [spec.yKey] : ["value"]);
           const colors: string[] = spec.colors || [
-            "#3b82f6", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6", // blue, green, amber, red, violet
-            "#06b6d4", "#84cc16", "#f97316", "#ec4899", "#6366f1", // cyan, lime, orange, pink, indigo
-            "#10b981", "#fbbf24", "#f43f5e", "#a855f7", "#14b8a6", // emerald, yellow, rose, purple, teal
-            "#64748b", "#f59e0b", "#8b5cf6", "#06b6d4", "#84cc16"  // slate, amber, violet, cyan, lime
+            "#3b82f6", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6", 
+            "#06b6d4", "#84cc16", "#f97316", "#ec4899", "#6366f1", 
+            "#10b981", "#fbbf24", "#f43f5e", "#a855f7", "#14b8a6", 
+            "#64748b", "#f59e0b", "#8b5cf6", "#06b6d4", "#84cc16"  
           ];
           const height = spec.height || (isSmallScreen ? 240 : 320);
           const stacked = Boolean(spec.stacked);
@@ -989,7 +989,7 @@ const NonMemoizedMarkdown = ({ children, showTypewriter = true }: { children: st
   };
 
   return (
-    <div className="prose prose-zinc dark:prose-invert max-w-none w-full [&>*:first-child]:!mt-0 [&>*:last-child]:!mb-0 overflow-hidden">
+    <div className="prose prose-zinc dark:prose-invert max-w-none w-full [&>*:first-child]:!mt-0 [&>*:last-child]:!mb-0">
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath, [remarkEmoji, { accessible: true }]]}
         rehypePlugins={[rehypeKatex, rehypeRaw]}
