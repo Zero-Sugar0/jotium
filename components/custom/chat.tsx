@@ -213,7 +213,7 @@ export function Chat({
         )
       );
       setExecutingTools([]); // Reset executing tools after response
-      // No need to refresh the router - this was causing navigation issues
+      router.refresh(); // Refresh server components to update message count
     }
     setIsLoading(false);
   };
@@ -381,7 +381,7 @@ className="flex-1 overflow-y-auto custom-scrollbar pb-24 sm:pb-32"
                                 }
                                 setMessages((prev) => prev.map((msg) => msg.id === assistantMessage.id ? { ...assistantMessage } : msg));
                                 setExecutingTools([]);
-                                // No need to refresh the router - this was causing navigation issues
+                                router.refresh(); // Refresh server components to update message count
                               }
                             } catch (err) {
                               console.error(err);
