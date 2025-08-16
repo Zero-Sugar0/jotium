@@ -43,37 +43,24 @@ import ScrapeViewer from './ScrapeViewer';
 import { StockDisplay } from "./stock";
 import { WeatherDisplay } from "./weather";
 
-// Custom tooltip component: compact, legend-like layout
+// Custom tooltip component to match user-provided image
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md shadow-sm px-2 py-1.5 min-w-[120px] max-w-[180px]">
-        {label ? (
-          <div className="text-[11px] text-zinc-600 dark:text-zinc-400 mb-1 leading-tight truncate">
-            {label}
+      <div className="bg-black text-white rounded-md p-1.5 shadow-lg text-xs font-sans w-max max-w-[180px]">
+        <p className="mb-1 font-semibold text-sm">{label}</p>
+        {payload.map((entry: any, index: number) => (
+          <div key={index} className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5">
+              <span
+                className="w-2 h-2 rounded-sm"
+                style={{ backgroundColor: entry.color }}
+              />
+              <span className="text-white/80">{entry.name}</span>
+            </div>
+            <span className="font-bold tabular-nums">{entry.value}</span>
           </div>
-        ) : null}
-        <ul className="space-y-0.5">
-          {payload.map((entry: any, index: number) => (
-            <li
-              key={index}
-              className="flex items-center justify-between gap-2 text-[11px] leading-tight"
-            >
-              <span className="inline-flex items-center gap-1.5 min-w-0">
-                <span
-                  className="w-2.5 h-2.5 rounded-sm shrink-0"
-                  style={{ backgroundColor: entry.color }}
-                />
-                <span className="truncate text-zinc-700 dark:text-zinc-300">
-                  {entry.name}
-                </span>
-              </span>
-              <span className="tabular-nums text-zinc-900 dark:text-zinc-100">
-                {typeof entry.value === 'number' ? entry.value : entry.value}
-              </span>
-            </li>
-          ))}
-        </ul>
+        ))}
       </div>
     );
   }
@@ -127,7 +114,7 @@ const CollapsibleCodeBlock = ({ language, children, codeContent }: { language: s
     const lines = codeContent.split('\n').length;
     setLineCount(lines);
     // Auto-collapse if more than 20 lines
-    setIsCollapsed(lines > 20);
+    setIsCollapsed(false);
   }, [codeContent]);
 
   const toggleCollapse = () => {
@@ -135,8 +122,8 @@ const CollapsibleCodeBlock = ({ language, children, codeContent }: { language: s
   };
 
   return (
-    <div className="my-2 sm:my-4 rounded-lg sm:rounded-xl border border-zinc-200 dark:border-zinc-700 overflow-hidden shadow-sm w-full -ml-1.5 sm:ml-0">
-      <div className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-2.5 bg-zinc-100/80 dark:bg-zinc-800/80 border-b border-zinc-200 dark:border-zinc-700">
+    <div className="my-2 sm:my-4 rounded-lg sm:rounded-xl border border-zinc-200/60 dark:border-zinc-700/60 overflow-hidden shadow-sm w-full -ml-1.5 sm:ml-0 -mr-4 sm:mr-0">
+      <div className="flex items-center justify-between px-2 sm:px-3 py-1 sm:py-1.5 bg-zinc-100/80 dark:bg-zinc-800/80 border-b border-zinc-200 dark:border-zinc-700">
         <div className="flex items-center gap-2">
           <span className="text-xs font-mono font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
             {language}
@@ -580,10 +567,10 @@ const NonMemoizedMarkdown = ({ children, showTypewriter = true }: { children: st
             return (
               <Container>
                 <LineChart data={data} margin={chartMargin}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid stroke="hsl(var(--border))" />
                   <XAxis dataKey={xKey} {...xAxisExtraProps} />
                   <YAxis />
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
                   {isSmallScreen ? null : <Legend />}
                   {yKeys.map((k, i) => (
                     <Line key={k} type="monotone" dataKey={k} stroke={colors[i % colors.length]} strokeWidth={2} dot={false} />
@@ -596,10 +583,10 @@ const NonMemoizedMarkdown = ({ children, showTypewriter = true }: { children: st
             return (
               <Container>
                 <BarChart data={data} margin={chartMargin}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid stroke="hsl(var(--border))" />
                   <XAxis dataKey={xKey} {...xAxisExtraProps} />
                   <YAxis />
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
                   {isSmallScreen ? null : <Legend />}
                   {yKeys.map((k, i) => (
                     <Bar key={k} dataKey={k} stackId={stacked ? "stack" : undefined} fill={colors[i % colors.length]} radius={[4, 4, 0, 0]} />
@@ -612,10 +599,10 @@ const NonMemoizedMarkdown = ({ children, showTypewriter = true }: { children: st
             return (
               <Container>
                 <AreaChart data={data} margin={chartMargin}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid stroke="hsl(var(--border))" />
                   <XAxis dataKey={xKey} {...xAxisExtraProps} />
                   <YAxis />
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
                   {isSmallScreen ? null : <Legend />}
                   {yKeys.map((k, i) => (
                     <Area key={k} type="monotone" dataKey={k} stroke={colors[i % colors.length]} fill={colors[i % colors.length]} fillOpacity={0.25} />
@@ -632,7 +619,7 @@ const NonMemoizedMarkdown = ({ children, showTypewriter = true }: { children: st
             return (
               <Container>
                 <PieChart>
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
                   {isSmallScreen ? null : <Legend />}
                   <Pie data={data} dataKey={valueKey} nameKey={nameKey} innerRadius={innerRadius} outerRadius={outerRadius} paddingAngle={4}>
                     {data.map((_: any, i: number) => (
@@ -649,11 +636,11 @@ const NonMemoizedMarkdown = ({ children, showTypewriter = true }: { children: st
             return (
               <Container>
                 <RadarChart data={data} outerRadius="80%">
-                  <PolarGrid />
+                  <PolarGrid stroke="hsl(var(--border))" />
                   <PolarAngleAxis dataKey={angleKey} />
                   <PolarRadiusAxis />
                   {isSmallScreen ? null : <Legend />}
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
                   <Radar name={radiusKey} dataKey={radiusKey} stroke={colors[0]} fill={colors[0]} fillOpacity={0.35} />
                 </RadarChart>
               </Container>
@@ -665,11 +652,11 @@ const NonMemoizedMarkdown = ({ children, showTypewriter = true }: { children: st
             return (
               <Container>
                 <ScatterChart margin={chartMargin}>
-                  <CartesianGrid />
+                  <CartesianGrid stroke="hsl(var(--border))" />
                   <XAxis dataKey={xKey} {...xAxisExtraProps} />
                   <YAxis dataKey={yKey} />
                   {zKey ? <ZAxis dataKey={zKey} /> : null}
-                  <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: "3 3" }} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
                   {isSmallScreen ? null : <Legend />}
                   <Scatter name={yKey} data={data} fill={colors[0]} />
                 </ScatterChart>
@@ -682,10 +669,10 @@ const NonMemoizedMarkdown = ({ children, showTypewriter = true }: { children: st
             return (
               <Container>
                 <ComposedChart data={data} margin={chartMargin}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid stroke="hsl(var(--border))" />
                   <XAxis dataKey={xKey} {...xAxisExtraProps} />
                   <YAxis />
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
                   {isSmallScreen ? null : <Legend />}
                   {series.map((s: any, i: number) => {
                     const color = colors[i % colors.length];
@@ -989,7 +976,7 @@ const NonMemoizedMarkdown = ({ children, showTypewriter = true }: { children: st
   };
 
   return (
-    <div className="prose prose-zinc dark:prose-invert max-w-none w-full [&>*:first-child]:!mt-0 [&>*:last-child]:!mb-0 overflow-hidden">
+    <div className="prose prose-zinc dark:prose-invert max-w-none w-full [&>*:first-child]:!mt-0 [&>*:last-child]:!mb-0">
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath, [remarkEmoji, { accessible: true }]]}
         rehypePlugins={[rehypeKatex, rehypeRaw]}
