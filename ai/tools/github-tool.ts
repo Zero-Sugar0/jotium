@@ -10,6 +10,10 @@ export class GithubTool {
     });
   }
 
+  /**
+   * Returns the function declaration schema for GitHub operations.
+   * @returns FunctionDeclaration defining supported actions and parameters.
+   */
   getDefinition(): FunctionDeclaration {
     return {
       name: "github_operations",
@@ -106,7 +110,7 @@ export class GithubTool {
           },
           content: {
             type: Type.STRING,
-            description: "File content or commit message"
+            description: "File content (base64-encoded for binary) or commit message"
           },
           message: {
             type: Type.STRING,
@@ -114,7 +118,7 @@ export class GithubTool {
           },
           branch: {
             type: Type.STRING,
-            description: "Branch name (default: main/master)"
+            description: "Branch name (default: main)"
           },
           title: {
             type: Type.STRING,
@@ -132,9 +136,18 @@ export class GithubTool {
             type: Type.STRING,
             description: "Head branch for pull requests or comparisons"
           },
-          sha: {
+          commit_sha: {
             type: Type.STRING,
-            description: "Commit SHA for specific operations"
+            description: "Commit SHA for commit or branch operations"
+          },
+          tree_sha: {
+            type: Type.STRING,
+            description: "Tree SHA for advanced commit operations"
+          },
+          parents: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: "Parent commit SHAs for create_commit"
           },
           tag: {
             type: Type.STRING,
@@ -224,6 +237,22 @@ export class GithubTool {
           perPage: {
             type: Type.NUMBER,
             description: "Items per page (default: 30, max: 100)"
+          },
+          issue_number: {
+            type: Type.NUMBER,
+            description: "Issue number for issue operations"
+          },
+          pull_number: {
+            type: Type.NUMBER,
+            description: "Pull request number for PR operations"
+          },
+          release_id: {
+            type: Type.NUMBER,
+            description: "Release ID for release operations"
+          },
+          hook_id: {
+            type: Type.NUMBER,
+            description: "Webhook ID for webhook operations"
           }
         },
         required: ["action"]
@@ -231,10 +260,21 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Executes the specified GitHub operation.
+   * @param args - Parameters for the GitHub operation.
+   * @returns Operation result or error details.
+   * @throws Error if the action is unsupported or API call fails.
+   */
   async execute(args: any): Promise<any> {
     try {
       console.log(`🐙 GitHub operation: ${args.action}`);
       
+      // Default values
+      args.branch = args.branch || 'main';
+      args.perPage = Math.min(args.perPage || 30, 100);
+      args.page = args.page || 1;
+
       switch (args.action) {
         // Repository operations
         case "create_repo":
@@ -361,28 +401,40 @@ export class GithubTool {
       }
     } catch (error: unknown) {
       console.error("❌ GitHub operation failed:", error);
+      const errDetails = error instanceof Error ? { message: error.message, stack: error.stack } : { message: String(error) };
+      if ((error as any).response) {
+        errDetails['apiResponse'] = {
+          status: (error as any).response.status,
+          data: (error as any).response.data
+        };
+      }
       return {
         success: false,
-        error: `GitHub operation failed: ${error instanceof Error ? error.message : String(error)}`,
+        error: errDetails,
         action: args.action
       };
     }
   }
 
-  // Repository operations
+  /**
+   * Creates a new repository for the authenticated user.
+   * @param args - Parameters including repo name, description, etc.
+   * @returns Success response with repository data.
+   * @throws Error if token lacks 'repo' scope or name conflicts.
+   * Required scopes: repo
+   */
   private async createRepository(args: any) {
     const response = await this.octokit.repos.createForAuthenticatedUser({
       name: args.repo,
       description: args.description,
       homepage: args.homepage,
-      private: args.private || false,
-      has_issues: args.hasIssues !== false,
-      has_wiki: args.hasWiki !== false,
-      auto_init: args.autoInit || false,
+      private: args.private ?? false,
+      has_issues: args.hasIssues ?? true,
+      has_wiki: args.hasWiki ?? true,
+      auto_init: args.autoInit ?? false,
       gitignore_template: args.gitignoreTemplate,
       license_template: args.licenseTemplate
     });
-
     return {
       success: true,
       action: "create_repo",
@@ -391,12 +443,19 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Deletes a repository.
+   * @param args - Owner and repo.
+   * @returns Success message.
+   * @throws Error on 404 if not found or insufficient scopes.
+   * Required scopes: repo:delete
+   */
   private async deleteRepository(args: any) {
+    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
     await this.octokit.repos.delete({
       owner: args.owner,
       repo: args.repo
     });
-
     return {
       success: true,
       action: "delete_repo",
@@ -404,12 +463,19 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Retrieves a repository's details.
+   * @param args - Owner and repo.
+   * @returns Repository data.
+   * @throws Error on 404 if not found or 403 if unauthorized.
+   * Required scopes: repo
+   */
   private async getRepository(args: any) {
+    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
     const response = await this.octokit.repos.get({
       owner: args.owner,
       repo: args.repo
     });
-
     return {
       success: true,
       action: "get_repo",
@@ -417,23 +483,37 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Lists repositories for the authenticated user.
+   * @param args - Page and perPage for pagination.
+   * @returns List of repositories.
+   * @throws Error on 401 if unauthorized.
+   * Required scopes: repo
+   */
   private async listRepositories(args: any) {
-    const response = await this.octokit.repos.listForAuthenticatedUser({
-      page: args.page || 1,
-      per_page: Math.min(args.perPage || 30, 100),
+    const response = await this.octokit.paginate(this.octokit.repos.listForAuthenticatedUser, {
+      page: args.page,
+      per_page: args.perPage,
       sort: 'updated',
       direction: 'desc'
     });
-
     return {
       success: true,
       action: "list_repos",
-      repositories: response.data,
-      count: response.data.length
+      repositories: response,
+      count: response.length
     };
   }
 
+  /**
+   * Updates a repository's settings.
+   * @param args - Owner, repo, and optional settings (title, description, etc.).
+   * @returns Updated repository data.
+   * @throws Error on 403 if unauthorized or 422 if invalid settings.
+   * Required scopes: repo
+   */
   private async updateRepository(args: any) {
+    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
     const response = await this.octokit.repos.update({
       owner: args.owner,
       repo: args.repo,
@@ -444,7 +524,6 @@ export class GithubTool {
       has_issues: args.hasIssues,
       has_wiki: args.hasWiki
     });
-
     return {
       success: true,
       action: "update_repo",
@@ -453,12 +532,19 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Forks a repository.
+   * @param args - Owner and repo.
+   * @returns Forked repository data.
+   * @throws Error on 403 if unauthorized or 422 if already forked.
+   * Required scopes: repo
+   */
   private async forkRepository(args: any) {
+    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
     const response = await this.octokit.repos.createFork({
       owner: args.owner,
       repo: args.repo
     });
-
     return {
       success: true,
       action: "fork_repo",
@@ -467,12 +553,19 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Stars a repository.
+   * @param args - Owner and repo.
+   * @returns Success message.
+   * @throws Error on 403 if unauthorized.
+   * Required scopes: repo
+   */
   private async starRepository(args: any) {
+    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
     await this.octokit.activity.starRepoForAuthenticatedUser({
       owner: args.owner,
       repo: args.repo
     });
-
     return {
       success: true,
       action: "star_repo",
@@ -480,12 +573,19 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Unstars a repository.
+   * @param args - Owner and repo.
+   * @returns Success message.
+   * @throws Error on 403 if unauthorized.
+   * Required scopes: repo
+   */
   private async unstarRepository(args: any) {
+    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
     await this.octokit.activity.unstarRepoForAuthenticatedUser({
       owner: args.owner,
       repo: args.repo
     });
-
     return {
       success: true,
       action: "unstar_repo",
@@ -493,8 +593,15 @@ export class GithubTool {
     };
   }
 
-  // File operations
+  /**
+   * Creates a file in a repository.
+   * @param args - Owner, repo, path, content, message, branch.
+   * @returns File creation data.
+   * @throws Error on 422 if file exists or 403 if unauthorized.
+   * Required scopes: repo
+   */
   private async createFile(args: any) {
+    if (!args.owner || !args.repo || !args.path || !args.content) throw new Error("Owner, repo, path, and content are required");
     const response = await this.octokit.repos.createOrUpdateFileContents({
       owner: args.owner,
       repo: args.repo,
@@ -503,7 +610,6 @@ export class GithubTool {
       content: Buffer.from(args.content).toString('base64'),
       branch: args.branch
     });
-
     return {
       success: true,
       action: "create_file",
@@ -512,15 +618,21 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Updates a file in a repository.
+   * @param args - Owner, repo, path, content, message, branch.
+   * @returns File update data.
+   * @throws Error on 404 if file not found or 403 if unauthorized.
+   * Required scopes: repo
+   */
   private async updateFile(args: any) {
-    // Get current file to obtain SHA
+    if (!args.owner || !args.repo || !args.path || !args.content) throw new Error("Owner, repo, path, and content are required");
     const currentFile = await this.octokit.repos.getContent({
       owner: args.owner,
       repo: args.repo,
       path: args.path,
       ref: args.branch
     });
-
     const response = await this.octokit.repos.createOrUpdateFileContents({
       owner: args.owner,
       repo: args.repo,
@@ -530,7 +642,6 @@ export class GithubTool {
       sha: (currentFile.data as any).sha,
       branch: args.branch
     });
-
     return {
       success: true,
       action: "update_file",
@@ -539,15 +650,21 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Deletes a file in a repository.
+   * @param args - Owner, repo, path, message, branch.
+   * @returns Deletion data.
+   * @throws Error on 404 if file not found or 403 if unauthorized.
+   * Required scopes: repo
+   */
   private async deleteFile(args: any) {
-    // Get current file to obtain SHA
+    if (!args.owner || !args.repo || !args.path) throw new Error("Owner, repo, and path are required");
     const currentFile = await this.octokit.repos.getContent({
       owner: args.owner,
       repo: args.repo,
       path: args.path,
       ref: args.branch
     });
-
     const response = await this.octokit.repos.deleteFile({
       owner: args.owner,
       repo: args.repo,
@@ -556,7 +673,6 @@ export class GithubTool {
       sha: (currentFile.data as any).sha,
       branch: args.branch
     });
-
     return {
       success: true,
       action: "delete_file",
@@ -565,19 +681,25 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Retrieves a file's content.
+   * @param args - Owner, repo, path, branch.
+   * @returns File data with decoded content.
+   * @throws Error on 404 if file not found.
+   * Required scopes: repo
+   */
   private async getFile(args: any) {
+    if (!args.owner || !args.repo || !args.path) throw new Error("Owner, repo, and path are required");
     const response = await this.octokit.repos.getContent({
       owner: args.owner,
       repo: args.repo,
       path: args.path,
       ref: args.branch
     });
-
     const fileData = response.data as any;
     const content = fileData.encoding === 'base64' 
       ? Buffer.from(fileData.content, 'base64').toString('utf-8')
       : fileData.content;
-
     return {
       success: true,
       action: "get_file",
@@ -588,14 +710,21 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Lists files in a repository path.
+   * @param args - Owner, repo, path, branch, page, perPage.
+   * @returns List of files.
+   * @throws Error on 404 if path not found.
+   * Required scopes: repo
+   */
   private async listFiles(args: any) {
+    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
     const response = await this.octokit.repos.getContent({
       owner: args.owner,
       repo: args.repo,
       path: args.path || '',
       ref: args.branch
     });
-
     return {
       success: true,
       action: "list_files",
@@ -604,35 +733,53 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Renames a file using a tree update for atomicity.
+   * @param args - Owner, repo, path, title (new path), message, branch.
+   * @returns Success message.
+   * @throws Error on 404 if file not found or 403 if unauthorized.
+   * Required scopes: repo
+   */
   private async renameFile(args: any) {
-    // GitHub doesn't have a direct rename API, so we simulate it
-    // by creating a new file and deleting the old one
-    const oldFile = await this.getFile({
+    if (!args.owner || !args.repo || !args.path || !args.title) throw new Error("Owner, repo, path, and title are required");
+    const baseRef = await this.octokit.git.getRef({
+      owner: args.owner,
+      repo: args.repo,
+      ref: `heads/${args.branch}`
+    });
+    const baseCommit = await this.octokit.git.getCommit({
+      owner: args.owner,
+      repo: args.repo,
+      commit_sha: baseRef.data.object.sha
+    });
+    const currentFile = await this.octokit.repos.getContent({
       owner: args.owner,
       repo: args.repo,
       path: args.path,
-      branch: args.branch
+      ref: args.branch
     });
-
-    // Create new file
-    await this.createFile({
+    const tree = await this.octokit.git.createTree({
       owner: args.owner,
       repo: args.repo,
-      path: args.title, // new path
-      content: oldFile.file.decodedContent,
-      message: args.message || `Rename ${args.path} to ${args.title}`,
-      branch: args.branch
+      base_tree: baseCommit.data.tree.sha,
+      tree: [
+        { path: args.path, mode: '100644', type: 'blob', sha: null }, // Delete old
+        { path: args.title, mode: '100644', type: 'blob', sha: (currentFile.data as any).sha } // New path
+      ]
     });
-
-    // Delete old file
-    await this.deleteFile({
+    const commit = await this.octokit.git.createCommit({
       owner: args.owner,
       repo: args.repo,
-      path: args.path,
       message: args.message || `Rename ${args.path} to ${args.title}`,
-      branch: args.branch
+      tree: tree.data.sha,
+      parents: [baseRef.data.object.sha]
     });
-
+    await this.octokit.git.updateRef({
+      owner: args.owner,
+      repo: args.repo,
+      ref: `heads/${args.branch}`,
+      sha: commit.data.sha
+    });
     return {
       success: true,
       action: "rename_file",
@@ -640,33 +787,77 @@ export class GithubTool {
     };
   }
 
-  // Commit operations
+  /**
+   * Creates a commit by updating a file.
+   * @param args - Owner, repo, path, content, message, branch, parents (optional).
+   * @returns Commit data.
+   * @throws Error if tree creation fails.
+   * Required scopes: repo
+   */
   private async createCommit(args: any) {
-    // This is a simplified commit creation - in practice, you'd need to
-    // create a tree with the changes first
-    const response = await this.octokit.git.createCommit({
+    if (!args.owner || !args.repo || !args.path || !args.content || !args.message) throw new Error("Owner, repo, path, content, and message are required");
+    const baseRef = await this.octokit.git.getRef({
+      owner: args.owner,
+      repo: args.repo,
+      ref: `heads/${args.branch}`
+    });
+    const baseCommit = await this.octokit.git.getCommit({
+      owner: args.owner,
+      repo: args.repo,
+      commit_sha: baseRef.data.object.sha
+    });
+    const blob = await this.octokit.git.createBlob({
+      owner: args.owner,
+      repo: args.repo,
+      content: args.content,
+      encoding: 'utf-8'
+    });
+    const tree = await this.octokit.git.createTree({
+      owner: args.owner,
+      repo: args.repo,
+      base_tree: baseCommit.data.tree.sha,
+      tree: [{
+        path: args.path,
+        mode: '100644',
+        type: 'blob',
+        sha: blob.data.sha
+      }]
+    });
+    const commit = await this.octokit.git.createCommit({
       owner: args.owner,
       repo: args.repo,
       message: args.message,
-      tree: args.sha, // Tree SHA
-      parents: args.base ? [args.base] : []
+      tree: tree.data.sha,
+      parents: args.parents || [baseRef.data.object.sha]
     });
-
+    await this.octokit.git.updateRef({
+      owner: args.owner,
+      repo: args.repo,
+      ref: `heads/${args.branch}`,
+      sha: commit.data.sha
+    });
     return {
       success: true,
       action: "create_commit",
-      commit: response.data,
+      commit: commit.data,
       message: "Commit created successfully"
     };
   }
 
+  /**
+   * Retrieves a commit's details.
+   * @param args - Owner, repo, commit_sha.
+   * @returns Commit data.
+   * @throws Error on 404 if commit not found.
+   * Required scopes: repo
+   */
   private async getCommit(args: any) {
+    if (!args.owner || !args.repo || !args.commit_sha) throw new Error("Owner, repo, and commit_sha are required");
     const response = await this.octokit.repos.getCommit({
       owner: args.owner,
       repo: args.repo,
-      ref: args.sha
+      ref: args.commit_sha
     });
-
     return {
       success: true,
       action: "get_commit",
@@ -674,31 +865,45 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Lists commits in a repository.
+   * @param args - Owner, repo, branch, page, perPage.
+   * @returns List of commits.
+   * @throws Error on 403 if unauthorized.
+   * Required scopes: repo
+   */
   private async listCommits(args: any) {
-    const response = await this.octokit.repos.listCommits({
+    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
+    const response = await this.octokit.paginate(this.octokit.repos.listCommits, {
       owner: args.owner,
       repo: args.repo,
       sha: args.branch,
-      page: args.page || 1,
-      per_page: Math.min(args.perPage || 30, 100)
+      page: args.page,
+      per_page: args.perPage
     });
-
     return {
       success: true,
       action: "list_commits",
-      commits: response.data,
-      count: response.data.length
+      commits: response,
+      count: response.length
     };
   }
 
+  /**
+   * Compares two commits.
+   * @param args - Owner, repo, base, head.
+   * @returns Comparison data.
+   * @throws Error on 404 if commits not found.
+   * Required scopes: repo
+   */
   private async compareCommits(args: any) {
+    if (!args.owner || !args.repo || !args.base || !args.head) throw new Error("Owner, repo, base, and head are required");
     const response = await this.octokit.repos.compareCommits({
       owner: args.owner,
       repo: args.repo,
       base: args.base,
       head: args.head
     });
-
     return {
       success: true,
       action: "compare_commits",
@@ -706,22 +911,26 @@ export class GithubTool {
     };
   }
 
-  // Branch operations
+  /**
+   * Creates a new branch.
+   * @param args - Owner, repo, branch, base.
+   * @returns Branch data.
+   * @throws Error on 422 if branch exists.
+   * Required scopes: repo
+   */
   private async createBranch(args: any) {
-    // Get the SHA of the base branch
-    const baseBranch = await this.octokit.git.getRef({
+    if (!args.owner || !args.repo || !args.branch) throw new Error("Owner, repo, and branch are required");
+    const baseRef = await this.octokit.git.getRef({
       owner: args.owner,
       repo: args.repo,
       ref: `heads/${args.base || 'main'}`
     });
-
     const response = await this.octokit.git.createRef({
       owner: args.owner,
       repo: args.repo,
       ref: `refs/heads/${args.branch}`,
-      sha: baseBranch.data.object.sha
+      sha: baseRef.data.object.sha
     });
-
     return {
       success: true,
       action: "create_branch",
@@ -730,13 +939,20 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Deletes a branch.
+   * @param args - Owner, repo, branch.
+   * @returns Success message.
+   * @throws Error on 404 if branch not found.
+   * Required scopes: repo
+   */
   private async deleteBranch(args: any) {
+    if (!args.owner || !args.repo || !args.branch) throw new Error("Owner, repo, and branch are required");
     await this.octokit.git.deleteRef({
       owner: args.owner,
       repo: args.repo,
       ref: `heads/${args.branch}`
     });
-
     return {
       success: true,
       action: "delete_branch",
@@ -744,29 +960,43 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Lists branches in a repository.
+   * @param args - Owner, repo, page, perPage.
+   * @returns List of branches.
+   * @throws Error on 403 if unauthorized.
+   * Required scopes: repo
+   */
   private async listBranches(args: any) {
-    const response = await this.octokit.repos.listBranches({
+    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
+    const response = await this.octokit.paginate(this.octokit.repos.listBranches, {
       owner: args.owner,
       repo: args.repo,
-      page: args.page || 1,
-      per_page: Math.min(args.perPage || 30, 100)
+      page: args.page,
+      per_page: args.perPage
     });
-
     return {
       success: true,
       action: "list_branches",
-      branches: response.data,
-      count: response.data.length
+      branches: response,
+      count: response.length
     };
   }
 
+  /**
+   * Retrieves a branch's details.
+   * @param args - Owner, repo, branch.
+   * @returns Branch data.
+   * @throws Error on 404 if branch not found.
+   * Required scopes: repo
+   */
   private async getBranch(args: any) {
+    if (!args.owner || !args.repo || !args.branch) throw new Error("Owner, repo, and branch are required");
     const response = await this.octokit.repos.getBranch({
       owner: args.owner,
       repo: args.repo,
       branch: args.branch
     });
-
     return {
       success: true,
       action: "get_branch",
@@ -774,7 +1004,15 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Merges a branch into another.
+   * @param args - Owner, repo, base, head, message.
+   * @returns Merge data.
+   * @throws Error on 409 if merge conflicts.
+   * Required scopes: repo
+   */
   private async mergeBranch(args: any) {
+    if (!args.owner || !args.repo || !args.base || !args.head) throw new Error("Owner, repo, base, and head are required");
     const response = await this.octokit.repos.merge({
       owner: args.owner,
       repo: args.repo,
@@ -782,7 +1020,6 @@ export class GithubTool {
       head: args.head,
       commit_message: args.message
     });
-
     return {
       success: true,
       action: "merge_branch",
@@ -791,8 +1028,15 @@ export class GithubTool {
     };
   }
 
-  // Issue operations
+  /**
+   * Creates a new issue.
+   * @param args - Owner, repo, title, body, labels, assignees.
+   * @returns Issue data.
+   * @throws Error on 403 if issues disabled or 422 if invalid.
+   * Required scopes: repo
+   */
   private async createIssue(args: any) {
+    if (!args.owner || !args.repo || !args.title) throw new Error("Owner, repo, and title are required");
     const response = await this.octokit.issues.create({
       owner: args.owner,
       repo: args.repo,
@@ -801,7 +1045,6 @@ export class GithubTool {
       labels: args.labels,
       assignees: args.assignees
     });
-
     return {
       success: true,
       action: "create_issue",
@@ -810,66 +1053,94 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Updates an issue.
+   * @param args - Owner, repo, issue_number, title, body, state, labels, assignees.
+   * @returns Updated issue data.
+   * @throws Error on 404 if issue not found.
+   * Required scopes: repo
+   */
   private async updateIssue(args: any) {
+    if (!args.owner || !args.repo || !args.issue_number) throw new Error("Owner, repo, and issue_number are required");
     const response = await this.octokit.issues.update({
       owner: args.owner,
       repo: args.repo,
-      issue_number: parseInt(args.sha), // Using sha as issue number
+      issue_number: args.issue_number,
       title: args.title,
       body: args.body,
-      state: args.state as any,
+      state: args.state,
       labels: args.labels,
       assignees: args.assignees
     });
-
     return {
       success: true,
       action: "update_issue",
       issue: response.data,
-      message: `Issue #${args.sha} updated successfully`
+      message: `Issue #${args.issue_number} updated successfully`
     };
   }
 
+  /**
+   * Closes an issue.
+   * @param args - Owner, repo, issue_number.
+   * @returns Closed issue data.
+   * @throws Error on 404 if issue not found.
+   * Required scopes: repo
+   */
   private async closeIssue(args: any) {
+    if (!args.owner || !args.repo || !args.issue_number) throw new Error("Owner, repo, and issue_number are required");
     const response = await this.octokit.issues.update({
       owner: args.owner,
       repo: args.repo,
-      issue_number: parseInt(args.sha),
+      issue_number: args.issue_number,
       state: 'closed'
     });
-
     return {
       success: true,
       action: "close_issue",
       issue: response.data,
-      message: `Issue #${args.sha} closed successfully`
+      message: `Issue #${args.issue_number} closed successfully`
     };
   }
 
+  /**
+   * Lists issues in a repository.
+   * @param args - Owner, repo, state, page, perPage.
+   * @returns List of issues.
+   * @throws Error on 403 if unauthorized.
+   * Required scopes: repo
+   */
   private async listIssues(args: any) {
-    const response = await this.octokit.issues.listForRepo({
+    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
+    const response = await this.octokit.paginate(this.octokit.issues.listForRepo, {
       owner: args.owner,
       repo: args.repo,
-      state: args.state as any || 'open',
-      page: args.page || 1,
-      per_page: Math.min(args.perPage || 30, 100)
+      state: args.state || 'open',
+      page: args.page,
+      per_page: args.perPage
     });
-
     return {
       success: true,
       action: "list_issues",
-      issues: response.data,
-      count: response.data.length
+      issues: response,
+      count: response.length
     };
   }
 
+  /**
+   * Retrieves an issue's details.
+   * @param args - Owner, repo, issue_number.
+   * @returns Issue data.
+   * @throws Error on 404 if issue not found.
+   * Required scopes: repo
+   */
   private async getIssue(args: any) {
+    if (!args.owner || !args.repo || !args.issue_number) throw new Error("Owner, repo, and issue_number are required");
     const response = await this.octokit.issues.get({
       owner: args.owner,
       repo: args.repo,
-      issue_number: parseInt(args.sha)
+      issue_number: args.issue_number
     });
-
     return {
       success: true,
       action: "get_issue",
@@ -877,24 +1148,38 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Adds a comment to an issue.
+   * @param args - Owner, repo, issue_number, body.
+   * @returns Comment data.
+   * @throws Error on 404 if issue not found.
+   * Required scopes: repo
+   */
   private async addIssueComment(args: any) {
+    if (!args.owner || !args.repo || !args.issue_number || !args.body) throw new Error("Owner, repo, issue_number, and body are required");
     const response = await this.octokit.issues.createComment({
       owner: args.owner,
       repo: args.repo,
-      issue_number: parseInt(args.sha),
+      issue_number: args.issue_number,
       body: args.body
     });
-
     return {
       success: true,
       action: "add_issue_comment",
       comment: response.data,
-      message: `Comment added to issue #${args.sha}`
+      message: `Comment added to issue #${args.issue_number}`
     };
   }
 
-  // Pull Request operations
+  /**
+   * Creates a pull request.
+   * @param args - Owner, repo, title, body, head, base, draft.
+   * @returns Pull request data.
+   * @throws Error on 422 if branches invalid.
+   * Required scopes: repo
+   */
   private async createPullRequest(args: any) {
+    if (!args.owner || !args.repo || !args.title || !args.head || !args.base) throw new Error("Owner, repo, title, head, and base are required");
     const response = await this.octokit.pulls.create({
       owner: args.owner,
       repo: args.repo,
@@ -902,9 +1187,8 @@ export class GithubTool {
       body: args.body,
       head: args.head,
       base: args.base,
-      draft: args.draft || false
+      draft: args.draft ?? false
     });
-
     return {
       success: true,
       action: "create_pull_request",
@@ -913,81 +1197,116 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Updates a pull request.
+   * @param args - Owner, repo, pull_number, title, body, state.
+   * @returns Updated pull request data.
+   * @throws Error on 404 if PR not found.
+   * Required scopes: repo
+   */
   private async updatePullRequest(args: any) {
+    if (!args.owner || !args.repo || !args.pull_number) throw new Error("Owner, repo, and pull_number are required");
     const response = await this.octokit.pulls.update({
       owner: args.owner,
       repo: args.repo,
-      pull_number: parseInt(args.sha),
+      pull_number: args.pull_number,
       title: args.title,
       body: args.body,
-      state: args.state as any
+      state: args.state
     });
-
     return {
       success: true,
       action: "update_pull_request",
       pullRequest: response.data,
-      message: `Pull request #${args.sha} updated successfully`
+      message: `Pull request #${args.pull_number} updated successfully`
     };
   }
 
+  /**
+   * Merges a pull request.
+   * @param args - Owner, repo, pull_number, title, message.
+   * @returns Merge data.
+   * @throws Error on 409 if merge conflicts.
+   * Required scopes: repo
+   */
   private async mergePullRequest(args: any) {
+    if (!args.owner || !args.repo || !args.pull_number) throw new Error("Owner, repo, and pull_number are required");
     const response = await this.octokit.pulls.merge({
       owner: args.owner,
       repo: args.repo,
-      pull_number: parseInt(args.sha),
+      pull_number: args.pull_number,
       commit_title: args.title,
       commit_message: args.message
     });
-
     return {
       success: true,
       action: "merge_pull_request",
       merge: response.data,
-      message: `Pull request #${args.sha} merged successfully`
+      message: `Pull request #${args.pull_number} merged successfully`
     };
   }
 
+  /**
+   * Closes a pull request.
+   * @param args - Owner, repo, pull_number.
+   * @returns Closed pull request data.
+   * @throws Error on 404 if PR not found.
+   * Required scopes: repo
+   */
   private async closePullRequest(args: any) {
+    if (!args.owner || !args.repo || !args.pull_number) throw new Error("Owner, repo, and pull_number are required");
     const response = await this.octokit.pulls.update({
       owner: args.owner,
       repo: args.repo,
-      pull_number: parseInt(args.sha),
+      pull_number: args.pull_number,
       state: 'closed'
     });
-
     return {
       success: true,
       action: "close_pull_request",
       pullRequest: response.data,
-      message: `Pull request #${args.sha} closed successfully`
+      message: `Pull request #${args.pull_number} closed successfully`
     };
   }
 
+  /**
+   * Lists pull requests in a repository.
+   * @param args - Owner, repo, state, page, perPage.
+   * @returns List of pull requests.
+   * @throws Error on 403 if unauthorized.
+   * Required scopes: repo
+   */
   private async listPullRequests(args: any) {
-    const response = await this.octokit.pulls.list({
+    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
+    const response = await this.octokit.paginate(this.octokit.pulls.list, {
       owner: args.owner,
       repo: args.repo,
-      state: args.state as any || 'open',
-      page: args.page || 1,
-      per_page: Math.min(args.perPage || 30, 100)
+      state: args.state || 'open',
+      page: args.page,
+      per_page: args.perPage
     });
-
     return {
       success: true,
       action: "list_pull_requests",
-      pullRequests: response.data,
-      count: response.data.length
+      pullRequests: response,
+      count: response.length
     };
   }
 
+  /**
+   * Retrieves a pull request's details.
+   * @param args - Owner, repo, pull_number.
+   * @returns Pull request data.
+   * @throws Error on 404 if PR not found.
+   * Required scopes: repo
+   */
   private async getPullRequest(args: any) {
+    if (!args.owner || !args.repo || !args.pull_number) throw new Error("Owner, repo, and pull_number are required");
     const response = await this.octokit.pulls.get({
       owner: args.owner,
       repo: args.repo,
-      pull_number: parseInt(args.sha)
+      pull_number: args.pull_number
     });
-
     return {
       success: true,
       action: "get_pull_request",
@@ -995,19 +1314,25 @@ export class GithubTool {
     };
   }
 
-  // Release operations
+  /**
+   * Creates a release.
+   * @param args - Owner, repo, tag, title, body, draft, prerelease, generateReleaseNotes.
+   * @returns Release data.
+   * @throws Error on 422 if tag invalid.
+   * Required scopes: repo
+   */
   private async createRelease(args: any) {
+    if (!args.owner || !args.repo || !args.tag) throw new Error("Owner, repo, and tag are required");
     const response = await this.octokit.repos.createRelease({
       owner: args.owner,
       repo: args.repo,
       tag_name: args.tag,
       name: args.title,
       body: args.body,
-      draft: args.draft || false,
-      prerelease: args.prerelease || false,
-      generate_release_notes: args.generateReleaseNotes || false
+      draft: args.draft ?? false,
+      prerelease: args.prerelease ?? false,
+      generate_release_notes: args.generateReleaseNotes ?? false
     });
-
     return {
       success: true,
       action: "create_release",
@@ -1016,17 +1341,24 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Updates a release.
+   * @param args - Owner, repo, release_id, title, body, draft, prerelease.
+   * @returns Updated release data.
+   * @throws Error on 404 if release not found.
+   * Required scopes: repo
+   */
   private async updateRelease(args: any) {
+    if (!args.owner || !args.repo || !args.release_id) throw new Error("Owner, repo, and release_id are required");
     const response = await this.octokit.repos.updateRelease({
       owner: args.owner,
       repo: args.repo,
-      release_id: parseInt(args.sha),
+      release_id: args.release_id,
       name: args.title,
       body: args.body,
       draft: args.draft,
       prerelease: args.prerelease
     });
-
     return {
       success: true,
       action: "update_release",
@@ -1035,13 +1367,20 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Deletes a release.
+   * @param args - Owner, repo, release_id.
+   * @returns Success message.
+   * @throws Error on 404 if release not found.
+   * Required scopes: repo
+   */
   private async deleteRelease(args: any) {
+    if (!args.owner || !args.repo || !args.release_id) throw new Error("Owner, repo, and release_id are required");
     await this.octokit.repos.deleteRelease({
       owner: args.owner,
       repo: args.repo,
-      release_id: parseInt(args.sha)
+      release_id: args.release_id
     });
-
     return {
       success: true,
       action: "delete_release",
@@ -1049,29 +1388,43 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Lists releases in a repository.
+   * @param args - Owner, repo, page, perPage.
+   * @returns List of releases.
+   * @throws Error on 403 if unauthorized.
+   * Required scopes: repo
+   */
   private async listReleases(args: any) {
-    const response = await this.octokit.repos.listReleases({
+    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
+    const response = await this.octokit.paginate(this.octokit.repos.listReleases, {
       owner: args.owner,
       repo: args.repo,
-      page: args.page || 1,
-      per_page: Math.min(args.perPage || 30, 100)
+      page: args.page,
+      per_page: args.perPage
     });
-
     return {
       success: true,
       action: "list_releases",
-      releases: response.data,
-      count: response.data.length
+      releases: response,
+      count: response.length
     };
   }
 
+  /**
+   * Retrieves a release's details.
+   * @param args - Owner, repo, release_id.
+   * @returns Release data.
+   * @throws Error on 404 if release not found.
+   * Required scopes: repo
+   */
   private async getRelease(args: any) {
+    if (!args.owner || !args.repo || !args.release_id) throw new Error("Owner, repo, and release_id are required");
     const response = await this.octokit.repos.getRelease({
       owner: args.owner,
       repo: args.repo,
-      release_id: parseInt(args.sha)
+      release_id: args.release_id
     });
-
     return {
       success: true,
       action: "get_release",
@@ -1079,12 +1432,17 @@ export class GithubTool {
     };
   }
 
-  // User/Organization operations
+  /**
+   * Retrieves user details.
+   * @param args - Username (optional, defaults to authenticated user).
+   * @returns User data.
+   * @throws Error on 404 if user not found.
+   * Required scopes: user (for authenticated user) or none (for public user data)
+   */
   private async getUser(args: any) {
     const response = args.username 
       ? await this.octokit.users.getByUsername({ username: args.username })
       : await this.octokit.users.getAuthenticated();
-
     return {
       success: true,
       action: "get_user",
@@ -1092,28 +1450,42 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Lists repositories for a user.
+   * @param args - Username, page, perPage.
+   * @returns List of repositories.
+   * @throws Error on 403 if unauthorized.
+   * Required scopes: repo
+   */
   private async listUserRepositories(args: any) {
-    const response = await this.octokit.repos.listForUser({
+    if (!args.username) throw new Error("Username is required");
+    const response = await this.octokit.paginate(this.octokit.repos.listForUser, {
       username: args.username,
-      page: args.page || 1,
-      per_page: Math.min(args.perPage || 30, 100),
+      page: args.page,
+      per_page: args.perPage,
       sort: 'updated',
       direction: 'desc'
     });
-
     return {
       success: true,
       action: "list_user_repos",
-      repositories: response.data,
-      count: response.data.length
+      repositories: response,
+      count: response.length
     };
   }
 
+  /**
+   * Retrieves organization details.
+   * @param args - Owner (organization name).
+   * @returns Organization data.
+   * @throws Error on 404 if organization not found.
+   * Required scopes: admin:org
+   */
   private async getOrganization(args: any) {
+    if (!args.owner) throw new Error("Owner is required");
     const response = await this.octokit.orgs.get({
       org: args.owner
     });
-
     return {
       success: true,
       action: "get_organization",
@@ -1121,32 +1493,45 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Lists repositories for an organization.
+   * @param args - Owner (organization), page, perPage.
+   * @returns List of repositories.
+   * @throws Error on 403 if unauthorized.
+   * Required scopes: repo
+   */
   private async listOrganizationRepositories(args: any) {
-    const response = await this.octokit.repos.listForOrg({
+    if (!args.owner) throw new Error("Owner is required");
+    const response = await this.octokit.paginate(this.octokit.repos.listForOrg, {
       org: args.owner,
-      page: args.page || 1,
-      per_page: Math.min(args.perPage || 30, 100),
+      page: args.page,
+      per_page: args.perPage,
       sort: 'updated',
       direction: 'desc'
     });
-
     return {
       success: true,
       action: "list_org_repos",
-      repositories: response.data,
-      count: response.data.length
+      repositories: response,
+      count: response.length
     };
   }
 
-  // Collaboration operations
+  /**
+   * Adds a collaborator to a repository.
+   * @param args - Owner, repo, username, permission.
+   * @returns Success message.
+   * @throws Error on 403 if unauthorized or 422 if invalid.
+   * Required scopes: repo
+   */
   private async addCollaborator(args: any) {
+    if (!args.owner || !args.repo || !args.username) throw new Error("Owner, repo, and username are required");
     await this.octokit.repos.addCollaborator({
       owner: args.owner,
       repo: args.repo,
       username: args.username,
       permission: args.permission || 'push'
     });
-
     return {
       success: true,
       action: "add_collaborator",
@@ -1154,13 +1539,20 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Removes a collaborator from a repository.
+   * @param args - Owner, repo, username.
+   * @returns Success message.
+   * @throws Error on 403 if unauthorized.
+   * Required scopes: repo
+   */
   private async removeCollaborator(args: any) {
+    if (!args.owner || !args.repo || !args.username) throw new Error("Owner, repo, and username are required");
     await this.octokit.repos.removeCollaborator({
       owner: args.owner,
       repo: args.repo,
       username: args.username
     });
-
     return {
       success: true,
       action: "remove_collaborator",
@@ -1168,24 +1560,38 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Lists collaborators in a repository.
+   * @param args - Owner, repo, page, perPage.
+   * @returns List of collaborators.
+   * @throws Error on 403 if unauthorized.
+   * Required scopes: repo
+   */
   private async listCollaborators(args: any) {
-    const response = await this.octokit.repos.listCollaborators({
+    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
+    const response = await this.octokit.paginate(this.octokit.repos.listCollaborators, {
       owner: args.owner,
       repo: args.repo,
-      page: args.page || 1,
-      per_page: Math.min(args.perPage || 30, 100)
+      page: args.page,
+      per_page: args.perPage
     });
-
     return {
       success: true,
       action: "list_collaborators",
-      collaborators: response.data,
-      count: response.data.length
+      collaborators: response,
+      count: response.length
     };
   }
 
-  // Webhook operations
+  /**
+   * Creates a webhook for a repository.
+   * @param args - Owner, repo, webhookUrl, webhookEvents.
+   * @returns Webhook data.
+   * @throws Error on 422 if invalid URL or events.
+   * Required scopes: repo:hook
+   */
   private async createWebhook(args: any) {
+    if (!args.owner || !args.repo || !args.webhookUrl) throw new Error("Owner, repo, and webhookUrl are required");
     const response = await this.octokit.repos.createWebhook({
       owner: args.owner,
       repo: args.repo,
@@ -1195,7 +1601,6 @@ export class GithubTool {
       },
       events: args.webhookEvents || ['push']
     });
-
     return {
       success: true,
       action: "create_webhook",
@@ -1204,77 +1609,47 @@ export class GithubTool {
     };
   }
 
+  /**
+   * Deletes a webhook.
+   * @param args - Owner, repo, hook_id.
+   * @returns Success message.
+   * @throws Error on 404 if webhook not found.
+   * Required scopes: repo:hook
+   */
   private async deleteWebhook(args: any) {
+    if (!args.owner || !args.repo || !args.hook_id) throw new Error("Owner, repo, and hook_id are required");
     await this.octokit.repos.deleteWebhook({
       owner: args.owner,
       repo: args.repo,
-      hook_id: parseInt(args.sha)
+      hook_id: args.hook_id
     });
-
     return {
       success: true,
       action: "delete_webhook",
-      message: `Webhook ${args.sha} deleted successfully`
+      message: `Webhook ${args.hook_id} deleted successfully`
     };
   }
 
+  /**
+   * Lists webhooks in a repository.
+   * @param args - Owner, repo, page, perPage.
+   * @returns List of webhooks.
+   * @throws Error on 403 if unauthorized.
+   * Required scopes: repo:hook
+   */
   private async listWebhooks(args: any) {
-    const response = await this.octokit.repos.listWebhooks({
+    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
+    const response = await this.octokit.paginate(this.octokit.repos.listWebhooks, {
       owner: args.owner,
       repo: args.repo,
-      page: args.page || 1,
-      per_page: Math.min(args.perPage || 30, 100)
+      page: args.page,
+      per_page: args.perPage
     });
-
     return {
       success: true,
       action: "list_webhooks",
-      webhooks: response.data,
-      count: response.data.length
+      webhooks: response,
+      count: response.length
     };
   }
 }
-
-/* Usage example:
-const githubTool = new GithubTool('your-github-token');
-
-// Create a repository
-const createRepoResult = await githubTool.execute({
-  action: 'create_repo',
-  repo: 'my-new-repo',
-  description: 'A test repository',
-  private: false,
-  autoInit: true
-});
-
-// Create a file
-const createFileResult = await githubTool.execute({
-  action: 'create_file',
-  owner: 'username',
-  repo: 'my-new-repo',
-  path: 'README.md',
-  content: '# My New Repository\n\nThis is a test repository.',
-  message: 'Initial commit'
-});
-
-// Create an issue
-const createIssueResult = await githubTool.execute({
-  action: 'create_issue',
-  owner: 'username',
-  repo: 'my-new-repo',
-  title: 'Bug Report',
-  body: 'Found a bug in the application',
-  labels: ['bug', 'high-priority']
-});
-
-// Create a pull request
-const createPRResult = await githubTool.execute({
-  action: 'create_pull_request',
-  owner: 'username',
-  repo: 'my-new-repo',
-  title: 'Fix critical bug',
-  body: 'This PR fixes the critical bug reported in issue #1',
-  head: 'feature-branch',
-  base: 'main'
-});
-*/
