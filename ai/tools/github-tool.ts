@@ -401,9 +401,9 @@ export class GithubTool {
       }
     } catch (error: unknown) {
       console.error("❌ GitHub operation failed:", error);
-      const errDetails = error instanceof Error ? { message: error.message, stack: error.stack } : { message: String(error) };
+      let errDetails: { message: string; stack?: string; apiResponse?: { status: number; data: any } } = error instanceof Error ? { message: error.message, stack: error.stack } : { message: String(error) };
       if ((error as any).response) {
-        errDetails['apiResponse'] = {
+        errDetails.apiResponse = {
           status: (error as any).response.status,
           data: (error as any).response.data
         };
