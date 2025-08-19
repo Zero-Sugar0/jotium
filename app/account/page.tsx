@@ -38,6 +38,10 @@ const apiTools = [
   { name: "Trello", keyName: "trelloApiKey", placeholder: "key..." },
   { name: "Trello Token", keyName: "trelloToken", placeholder: "token..." },
   { name: "Linear", keyName: "linearApiKey", placeholder: "lin_api_..." },
+  { name: "n8n Base URL", keyName: "n8nBaseUrl", placeholder: "https://your-n8n-instance.com" },
+  { name: "n8n API Key", keyName: "n8nApiKey", placeholder: "n8n_..." },
+  { name: "Zapier API Key", keyName: "zapierApiKey", placeholder: "sk_..." },
+  { name: "Zapier Webhook URL", keyName: "zapierWebhookUrl", placeholder: "https://hooks.zapier.com/hooks/catch/..." },
 ];
 
 // List of OAuth providers

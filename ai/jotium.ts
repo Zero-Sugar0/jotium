@@ -34,6 +34,10 @@ import { LinearManagementTool } from './tools/linear-tool';
 import { DataVisualizationTool } from './tools/dataviz-tool';
 import { DuckDuckGoSearchTool } from './tools/DuckDuckGoSearchTool';
 import { SerperSearchTool } from './tools/SerperSearchTool';
+import { LangSearchTool } from './tools/LangSearchTool';
+import { N8NTool } from './tools/N8NTool';
+import { ZapierTool } from './tools/ZapierTool';
+import { SerpstackTool } from './tools/SerpstackTool';
 // Google OAuth Tools
 import { GmailTool } from './tools/GmailTool';
 import { GoogleCalendarTool } from './tools/GoogleCalendarTool';
@@ -101,6 +105,12 @@ export class AIAgent {
     }
     if (process.env.DUFFEL_API_KEY) {
       this.tools.set("flight_booking", new DuffelFlightTool({ apiKey: process.env.DUFFEL_API_KEY }));
+    }
+    if (process.env.LANGSEARCH_API_KEY) {
+      this.tools.set("langsearch_search", new LangSearchTool(process.env.LANGSEARCH_API_KEY));
+    }
+    if (process.env.SERPSTACK_API_KEY) {
+      this.tools.set("serpstack_search", new SerpstackTool(process.env.SERPSTACK_API_KEY));
     }
     
     // --- Group 2: Tools without API Keys ---
@@ -203,6 +213,20 @@ export class AIAgent {
     if (linearKey) {
       const linearTool = new LinearManagementTool(linearKey);
       this.tools.set("linear_management", linearTool);
+    }
+
+    // n8n Tool
+    const n8nBaseUrl = await getKey("n8n Base URL", "N8N_BASE_URL");
+    const n8nApiKey = await getKey("n8n API Key", "N8N_API_KEY");
+    if (n8nBaseUrl && n8nApiKey) {
+      this.tools.set("n8n_automation", new N8NTool(n8nBaseUrl, n8nApiKey));
+    }
+
+    // Zapier Tool
+    const zapierApiKey = await getKey("Zapier API Key", "ZAPIER_API_KEY");
+    const zapierWebhookUrl = await getKey("Zapier Webhook URL", "ZAPIER_WEBHOOK_URL");
+    if (zapierApiKey || zapierWebhookUrl) {
+      this.tools.set("zapier_webhook", new ZapierTool(zapierApiKey, zapierWebhookUrl));
     }
 
     // --- Group 4: OAuth Tools (require OAuth connection) ---
@@ -462,9 +486,13 @@ NEVER MENTION YOUR TOOLS NAME IN A CODE FORMAT TO THE USER EVERY AND NEVER SAY T
   }
 
   private generateCapabilityMap(): string {
-    const toolNames = Array.from(this.tools.keys());
-    if (toolNames.length === 0) return '- Tools are initializing...';
-    return toolNames.map((n) => `- ${n}`).join('\n');
+    const capabilities: string[] = [];
+    for (const [name, tool] of this.tools) {
+      const definition = tool.getDefinition();
+      capabilities.push(`- **${definition.name}**: ${definition.description}`);
+    }
+    if (capabilities.length === 0) return '- Tools are initializing...';
+    return capabilities.join('\n');
   }
 
   private updateTemporalContext(): void {
@@ -716,4 +744,3 @@ NEVER MENTION YOUR TOOLS NAME IN A CODE FORMAT TO THE USER EVERY AND NEVER SAY T
     }
   }
 }
-

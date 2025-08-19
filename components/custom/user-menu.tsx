@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { ThemeToggle } from "./theme-toggle";
+import { AnimatedThemeToggler } from "../magicui/animated-theme-toggler";
 
 interface UserMenuProps {
   session: Session;
@@ -36,7 +37,7 @@ export function UserMenu({ session, messageCount, messageLimit }: UserMenuProps)
             </AvatarFallback>
           </Avatar>
           <span className="ml-2 text-sm font-medium hidden sm:block">
-            {session.user?.email?.split('@')[0] || 'User'}
+            {session.user?.name?.split(' ')[0] || session.user?.email?.split('@')[0] || 'User'}
           </span>
         </Button>
       </DropdownMenuTrigger>
@@ -44,13 +45,16 @@ export function UserMenu({ session, messageCount, messageLimit }: UserMenuProps)
         align="end"
         className="w-56 bg-background/95 backdrop-blur-md border border-border/50 shadow-lg"
       >
-        <div className="px-3 py-2 border-b border-border/50">
-          <p className="text-sm font-medium text-foreground">
-            {session.user?.email?.split('@')[0] || 'User'}
-          </p>
-          <p className="text-xs text-muted-foreground truncate">
-            {session.user?.email}
-          </p>
+        <div className="px-3 py-2 border-b border-border/50 flex flex-row items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-foreground">
+              {session.user?.name?.split(' ')[0] || session.user?.email?.split('@')[0] || 'User'}
+            </p>
+            <p className="text-xs text-muted-foreground truncate">
+              {session.user?.email}
+            </p>
+          </div>
+          <AnimatedThemeToggler className="w-fit h-fit p-2 rounded-full bg-secondary/50 hover:bg-secondary transition-colors duration-200" />
         </div>
         <div className="px-3 py-2 border-b border-border/50">
           <p className="text-xs text-muted-foreground">
