@@ -13,7 +13,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { ThemeToggle } from "./theme-toggle";
 import { AnimatedThemeToggler } from "../magicui/animated-theme-toggler";
 
 interface UserMenuProps {
@@ -61,9 +60,6 @@ export function UserMenu({ session, messageCount, messageLimit }: UserMenuProps)
             Messages: {messageCount} / {messageLimit === Infinity ? "Unlimited" : messageLimit}
           </p>
         </div>
-        <DropdownMenuItem className="px-3 py-2 hover:bg-muted/50 transition-colors duration-200">
-          <ThemeToggle />
-        </DropdownMenuItem>
         <DropdownMenuItem
           className="p-0 z-50"
           onSelect={async (e) => {
