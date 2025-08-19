@@ -1,6 +1,6 @@
 //ai/tools/GoogleSheetsTool.ts
 import { FunctionDeclaration, Type } from "@google/genai";
-import { getDecryptedOAuthAccessToken } from "@/db/queries";
+import { getValidOAuthAccessToken } from "@/lib/oauth-refresh";
 
 type HeadersLike = Record<string, string>;
 
@@ -132,7 +132,7 @@ export class GoogleSheetsTool {
   async execute(args: any): Promise<any> {
     try {
       // Reuse Gmail OAuth token (unified Google service)
-      const accessToken = await getDecryptedOAuthAccessToken({ userId: this.userId, service: "gmail" });
+      const accessToken = await getValidOAuthAccessToken(this.userId, "gmail");
       if (!accessToken) {
         return { success: false, error: "Google OAuth connection (gmail) not found. Connect Google first." };
       }
@@ -324,7 +324,7 @@ export class GoogleSheetsTool {
    */
   async getRecentSpreadsheets(limit: number = 10): Promise<{ success: boolean; spreadsheets?: Array<{ spreadsheetId: string; title: string; modifiedTime: string }>, error?: string }> {
     try {
-      const accessToken = await getDecryptedOAuthAccessToken({ userId: this.userId, service: "gmail" });
+      const accessToken = await getValidOAuthAccessToken(this.userId, "gmail");
       if (!accessToken) {
         return { success: false, error: "Google OAuth connection (gmail) not found. Connect Google first." };
       }
@@ -351,7 +351,7 @@ export class GoogleSheetsTool {
    */
   async searchSpreadsheetsByName(searchTerm: string): Promise<{ success: boolean; spreadsheets?: Array<{ spreadsheetId: string; title: string; modifiedTime: string }>, error?: string }> {
     try {
-      const accessToken = await getDecryptedOAuthAccessToken({ userId: this.userId, service: "gmail" });
+      const accessToken = await getValidOAuthAccessToken(this.userId, "gmail");
       if (!accessToken) {
         return { success: false, error: "Google OAuth connection (gmail) not found. Connect Google first." };
       }
@@ -805,7 +805,7 @@ export class GoogleSheetsTool {
    */
   async getAllSheetIds(spreadsheetId: string): Promise<{ success: boolean; sheets?: Array<{ id: number; title: string; index: number }>, error?: string }> {
     try {
-      const accessToken = await getDecryptedOAuthAccessToken({ userId: this.userId, service: "gmail" });
+      const accessToken = await getValidOAuthAccessToken(this.userId, "gmail");
       if (!accessToken) {
         return { success: false, error: "Google OAuth connection (gmail) not found. Connect Google first." };
       }
@@ -836,7 +836,7 @@ export class GoogleSheetsTool {
    */
   async getSheetDimensions(spreadsheetId: string, sheetId: number): Promise<{ success: boolean; dimensions?: { rows: number; columns: number }, error?: string }> {
     try {
-      const accessToken = await getDecryptedOAuthAccessToken({ userId: this.userId, service: "gmail" });
+      const accessToken = await getValidOAuthAccessToken(this.userId, "gmail");
       if (!accessToken) {
         return { success: false, error: "Google OAuth connection (gmail) not found. Connect Google first." };
       }
@@ -885,7 +885,7 @@ export class GoogleSheetsTool {
    */
   async getAllSheetData(spreadsheetId: string, sheetTitle: string): Promise<{ success: boolean; data?: string[][], headers?: string[], error?: string }> {
     try {
-      const accessToken = await getDecryptedOAuthAccessToken({ userId: this.userId, service: "gmail" });
+      const accessToken = await getValidOAuthAccessToken(this.userId, "gmail");
       if (!accessToken) {
         return { success: false, error: "Google OAuth connection (gmail) not found. Connect Google first." };
       }
@@ -917,7 +917,7 @@ export class GoogleSheetsTool {
    */
   async createMultipleSheets(spreadsheetId: string, sheetTitles: string[]): Promise<{ success: boolean; createdSheets?: Array<{ sheetId: number; title: string }>, error?: string }> {
     try {
-      const accessToken = await getDecryptedOAuthAccessToken({ userId: this.userId, service: "gmail" });
+      const accessToken = await getValidOAuthAccessToken(this.userId, "gmail");
       if (!accessToken) {
         return { success: false, error: "Google OAuth connection (gmail) not found. Connect Google first." };
       }
