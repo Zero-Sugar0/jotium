@@ -80,7 +80,7 @@ export async function GET(
       clientId = process.env.SLACK_CLIENT_ID;
       clientSecret = process.env.SLACK_CLIENT_SECRET;
       tokenUrl = "https://slack.com/api/oauth.v2.access";
-      userInfoUrl = "https://slack.com/api/users.identity"; // Better endpoint for user info
+      userInfoUrl = "https://slack.com/api/users.identity";
       tokenRequestBody = new URLSearchParams({
         client_id: clientId || "",
         client_secret: clientSecret || "",
@@ -140,7 +140,18 @@ export async function GET(
     const accessToken = tokenData.access_token;
     const refreshToken = tokenData.refresh_token;
     const expiresIn = tokenData.expires_in;
-    const expiresAt = expiresIn ? new Date(Date.now() + expiresIn * 1000) : undefined;
+    
+    // CHANGED: Set expiration far in the future or null to prevent auto-expiration
+    // Only set actual expiration if we don't have a refresh token
+    let expiresAt: Date | null = null;
+    if (expiresIn && !refreshToken) {
+      // If no refresh token, set expiration but add extra buffer time
+      expiresAt = new Date(Date.now() + (expiresIn * 1000) + (24 * 60 * 60 * 1000)); // Add 24 hours buffer
+    } else if (expiresIn && refreshToken) {
+      // If we have refresh token, set a very far future date or null
+      expiresAt = null; // or new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)); // 1 year
+    }
+    
     const scope = tokenData.scope;
 
     if (!accessToken) {
@@ -168,7 +179,7 @@ export async function GET(
     } else if (service === "github") {
       const userRes = await fetch(userInfoUrl, {
         headers: {
-          Authorization: `Bearer ${accessToken}`, // Use Bearer instead of token
+          Authorization: `Bearer ${accessToken}`,
           "User-Agent": "OAuth-App",
           Accept: "application/vnd.github.v3+json"
         },
@@ -192,7 +203,6 @@ export async function GET(
         externalUserName = userData.data.username;
       }
     } else if (service === "slack") {
-      // Use the identity endpoint which works with user tokens
       const userRes = await fetch(userInfoUrl, {
         headers: { 
           Authorization: `Bearer ${accessToken}`,
@@ -208,7 +218,6 @@ export async function GET(
         }
       }
       
-      // Fallback to team info if user info not available
       if (!externalUserId && tokenData.team?.id) {
         externalUserId = tokenData.team.id;
         externalUserName = tokenData.team.name;
@@ -226,13 +235,13 @@ export async function GET(
       service,
       accessToken,
       refreshToken,
-      expiresAt: expiresAt || null,
+      expiresAt, // This will now be null or far future
       scope,
       externalUserId,
       externalUserName,
     });
 
-    console.log(`OAuth connection saved for ${service}`);
+    console.log(`OAuth connection saved for ${service} with ${refreshToken ? 'refresh token' : 'no refresh token'}`);
 
     // Clear the state cookie
     const response = NextResponse.redirect(`${process.env.NEXTAUTH_URL}/account?oauth_success=true`);
