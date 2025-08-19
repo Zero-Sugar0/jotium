@@ -14,7 +14,7 @@ export async function GET(
 
   const { service } = params;
   const nextAuthUrl = process.env.NEXTAUTH_URL;
-  console.log("DEBUG: NEXTAUTH_URL in initiate route:", nextAuthUrl); // Added for debugging
+  console.log("DEBUG: NEXTAUTH_URL in initiate route:", nextAuthUrl);
   if (!nextAuthUrl) {
     console.error("NEXTAUTH_URL environment variable is not set.");
     return new Response("Server configuration error", { status: 500 });
@@ -57,8 +57,8 @@ export async function GET(
         redirect_uri: redirectUri,
         response_type: "code",
         scope: scope,
-        access_type: "offline",
-        prompt: "consent",
+        access_type: "offline", // IMPORTANT: This ensures we get a refresh token
+        prompt: "consent",      // IMPORTANT: This forces consent screen to ensure refresh token
         state: state,
         include_granted_scopes: "true"
       });
@@ -68,8 +68,8 @@ export async function GET(
 
     case "github":
       clientId = process.env.GITHUB_CLIENT_ID;
-      // Updated scopes for GitHub
-      scope = "user:email";
+      // GitHub tokens don't expire by default
+      scope = "user:email repo"; // Added repo scope for more functionality
       if (!clientId) {
         console.error("GITHUB_CLIENT_ID environment variable is not set.");
         return new Response("GitHub OAuth configuration error", { status: 500 });
@@ -88,8 +88,8 @@ export async function GET(
 
     case "slack":
       clientId = process.env.SLACK_CLIENT_ID;
-      // Updated scopes for Slack OAuth 2.0
-      scope = "users:read users:read.email";
+      // Slack tokens typically don't expire
+      scope = "users:read users:read.email channels:read chat:write";
       if (!clientId) {
         console.error("SLACK_CLIENT_ID environment variable is not set.");
         return new Response("Slack OAuth configuration error", { status: 500 });
@@ -108,24 +108,24 @@ export async function GET(
     
     case "x":
       clientId = process.env.X_CLIENT_ID;
-      // Updated comprehensive scopes for X/Twitter API v2
+      // IMPORTANT: Added offline.access scope for refresh tokens
       scope = [
-        "tweet.read",           // Read tweets
-        "tweet.write",          // Post, delete tweets
-        "users.read",           // Read user profiles
-        "follows.read",         // Read following/followers (needed for some user operations)
-        "follows.write",        // Follow/unfollow users
-        "like.read",            // Read likes
-        "like.write",           // Like/unlike tweets  
-        "list.read",            // Read lists (useful for advanced features)
-        "space.read",           // Read Spaces (if you want to support this)
-        "mute.read",            // Read muted accounts
-        "mute.write",           // Mute/unmute accounts
-        "block.read",           // Read blocked accounts
-        "block.write",          // Block/unblock accounts
-        "bookmark.read",        // Read bookmarks
-        "bookmark.write",       // Add/remove bookmarks
-        "offline.access"        // Refresh token capability
+        "tweet.read",
+        "tweet.write",
+        "users.read",
+        "follows.read",
+        "follows.write",
+        "like.read",
+        "like.write",
+        "list.read",
+        "space.read",
+        "mute.read",
+        "mute.write",
+        "block.read",
+        "block.write",
+        "bookmark.read",
+        "bookmark.write",
+        "offline.access"        // IMPORTANT: This enables refresh tokens
       ].join(" ");
 
       if (!clientId) {

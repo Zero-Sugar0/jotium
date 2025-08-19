@@ -242,3 +242,8 @@ body::-webkit-scrollbar-thumb {
     border-color: hsl(var(--primary) / 0.4);
   }
 }
+
+::view-transition-old(root), ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}

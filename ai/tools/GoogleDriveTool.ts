@@ -1,6 +1,6 @@
 //ai/tools/GoogleDriveTool.ts
 import { FunctionDeclaration, Type } from "@google/genai";
-import { getDecryptedOAuthAccessToken } from "@/db/queries";
+import { getValidOAuthAccessToken } from "@/lib/oauth-refresh";
 
 export class GoogleDriveTool {
   private userId: string;
@@ -104,10 +104,7 @@ export class GoogleDriveTool {
 
   async execute(args: any): Promise<any> {
     try {
-      const accessToken = await getDecryptedOAuthAccessToken({ 
-        userId: this.userId, 
-        service: "gmail" // Using gmail service for Google OAuth
-      });
+      const accessToken = await getValidOAuthAccessToken(this.userId, "gmail");
 
       if (!accessToken) {
         return {

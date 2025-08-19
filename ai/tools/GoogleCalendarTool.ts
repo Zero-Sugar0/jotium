@@ -1,6 +1,6 @@
 //ai/tools/GoogleCalendarTool.ts
 import { FunctionDeclaration, Type } from "@google/genai";
-import { getDecryptedOAuthAccessToken } from "@/db/queries";
+import { getValidOAuthAccessToken } from "@/lib/oauth-refresh";
 
 export class GoogleCalendarTool {
   private userId: string;
@@ -147,15 +147,12 @@ export class GoogleCalendarTool {
 
   async execute(args: any): Promise<any> {
     try {
-      const accessToken = await getDecryptedOAuthAccessToken({ 
-        userId: this.userId, 
-        service: "gmail" // Using gmail service for Google OAuth
-      });
+      const accessToken = await getValidOAuthAccessToken(this.userId, "gmail");
 
       if (!accessToken) {
         return {
           success: false,
-          error: "Google OAuth connection not found. Please connect your Google account first."
+          error: "Google OAuth connection not found or token could not be refreshed. Please reconnect your Google account."
         };
       }
 
