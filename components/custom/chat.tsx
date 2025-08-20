@@ -259,7 +259,7 @@ className="flex-1 overflow-y-auto custom-scrollbar pb-24 sm:pb-32"
           {/* Responsive padding with stable inner container */}
           <div className="px-3 sm:px-5 md:px-7 lg:mx-[132px] lg:px-10 xl:px-14 2xl:px-18">
             {/* Fixed max-width content area - This ensures stable layout */}
-            <div className="max-w-2xl mx-auto layout-stable">
+            <div className="max-w-4xl mx-auto layout-stable">
               <AnimatePresence mode="popLayout">
                 {loadingMore && (
                   <div className="text-center py-1.5 text-sm text-muted-foreground">
