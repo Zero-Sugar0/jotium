@@ -127,12 +127,9 @@ export async function refreshOAuthToken(userId: string, service: string): Promis
     const newRefreshToken = tokenData.refresh_token || refreshToken; // Use new refresh token or keep the old one
     const expiresIn = tokenData.expires_in;
     
-    // Set far future expiration or null
-    let expiresAt: Date | null = null;
-    if (expiresIn) {
-      // Set expiration far in the future to avoid frequent refreshes
-      expiresAt = null; // or new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)); // 1 year
-    }
+    // ENSURE: Never expire tokens - always set expiresAt to null
+    // This ensures credentials remain valid until user manually disconnects
+    const expiresAt: Date | null = null;
 
     // Update the connection with new tokens
     await saveOAuthConnection({
@@ -155,22 +152,14 @@ export async function refreshOAuthToken(userId: string, service: string): Promis
   }
 }
 
-// Helper function to get a valid access token (refresh if needed)
+// Helper function to get a valid access token (never expires until manual disconnect)
 export async function getValidOAuthAccessToken(userId: string, service: string): Promise<string | null> {
   const connection = await getOAuthConnection({ userId, service });
   if (!connection) {
     return null;
   }
 
-  // Check if token is expired (if expiration is set)
-  const now = new Date();
-  const needsRefresh = connection.expiresAt && connection.expiresAt <= now;
-
-  if (needsRefresh) {
-    console.log(`Token expired for ${service}, attempting refresh`);
-    return await refreshOAuthToken(userId, service);
-  }
-
-  // Token is still valid, return it
+  // ENSURE: Never check expiration since we want permanent credentials
+  // Always return the access token regardless of any expiration
   return await getDecryptedOAuthAccessToken({ userId, service });
 }

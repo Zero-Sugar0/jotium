@@ -185,6 +185,23 @@ export const Message = ({
                 prose-headings:text-base md:prose-headings:text-sm lg:prose-headings:text-sm
                 prose-code:text-xs md:prose-code:text-xs lg:prose-code:text-xs
                 
+                /* Tighter inline code styling */
+                prose-code:bg-muted/60
+                prose-code:px-1
+                prose-code:py-0.5
+                prose-code:rounded-md
+                prose-code:border-0
+                prose-code:font-mono
+                prose-code:font-medium
+                
+                /* Tighter link styling */
+                prose-a:text-primary
+                prose-a:underline-offset-2
+                prose-a:decoration-1
+                prose-a:decoration-primary/50
+                hover:prose-a:decoration-primary
+                prose-a:transition-colors
+                
                 /* Prevent horizontal overflow and ensure full width */
                 prose-pre:overflow-x-auto
                 prose-pre:max-w-full
