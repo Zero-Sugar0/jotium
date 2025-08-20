@@ -158,7 +158,7 @@ export function MultimodalInput({
   };
 
   const handleFileChange = useCallback(
-    async (event: ChangeEvent<HTMLInputElement>) => {
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
       const files = Array.from(event.target.files || []);
 
       setUploadQueue(files.map((file) => file.name));
@@ -198,184 +198,186 @@ export function MultimodalInput({
   const hasContent = input.trim().length > 0 || attachments.length > 0;
 
   return (
-    <div className="relative w-full flex flex-col gap-1 sm:gap-1">
-      {/* Suggested Actions - Responsive grid */}
-      <AnimatePresence>
-        {messages.length === 0 &&
-          attachments.length === 0 &&
-          uploadQueue.length === 0 && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 w-full"
-            >
-              {suggestedActions.map((suggestedAction, index) => (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 * index }}
-                  key={index}
-                  className="block"
-                >
-                  <button
-                    onClick={() => {
-                      setInput(suggestedAction.action);
-                      textareaRef.current?.focus();
-                    }}
-                    className="group w-full text-left bg-background/60 backdrop-blur-sm border border-border/50 hover:border-border transition-all duration-200 rounded-lg p-2 hover:bg-muted/50 hover:shadow-sm hover:-translate-y-0.5"
+    <div className="w-full flex justify-center">
+      <div className="relative w-full md:max-w-xl lg:max-w-xl xl:max-w-2xl flex flex-col gap-1 sm:gap-1">
+        {/* Suggested Actions - Responsive grid */}
+        <AnimatePresence>
+          {messages.length === 0 &&
+            attachments.length === 0 &&
+            uploadQueue.length === 0 && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 w-full"
+              >
+                {suggestedActions.map((suggestedAction, index) => (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 * index }}
+                    key={index}
+                    className="block"
                   >
-                    <div className="flex items-start gap-2">
-                      <span className="text-[11px] group-hover:scale-110 transition-transform duration-200 shrink-0">
-                        {suggestedAction.icon}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <span className="font-medium text-foreground block text-[10px]">
-                          {suggestedAction.title}
+                    <button
+                      onClick={() => {
+                        setInput(suggestedAction.action);
+                        textareaRef.current?.focus();
+                      }}
+                      className="group w-full text-left bg-background/60 backdrop-blur-sm border border-border/50 hover:border-border transition-all duration-200 rounded-2xl p-2 hover:bg-muted/50 hover:shadow-sm hover:-translate-y-0.5"
+                    >
+                      <div className="flex items-start gap-2">
+                        <span className="text-[11px] group-hover:scale-110 transition-transform duration-200 shrink-0">
+                          {suggestedAction.icon}
                         </span>
-                        <span className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
-                          {suggestedAction.label}
-                        </span>
+                        <div className="flex-1 min-w-0">
+                          <span className="font-medium text-foreground block text-[10px]">
+                            {suggestedAction.title}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
+                            {suggestedAction.label}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  </button>
-                </motion.div>
+                    </button>
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+        </AnimatePresence>
+
+        <input
+          type="file"
+          className="fixed -top-4 -left-4 size-0.5 opacity-0 pointer-events-none"
+          ref={fileInputRef}
+          multiple
+          onChange={handleFileChange}
+          tabIndex={-1}
+        />
+
+        {/* Attachments Preview - Responsive */}
+        <AnimatePresence>
+          {(attachments.length > 0 || uploadQueue.length > 0) && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="flex flex-row gap-2 overflow-x-auto pb-1"
+            >
+              {attachments.map((attachment) => (
+                <PreviewAttachment 
+                  key={attachment.url} 
+                  attachment={attachment} 
+                  onRemove={() => handleRemoveAttachment(attachment)} 
+                />
+              ))}
+
+              {uploadQueue.map((filename) => (
+                <PreviewAttachment
+                  key={filename}
+                  attachment={{
+                    url: "",
+                    name: filename,
+                    contentType: "",
+                  }}
+                  isUploading={true}
+                />
               ))}
             </motion.div>
           )}
-      </AnimatePresence>
+        </AnimatePresence>
 
-      <input
-        type="file"
-        className="fixed -top-4 -left-4 size-0.5 opacity-0 pointer-events-none"
-        ref={fileInputRef}
-        multiple
-        onChange={handleFileChange}
-        tabIndex={-1}
-      />
-
-      {/* Attachments Preview - Responsive */}
-      <AnimatePresence>
-        {(attachments.length > 0 || uploadQueue.length > 0) && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="flex flex-row gap-2 overflow-x-auto pb-1"
-          >
-            {attachments.map((attachment) => (
-              <PreviewAttachment 
-                key={attachment.url} 
-                attachment={attachment} 
-                onRemove={() => handleRemoveAttachment(attachment)} 
-              />
-            ))}
-
-            {uploadQueue.map((filename) => (
-              <PreviewAttachment
-                key={filename}
-                attachment={{
-                  url: "",
-                  name: filename,
-                  contentType: "",
-                }}
-                isUploading={true}
-              />
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Input Container - Responsive sizing */}
-      <div className={`
-        relative bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl sm:rounded-2xl
-        transition-all duration-200 shadow-sm
-        ${isFocused ? "border-primary/50 shadow-md ring-2 sm:ring-4 ring-primary/10" : "hover:border-border"}
-        ${hasContent ? "border-primary/30" : ""}
-      `} style={{ animation: 'glowing 2s infinite alternate' }}>
-        <MessageLimitBanner
-          messageCount={messageCount}
-          messageLimit={messageLimit}
-          messageLimitResetAt={messageLimitResetAt}
-        />
-        <Textarea
-          ref={textareaRef}
-          placeholder="Ask Jotium anything..."
-          value={input}
-          onChange={handleInput}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          className={`
-            min-h-[72px] sm:min-h-[88px] max-h-[250px] sm:max-h-[300px] overflow-y-auto resize-none 
-            border-0 bg-transparent text-sm sm:text-sm placeholder:text-muted-foreground/60 
-            focus-visible:ring-0 focus-visible:ring-offset-0 p-3 sm:p-4 
-            pr-20 sm:pr-28 leading-relaxed thin-scrollbar
-          `}
-          rows={2}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" && !event.shiftKey) {
-              if (isMobile) {
-                // On mobile, allow the default behavior so Enter inserts a newline.
-                // Do not send; messages are sent via the submit button on mobile.
-                return;
-              } else {
-                // On desktop, send message
-                event.preventDefault();
-                if (isLoading) {
-                  toast.error("Please wait for the agent to finish its response!");
+        {/* Input Container - Responsive sizing */}
+        <div className={`
+          relative bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl sm:rounded-3xl
+          transition-all duration-200 shadow-sm
+          ${isFocused ? "border-primary/50 shadow-md ring-2 sm:ring-4 ring-primary/10" : "hover:border-border"}
+          ${hasContent ? "border-primary/30" : ""}
+        `} style={{ animation: 'glowing 2s infinite alternate' }}>
+          <MessageLimitBanner
+            messageCount={messageCount}
+            messageLimit={messageLimit}
+            messageLimitResetAt={messageLimitResetAt}
+          />
+          <Textarea
+            ref={textareaRef}
+            placeholder="Ask Jotium anything..."
+            value={input}
+            onChange={handleInput}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            className={`
+              min-h-[72px] sm:min-h-[88px] max-h-[250px] sm:max-h-[300px] overflow-y-auto resize-none 
+              border-0 bg-transparent text-sm sm:text-sm placeholder:text-muted-foreground/60 
+              focus-visible:ring-0 focus-visible:ring-offset-0 p-3 sm:p-4 
+              pr-20 sm:pr-28 leading-relaxed thin-scrollbar
+            `}
+            rows={2}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey) {
+                if (isMobile) {
+                  // On mobile, allow the default behavior so Enter inserts a newline.
+                  // Do not send; messages are sent via the submit button on mobile.
+                  return;
                 } else {
-                  submitForm();
+                  // On desktop, send message
+                  event.preventDefault();
+                  if (isLoading) {
+                    toast.error("Please wait for the agent to finish its response!");
+                  } else {
+                    submitForm();
+                  }
                 }
               }
-            }
-          }}
-        />
-
-        {/* Action Buttons - Responsive positioning */}
-        <div className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 flex items-center gap-1.5 sm:gap-2">
-          <Button
-            className="rounded-full p-1.5 sm:p-2 size-8 sm:size-10 border-border/50 bg-background/50 hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all duration-200"
-            onClick={(event) => {
-              event.preventDefault();
-              fileInputRef.current?.click();
             }}
-            variant="outline"
-            disabled={isLoading}
-            size="sm"
-          >
-            <PaperclipIcon size={14} className="sm:size-4" />
-          </Button>
+          />
 
-          {isLoading ? (
+          {/* Action Buttons - Responsive positioning */}
+          <div className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 flex items-center gap-1.5 sm:gap-2">
             <Button
-              className="rounded-full p-1.5 sm:p-2 size-8 sm:size-10 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200"
+              className="rounded-full p-1.5 sm:p-2 size-8 sm:size-10 border-border/50 bg-background/50 hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all duration-200"
               onClick={(event) => {
                 event.preventDefault();
-                stop();
+                fileInputRef.current?.click();
               }}
+              variant="outline"
+              disabled={isLoading}
               size="sm"
             >
-              <StopIcon size={14} className="sm:size-4" />
+              <PaperclipIcon size={14} className="sm:size-4" />
             </Button>
-          ) : (
-            <Button
-              className={`
-                rounded-full p-1.5 sm:p-2 size-8 sm:size-10 transition-all duration-200
-                ${hasContent
-                  ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg hover:scale-105"
-                  : "bg-muted text-muted-foreground cursor-not-allowed"
-                }
-              `}
-              onClick={(event) => {
-                event.preventDefault();
-                submitForm();
-              }}
-              disabled={!hasContent || uploadQueue.length > 0}
-              size="sm"
-            >
-              <ArrowUpIcon size={14} className="sm:size-4" />
-            </Button>
-          )}
+
+            {isLoading ? (
+              <Button
+                className="rounded-full p-1.5 sm:p-2 size-8 sm:size-10 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200"
+                onClick={(event) => {
+                  event.preventDefault();
+                  stop();
+                }}
+                size="sm"
+              >
+                <StopIcon size={14} className="sm:size-4" />
+              </Button>
+            ) : (
+              <Button
+                className={`
+                  rounded-full p-1.5 sm:p-2 size-8 sm:size-10 transition-all duration-200
+                  ${hasContent
+                    ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg hover:scale-105"
+                    : "bg-muted text-muted-foreground cursor-not-allowed"
+                  }
+                `}
+                onClick={(event) => {
+                  event.preventDefault();
+                  submitForm();
+                }}
+                disabled={!hasContent || uploadQueue.length > 0}
+                size="sm"
+              >
+                <ArrowUpIcon size={14} className="sm:size-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

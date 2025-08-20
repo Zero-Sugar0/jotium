@@ -167,7 +167,7 @@ export const Message = ({
               onTouchStart={canEdit ? handleTouchRevealActions : undefined}
             >
               <div className={`
-                prose prose-sm sm:prose-base max-w-none w-full overflow-hidden
+                prose prose-sm max-w-none w-full overflow-hidden
                 ${role === "assistant" 
                   ? "text-foreground/90" 
                   : "text-foreground"
@@ -179,11 +179,11 @@ export const Message = ({
                 prose-blockquote:border-l-primary
                 prose-blockquote:text-foreground/80
                 
-                /* Mobile-first responsive typography */
-                prose-p:text-sm sm:prose-p:text-base md:prose-p:text-[9px]
-                prose-li:text-sm sm:prose-li:text-base md:prose-li:text-[9px]
-                prose-headings:text-base sm:prose-headings:text-lg md:prose-headings:text-[11px] lg:prose-headings:text-[11px]
-                prose-code:text-xs sm:prose-code:text-sm md:prose-code:text-[7px]
+                /* Mobile: normal size, Tablet/Desktop: smaller */
+                prose-p:text-sm md:prose-p:text-xs lg:prose-p:text-xs
+                prose-li:text-sm md:prose-li:text-xs lg:prose-li:text-xs
+                prose-headings:text-base md:prose-headings:text-sm lg:prose-headings:text-sm
+                prose-code:text-xs md:prose-code:text-xs lg:prose-code:text-xs
                 
                 /* Prevent horizontal overflow and ensure full width */
                 prose-pre:overflow-x-auto
