@@ -10,7 +10,7 @@ import { getDecryptedApiKey, getDecryptedOAuthAccessToken } from "@/db/queries";
 // Import all tools
 import { WebSearchTool } from './tools/web-search-tool';
 import { FileManagerTool } from './tools/file-manager-tool';
-import { GithubTool } from './tools/github-tool';
+import { GitHubTool } from './tools/github-tool';
 import { SlackTool } from './tools/slack-tool';
 import { ClickUpTool } from './tools/clickup-tool';
 import { ApiTool } from './tools/api-tool';
@@ -91,7 +91,19 @@ export class AIAgent {
   public async initializeTools(userId?: string): Promise<void> {
     // --- Group 1: Excluded Tools (initialized from .env only) ---
     if (process.env.TAVILY_API_KEY) {
-      this.tools.set("web_search", new WebSearchTool(process.env.TAVILY_API_KEY));
+      const webSearchTool = new WebSearchTool(process.env.TAVILY_API_KEY);
+      this.tools.set("web_search", {
+        getDefinition: () => webSearchTool.getSearchDefinition(),
+        execute: (args: any) => webSearchTool.executeSearch(args),
+      } as Tool);
+      this.tools.set("web_extract", {
+        getDefinition: () => webSearchTool.getExtractDefinition(),
+        execute: (args: any) => webSearchTool.executeExtract(args),
+      } as Tool);
+      this.tools.set("web_crawl", {
+        getDefinition: () => webSearchTool.getCrawlDefinition(),
+        execute: (args: any) => webSearchTool.executeCrawl(args),
+      } as Tool);
     }
     // if (process.env.FIRECRAWL_API_KEY) {
     //   this.tools.set("fire_web_scrape", new FireWebScrapeTool(process.env.FIRECRAWL_API_KEY));
@@ -155,7 +167,7 @@ export class AIAgent {
     // GitHub
     const githubKey = await getKey("GitHub", "GITHUB_TOKEN");
     if (githubKey) {
-      const tool = new GithubTool(githubKey);
+      const tool = new GitHubTool(githubKey);
       this.tools.set("github_tool", tool);
     }
 
@@ -380,6 +392,7 @@ private async loadMemory(): Promise<void> {
       model: this.model,
       contents: conversationHistory,
       config: {
+        temperature: 0.6,
         thinkingConfig: {
           includeThoughts: includeThoughts,
         },

@@ -57,10 +57,11 @@ export async function GET(
         redirect_uri: redirectUri,
         response_type: "code",
         scope: scope,
-        access_type: "offline", // IMPORTANT: This ensures we get a refresh token
-        prompt: "consent",      // IMPORTANT: This forces consent screen to ensure refresh token
+        access_type: "offline", // ENSURE: Always get refresh token
+        prompt: "consent",    // ENSURE: Force consent to ensure refresh token
         state: state,
         include_granted_scopes: "true"
+        // REMOVED: approval_prompt: "force" - conflicts with prompt parameter
       });
       
       authorizationUrl = `https://accounts.google.com/o/oauth2/v2/auth?${googleParams.toString()}`;

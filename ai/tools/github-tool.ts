@@ -1,7 +1,7 @@
 import { FunctionDeclaration, Type } from "@google/genai";
 import { Octokit } from "@octokit/rest";
 
-export class GithubTool {
+export class GitHubTool {
   private octokit: Octokit;
 
   constructor(token: string) {
@@ -10,249 +10,219 @@ export class GithubTool {
     });
   }
 
-  /**
-   * Returns the function declaration schema for GitHub operations.
-   * @returns FunctionDeclaration defining supported actions and parameters.
-   */
+  // Single comprehensive GitHub function definition
   getDefinition(): FunctionDeclaration {
     return {
-      name: "github_operations",
-      description: "Comprehensive GitHub tool for repository management, file operations, commits, issues, pull requests, and more. Supports 20+ GitHub operations.",
+      name: "github_tool",
+      description: "Comprehensive GitHub API tool for searching repositories, analyzing code, tracking development activity, and researching users/organizations. This single tool provides access to all GitHub functionality including repository exploration, issue tracking, pull request analysis, commit history, releases, and user information.",
       parameters: {
         type: Type.OBJECT,
         properties: {
           action: {
             type: Type.STRING,
-            description: "The GitHub operation to perform",
+            description: "The GitHub action to perform",
             enum: [
-              // Repository operations
-              "create_repo",
-              "delete_repo",
-              "get_repo",
-              "list_repos",
-              "update_repo",
-              "fork_repo",
-              "star_repo",
-              "unstar_repo",
-              
-              // File operations
+              "get_authenticated_user",
+              "create_repository",
+              "update_repository",
               "create_file",
               "update_file",
               "delete_file",
+              "search_repositories",
+              "get_repository", 
+              "get_contents",
               "get_file",
-              "list_files",
-              "rename_file",
-              
-              // Commit operations
-              "create_commit",
-              "get_commit",
-              "list_commits",
-              "compare_commits",
-              
-              // Branch operations
-              "create_branch",
-              "delete_branch",
-              "list_branches",
-              "get_branch",
-              "merge_branch",
-              
-              // Issue operations
-              "create_issue",
-              "update_issue",
-              "close_issue",
-              "list_issues",
-              "get_issue",
-              "add_issue_comment",
-              
-              // Pull Request operations
-              "create_pull_request",
-              "update_pull_request",
-              "merge_pull_request",
-              "close_pull_request",
-              "list_pull_requests",
-              "get_pull_request",
-              
-              // Release operations
-              "create_release",
-              "update_release",
-              "delete_release",
-              "list_releases",
-              "get_release",
-              
-              // User/Organization operations
+              "get_issues",
+              "get_pull_requests", 
+              "get_commits",
+              "get_releases",
               "get_user",
-              "list_user_repos",
-              "get_organization",
-              "list_org_repos",
-              
-              // Collaboration operations
-              "add_collaborator",
-              "remove_collaborator",
-              "list_collaborators",
-              
-              // Webhook operations
-              "create_webhook",
-              "delete_webhook",
-              "list_webhooks"
+              "search_users"
             ]
           },
-          owner: {
+          // Repository creation/update parameters
+          name: {
             type: Type.STRING,
-            description: "Repository owner (username or organization)"
-          },
-          repo: {
-            type: Type.STRING,
-            description: "Repository name"
-          },
-          path: {
-            type: Type.STRING,
-            description: "File path (for file operations)"
-          },
-          content: {
-            type: Type.STRING,
-            description: "File content (base64-encoded for binary) or commit message"
-          },
-          message: {
-            type: Type.STRING,
-            description: "Commit message or description"
-          },
-          branch: {
-            type: Type.STRING,
-            description: "Branch name (default: main)"
-          },
-          title: {
-            type: Type.STRING,
-            description: "Title for issues, pull requests, or releases"
-          },
-          body: {
-            type: Type.STRING,
-            description: "Body content for issues, pull requests, or releases"
-          },
-          base: {
-            type: Type.STRING,
-            description: "Base branch for pull requests or comparisons"
-          },
-          head: {
-            type: Type.STRING,
-            description: "Head branch for pull requests or comparisons"
-          },
-          commit_sha: {
-            type: Type.STRING,
-            description: "Commit SHA for commit or branch operations"
-          },
-          tree_sha: {
-            type: Type.STRING,
-            description: "Tree SHA for advanced commit operations"
-          },
-          parents: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING },
-            description: "Parent commit SHAs for create_commit"
-          },
-          tag: {
-            type: Type.STRING,
-            description: "Tag name for releases"
-          },
-          username: {
-            type: Type.STRING,
-            description: "Username for user operations or collaborator management"
-          },
-          permission: {
-            type: Type.STRING,
-            description: "Permission level for collaborators",
-            enum: ["pull", "push", "admin", "maintain", "triage"]
-          },
-          private: {
-            type: Type.BOOLEAN,
-            description: "Whether repository should be private (default: false)"
+            description: "Repository name (required for create_repository and update_repository actions). Must be unique within the owner's account."
           },
           description: {
             type: Type.STRING,
-            description: "Repository or release description"
+            description: "Repository description for create_repository and update_repository actions"
           },
-          homepage: {
-            type: Type.STRING,
-            description: "Repository homepage URL"
+          private: {
+            type: Type.BOOLEAN,
+            description: "Whether the repository should be private (default: false). Used with create_repository and update_repository actions"
           },
           hasIssues: {
             type: Type.BOOLEAN,
-            description: "Enable issues for repository"
+            description: "Whether to enable issues for the repository (default: true). Used with create_repository and update_repository actions"
+          },
+          hasProjects: {
+            type: Type.BOOLEAN,
+            description: "Whether to enable projects for the repository (default: true). Used with create_repository and update_repository actions"
           },
           hasWiki: {
             type: Type.BOOLEAN,
-            description: "Enable wiki for repository"
+            description: "Whether to enable wiki for the repository (default: true). Used with create_repository and update_repository actions"
+          },
+          hasDownloads: {
+            type: Type.BOOLEAN,
+            description: "Whether to enable downloads for the repository (default: true). Used with create_repository and update_repository actions"
+          },
+          allowSquashMerge: {
+            type: Type.BOOLEAN,
+            description: "Whether to allow squash merges (default: true). Used with create_repository and update_repository actions"
+          },
+          allowMergeCommit: {
+            type: Type.BOOLEAN,
+            description: "Whether to allow merge commits (default: true). Used with create_repository and update_repository actions"
+          },
+          allowRebaseMerge: {
+            type: Type.BOOLEAN,
+            description: "Whether to allow rebase merges (default: true). Used with create_repository and update_repository actions"
           },
           autoInit: {
             type: Type.BOOLEAN,
-            description: "Initialize repository with README"
+            description: "Whether to create an initial commit with empty README (default: false). Used with create_repository action"
           },
           gitignoreTemplate: {
             type: Type.STRING,
-            description: "Gitignore template to use"
+            description: "Desired language or platform .gitignore template to apply (e.g., 'Node', 'Python', 'Java'). Used with create_repository action"
           },
           licenseTemplate: {
             type: Type.STRING,
-            description: "License template to use"
+            description: "Choose an open source license template (e.g., 'mit', 'apache-2.0', 'gpl-3.0'). Used with create_repository action"
           },
-          state: {
+          // File operations parameters
+          content: {
             type: Type.STRING,
-            description: "State for issues/PRs",
-            enum: ["open", "closed", "all"]
+            description: "File content as a string. For create_file and update_file actions. Will be automatically base64 encoded."
           },
-          labels: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING },
-            description: "Labels for issues or pull requests"
-          },
-          assignees: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING },
-            description: "Assignees for issues or pull requests"
-          },
-          draft: {
-            type: Type.BOOLEAN,
-            description: "Create pull request as draft"
-          },
-          prerelease: {
-            type: Type.BOOLEAN,
-            description: "Mark release as prerelease"
-          },
-          generateReleaseNotes: {
-            type: Type.BOOLEAN,
-            description: "Auto-generate release notes"
-          },
-          webhookUrl: {
+          message: {
             type: Type.STRING,
-            description: "Webhook URL for webhook operations"
+            description: "Commit message for file operations (create_file, update_file, delete_file). Required for file operations."
           },
-          webhookEvents: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING },
-            description: "Events to trigger webhook"
+          branch: {
+            type: Type.STRING,
+            description: "Branch to commit to (default: repository's default branch). Used with file operations."
           },
-          page: {
-            type: Type.NUMBER,
-            description: "Page number for paginated results (default: 1)"
+          committerName: {
+            type: Type.STRING,
+            description: "The name of the committer for file operations (defaults to authenticated user)"
+          },
+          committerEmail: {
+            type: Type.STRING,
+            description: "The email of the committer for file operations (defaults to authenticated user's email)"
+          },
+          authorName: {
+            type: Type.STRING,
+            description: "The name of the author for file operations (defaults to committer name)"
+          },
+          authorEmail: {
+            type: Type.STRING,
+            description: "The email of the author for file operations (defaults to committer email)"
+          },
+          query: {
+            type: Type.STRING,
+            description: "Search query for repositories or users. For repositories: can include keywords, programming languages, topics, or advanced search syntax like 'language:python stars:>1000'. For users: can include usernames, real names, email domains, or advanced syntax like 'location:\"San Francisco\" language:python'"
+          },
+          sort: {
+            type: Type.STRING,
+            description: "Sort results by: For repositories: 'stars', 'forks', 'help-wanted-issues', 'updated'. For users: 'followers', 'repositories', 'joined'. For issues/PRs: 'created', 'updated', 'comments'. For commits: 'author-date', 'committer-date' (default varies by action)"
+          },
+          order: {
+            type: Type.STRING,
+            description: "Sort order: 'desc' for descending or 'asc' for ascending (default: desc)"
           },
           perPage: {
             type: Type.NUMBER,
-            description: "Items per page (default: 30, max: 100)"
+            description: "Number of results to return (default: 30, max: 100)"
           },
-          issue_number: {
-            type: Type.NUMBER,
-            description: "Issue number for issue operations"
+          language: {
+            type: Type.STRING,
+            description: "Filter repositories by programming language (e.g., 'javascript', 'python', 'go')"
           },
-          pull_number: {
-            type: Type.NUMBER,
-            description: "Pull request number for PR operations"
+          // Repository identification
+          owner: {
+            type: Type.STRING,
+            description: "Repository owner username or organization name (required for repository-specific actions)"
           },
-          release_id: {
-            type: Type.NUMBER,
-            description: "Release ID for release operations"
+          repo: {
+            type: Type.STRING,
+            description: "Repository name (required for repository-specific actions)"
           },
-          hook_id: {
-            type: Type.NUMBER,
-            description: "Webhook ID for webhook operations"
+          username: {
+            type: Type.STRING,
+            description: "GitHub username or organization name to lookup (required for user actions)"
+          },
+          // File/content parameters
+          path: {
+            type: Type.STRING,
+            description: "Path to specific file or directory. Leave empty for root directory. Used with get_contents and get_file actions"
+          },
+          ref: {
+            type: Type.STRING,
+            description: "Git reference (branch, tag, or commit SHA) to browse or get file from (default: default branch)"
+          },
+          decode: {
+            type: Type.BOOLEAN,
+            description: "Whether to decode base64 content to readable text for get_file action (default: true)"
+          },
+          recursive: {
+            type: Type.BOOLEAN,
+            description: "Whether to recursively list all files in subdirectories for get_contents action (default: false)"
+          },
+          // Repository info options
+          includeReadme: {
+            type: Type.BOOLEAN,
+            description: "Whether to include the repository's README content for get_repository action (default: true)"
+          },
+          includeLanguages: {
+            type: Type.BOOLEAN,
+            description: "Whether to include programming language statistics for get_repository action (default: true)"
+          },
+          includeContributors: {
+            type: Type.BOOLEAN,
+            description: "Whether to include top contributors information for get_repository action (default: true)"
+          },
+          // Issues/PR parameters
+          state: {
+            type: Type.STRING,
+            description: "Filter by state: 'open' for active items, 'closed' for resolved items, 'all' for both (default: open). Used with get_issues and get_pull_requests"
+          },
+          labels: {
+            type: Type.STRING,
+            description: "Filter issues by labels (comma-separated list, e.g., 'bug,enhancement'). Used with get_issues action"
+          },
+          direction: {
+            type: Type.STRING,
+            description: "Sort direction: 'asc' or 'desc' (default: desc). Used with get_issues, get_pull_requests, get_commits"
+          },
+          // PR-specific parameters  
+          head: {
+            type: Type.STRING,
+            description: "Filter pull requests by head branch (format: user:ref-name or organization:ref-name). Used with get_pull_requests"
+          },
+          base: {
+            type: Type.STRING,
+            description: "Filter pull requests by base branch (default: repository's default branch). Used with get_pull_requests"
+          },
+          // User parameters
+          includeRepositories: {
+            type: Type.BOOLEAN,
+            description: "Whether to include user's public repositories for get_user action (default: true)"
+          },
+          includeOrganizations: {
+            type: Type.BOOLEAN,
+            description: "Whether to include user's organization memberships for get_user action (default: true)"
+          },
+          repoSort: {
+            type: Type.STRING,
+            description: "Sort user repositories by: 'created', 'updated', 'pushed', 'full_name' for get_user action (default: updated)"
+          },
+          repoType: {
+            type: Type.STRING,
+            description: "Repository type filter for get_user: 'all', 'owner', 'member' (default: owner)"
           }
         },
         required: ["action"]
@@ -260,1396 +230,1233 @@ export class GithubTool {
     };
   }
 
-  /**
-   * Executes the specified GitHub operation.
-   * @param args - Parameters for the GitHub operation.
-   * @returns Operation result or error details.
-   * @throws Error if the action is unsupported or API call fails.
-   */
   async execute(args: any): Promise<any> {
-    try {
-      console.log(`🐙 GitHub operation: ${args.action}`);
-      
-      // Default values
-      args.branch = args.branch || 'main';
-      args.perPage = Math.min(args.perPage || 30, 100);
-      args.page = args.page || 1;
-
-      switch (args.action) {
-        // Repository operations
-        case "create_repo":
-          return await this.createRepository(args);
-        case "delete_repo":
-          return await this.deleteRepository(args);
-        case "get_repo":
-          return await this.getRepository(args);
-        case "list_repos":
-          return await this.listRepositories(args);
-        case "update_repo":
-          return await this.updateRepository(args);
-        case "fork_repo":
-          return await this.forkRepository(args);
-        case "star_repo":
-          return await this.starRepository(args);
-        case "unstar_repo":
-          return await this.unstarRepository(args);
-
-        // File operations
-        case "create_file":
-          return await this.createFile(args);
-        case "update_file":
-          return await this.updateFile(args);
-        case "delete_file":
-          return await this.deleteFile(args);
-        case "get_file":
-          return await this.getFile(args);
-        case "list_files":
-          return await this.listFiles(args);
-        case "rename_file":
-          return await this.renameFile(args);
-
-        // Commit operations
-        case "create_commit":
-          return await this.createCommit(args);
-        case "get_commit":
-          return await this.getCommit(args);
-        case "list_commits":
-          return await this.listCommits(args);
-        case "compare_commits":
-          return await this.compareCommits(args);
-
-        // Branch operations
-        case "create_branch":
-          return await this.createBranch(args);
-        case "delete_branch":
-          return await this.deleteBranch(args);
-        case "list_branches":
-          return await this.listBranches(args);
-        case "get_branch":
-          return await this.getBranch(args);
-        case "merge_branch":
-          return await this.mergeBranch(args);
-
-        // Issue operations
-        case "create_issue":
-          return await this.createIssue(args);
-        case "update_issue":
-          return await this.updateIssue(args);
-        case "close_issue":
-          return await this.closeIssue(args);
-        case "list_issues":
-          return await this.listIssues(args);
-        case "get_issue":
-          return await this.getIssue(args);
-        case "add_issue_comment":
-          return await this.addIssueComment(args);
-
-        // Pull Request operations
-        case "create_pull_request":
-          return await this.createPullRequest(args);
-        case "update_pull_request":
-          return await this.updatePullRequest(args);
-        case "merge_pull_request":
-          return await this.mergePullRequest(args);
-        case "close_pull_request":
-          return await this.closePullRequest(args);
-        case "list_pull_requests":
-          return await this.listPullRequests(args);
-        case "get_pull_request":
-          return await this.getPullRequest(args);
-
-        // Release operations
-        case "create_release":
-          return await this.createRelease(args);
-        case "update_release":
-          return await this.updateRelease(args);
-        case "delete_release":
-          return await this.deleteRelease(args);
-        case "list_releases":
-          return await this.listReleases(args);
-        case "get_release":
-          return await this.getRelease(args);
-
-        // User/Organization operations
-        case "get_user":
-          return await this.getUser(args);
-        case "list_user_repos":
-          return await this.listUserRepositories(args);
-        case "get_organization":
-          return await this.getOrganization(args);
-        case "list_org_repos":
-          return await this.listOrganizationRepositories(args);
-
-        // Collaboration operations
-        case "add_collaborator":
-          return await this.addCollaborator(args);
-        case "remove_collaborator":
-          return await this.removeCollaborator(args);
-        case "list_collaborators":
-          return await this.listCollaborators(args);
-
-        // Webhook operations
-        case "create_webhook":
-          return await this.createWebhook(args);
-        case "delete_webhook":
-          return await this.deleteWebhook(args);
-        case "list_webhooks":
-          return await this.listWebhooks(args);
-
-        default:
-          throw new Error(`Unsupported action: ${args.action}`);
-      }
-    } catch (error: unknown) {
-      console.error("❌ GitHub operation failed:", error);
-      let errDetails: { message: string; stack?: string; apiResponse?: { status: number; data: any } } = error instanceof Error ? { message: error.message, stack: error.stack } : { message: String(error) };
-      if ((error as any).response) {
-        errDetails.apiResponse = {
-          status: (error as any).response.status,
-          data: (error as any).response.data
+    switch (args.action) {
+      case "get_authenticated_user":
+        return this.executeGetAuthenticatedUser(args);
+      case "create_repository":
+        return this.executeCreateRepository(args);
+      case "update_repository":
+        return this.executeUpdateRepository(args);
+      case "create_file":
+        return this.executeCreateFile(args);
+      case "update_file":
+        return this.executeUpdateFile(args);
+      case "delete_file":
+        return this.executeDeleteFile(args);
+      case "search_repositories":
+        return this.executeSearchRepositories(args);
+      case "get_repository":
+        return this.executeGetRepository(args);
+      case "get_contents":
+        return this.executeGetContents(args);
+      case "get_file":
+        return this.executeGetFile(args);
+      case "get_issues":
+        return this.executeGetIssues(args);
+      case "get_pull_requests":
+        return this.executeGetPullRequests(args);
+      case "get_commits":
+        return this.executeGetCommits(args);
+      case "get_releases":
+        return this.executeGetReleases(args);
+      case "get_user":
+        return this.executeGetUser(args);
+      case "search_users":
+        return this.executeSearchUsers(args);
+      default:
+        return {
+          success: false,
+          error: `Unknown action: ${args.action}. Available actions: get_authenticated_user, create_repository, update_repository, create_file, update_file, delete_file, search_repositories, get_repository, get_contents, get_file, get_issues, get_pull_requests, get_commits, get_releases, get_user, search_users`
         };
-      }
+    }
+  }
+
+  private async executeGetAuthenticatedUser(args: any): Promise<any> {
+    try {
+      console.log(`👤 Getting authenticated user information`);
+      
+      const response = await this.octokit.rest.users.getAuthenticated();
+      const user = response.data;
+
+      return {
+        success: true,
+        action: "get_authenticated_user",
+        login: user.login,
+        name: user.name,
+        email: user.email,
+        bio: user.bio,
+        company: user.company,
+        location: user.location,
+        blog: user.blog,
+        twitterUsername: user.twitter_username,
+        publicRepos: user.public_repos,
+        publicGists: user.public_gists,
+        followers: user.followers,
+        following: user.following,
+        createdAt: user.created_at,
+        updatedAt: user.updated_at,
+        avatarUrl: user.avatar_url,
+        profileUrl: user.html_url,
+        type: user.type,
+        siteAdmin: user.site_admin,
+        retrievedAt: new Date().toISOString()
+      };
+
+    } catch (error: unknown) {
+      console.error("❌ Get authenticated user failed:", error);
       return {
         success: false,
-        error: errDetails,
-        action: args.action
+        action: "get_authenticated_user",
+        error: `Get authenticated user failed: ${error instanceof Error ? error.message : String(error)}`
       };
     }
   }
 
-  /**
-   * Creates a new repository for the authenticated user.
-   * @param args - Parameters including repo name, description, etc.
-   * @returns Success response with repository data.
-   * @throws Error if token lacks 'repo' scope or name conflicts.
-   * Required scopes: repo
-   */
-  private async createRepository(args: any) {
-    const response = await this.octokit.repos.createForAuthenticatedUser({
-      name: args.repo,
-      description: args.description,
-      homepage: args.homepage,
-      private: args.private ?? false,
-      has_issues: args.hasIssues ?? true,
-      has_wiki: args.hasWiki ?? true,
-      auto_init: args.autoInit ?? false,
-      gitignore_template: args.gitignoreTemplate,
-      license_template: args.licenseTemplate
-    });
-    return {
-      success: true,
-      action: "create_repo",
-      repository: response.data,
-      message: `Repository ${args.repo} created successfully`
-    };
-  }
-
-  /**
-   * Deletes a repository.
-   * @param args - Owner and repo.
-   * @returns Success message.
-   * @throws Error on 404 if not found or insufficient scopes.
-   * Required scopes: repo:delete
-   */
-  private async deleteRepository(args: any) {
-    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
-    await this.octokit.repos.delete({
-      owner: args.owner,
-      repo: args.repo
-    });
-    return {
-      success: true,
-      action: "delete_repo",
-      message: `Repository ${args.owner}/${args.repo} deleted successfully`
-    };
-  }
-
-  /**
-   * Retrieves a repository's details.
-   * @param args - Owner and repo.
-   * @returns Repository data.
-   * @throws Error on 404 if not found or 403 if unauthorized.
-   * Required scopes: repo
-   */
-  private async getRepository(args: any) {
-    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
-    const response = await this.octokit.repos.get({
-      owner: args.owner,
-      repo: args.repo
-    });
-    return {
-      success: true,
-      action: "get_repo",
-      repository: response.data
-    };
-  }
-
-  /**
-   * Lists repositories for the authenticated user.
-   * @param args - Page and perPage for pagination.
-   * @returns List of repositories.
-   * @throws Error on 401 if unauthorized.
-   * Required scopes: repo
-   */
-  private async listRepositories(args: any) {
-    const response = await this.octokit.paginate(this.octokit.repos.listForAuthenticatedUser, {
-      page: args.page,
-      per_page: args.perPage,
-      sort: 'updated',
-      direction: 'desc'
-    });
-    return {
-      success: true,
-      action: "list_repos",
-      repositories: response,
-      count: response.length
-    };
-  }
-
-  /**
-   * Updates a repository's settings.
-   * @param args - Owner, repo, and optional settings (title, description, etc.).
-   * @returns Updated repository data.
-   * @throws Error on 403 if unauthorized or 422 if invalid settings.
-   * Required scopes: repo
-   */
-  private async updateRepository(args: any) {
-    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
-    const response = await this.octokit.repos.update({
-      owner: args.owner,
-      repo: args.repo,
-      name: args.title || args.repo,
-      description: args.description,
-      homepage: args.homepage,
-      private: args.private,
-      has_issues: args.hasIssues,
-      has_wiki: args.hasWiki
-    });
-    return {
-      success: true,
-      action: "update_repo",
-      repository: response.data,
-      message: `Repository ${args.owner}/${args.repo} updated successfully`
-    };
-  }
-
-  /**
-   * Forks a repository.
-   * @param args - Owner and repo.
-   * @returns Forked repository data.
-   * @throws Error on 403 if unauthorized or 422 if already forked.
-   * Required scopes: repo
-   */
-  private async forkRepository(args: any) {
-    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
-    const response = await this.octokit.repos.createFork({
-      owner: args.owner,
-      repo: args.repo
-    });
-    return {
-      success: true,
-      action: "fork_repo",
-      repository: response.data,
-      message: `Repository ${args.owner}/${args.repo} forked successfully`
-    };
-  }
-
-  /**
-   * Stars a repository.
-   * @param args - Owner and repo.
-   * @returns Success message.
-   * @throws Error on 403 if unauthorized.
-   * Required scopes: repo
-   */
-  private async starRepository(args: any) {
-    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
-    await this.octokit.activity.starRepoForAuthenticatedUser({
-      owner: args.owner,
-      repo: args.repo
-    });
-    return {
-      success: true,
-      action: "star_repo",
-      message: `Repository ${args.owner}/${args.repo} starred successfully`
-    };
-  }
-
-  /**
-   * Unstars a repository.
-   * @param args - Owner and repo.
-   * @returns Success message.
-   * @throws Error on 403 if unauthorized.
-   * Required scopes: repo
-   */
-  private async unstarRepository(args: any) {
-    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
-    await this.octokit.activity.unstarRepoForAuthenticatedUser({
-      owner: args.owner,
-      repo: args.repo
-    });
-    return {
-      success: true,
-      action: "unstar_repo",
-      message: `Repository ${args.owner}/${args.repo} unstarred successfully`
-    };
-  }
-
-  /**
-   * Creates a file in a repository.
-   * @param args - Owner, repo, path, content, message, branch.
-   * @returns File creation data.
-   * @throws Error on 422 if file exists or 403 if unauthorized.
-   * Required scopes: repo
-   */
-  private async createFile(args: any) {
-    if (!args.owner || !args.repo || !args.path || !args.content) throw new Error("Owner, repo, path, and content are required");
-    const response = await this.octokit.repos.createOrUpdateFileContents({
-      owner: args.owner,
-      repo: args.repo,
-      path: args.path,
-      message: args.message || `Create ${args.path}`,
-      content: Buffer.from(args.content).toString('base64'),
-      branch: args.branch
-    });
-    return {
-      success: true,
-      action: "create_file",
-      file: response.data,
-      message: `File ${args.path} created successfully`
-    };
-  }
-
-  /**
-   * Updates a file in a repository.
-   * @param args - Owner, repo, path, content, message, branch.
-   * @returns File update data.
-   * @throws Error on 404 if file not found or 403 if unauthorized.
-   * Required scopes: repo
-   */
-  private async updateFile(args: any) {
-    if (!args.owner || !args.repo || !args.path || !args.content) throw new Error("Owner, repo, path, and content are required");
-    const currentFile = await this.octokit.repos.getContent({
-      owner: args.owner,
-      repo: args.repo,
-      path: args.path,
-      ref: args.branch
-    });
-    const response = await this.octokit.repos.createOrUpdateFileContents({
-      owner: args.owner,
-      repo: args.repo,
-      path: args.path,
-      message: args.message || `Update ${args.path}`,
-      content: Buffer.from(args.content).toString('base64'),
-      sha: (currentFile.data as any).sha,
-      branch: args.branch
-    });
-    return {
-      success: true,
-      action: "update_file",
-      file: response.data,
-      message: `File ${args.path} updated successfully`
-    };
-  }
-
-  /**
-   * Deletes a file in a repository.
-   * @param args - Owner, repo, path, message, branch.
-   * @returns Deletion data.
-   * @throws Error on 404 if file not found or 403 if unauthorized.
-   * Required scopes: repo
-   */
-  private async deleteFile(args: any) {
-    if (!args.owner || !args.repo || !args.path) throw new Error("Owner, repo, and path are required");
-    const currentFile = await this.octokit.repos.getContent({
-      owner: args.owner,
-      repo: args.repo,
-      path: args.path,
-      ref: args.branch
-    });
-    const response = await this.octokit.repos.deleteFile({
-      owner: args.owner,
-      repo: args.repo,
-      path: args.path,
-      message: args.message || `Delete ${args.path}`,
-      sha: (currentFile.data as any).sha,
-      branch: args.branch
-    });
-    return {
-      success: true,
-      action: "delete_file",
-      commit: response.data,
-      message: `File ${args.path} deleted successfully`
-    };
-  }
-
-  /**
-   * Retrieves a file's content.
-   * @param args - Owner, repo, path, branch.
-   * @returns File data with decoded content.
-   * @throws Error on 404 if file not found.
-   * Required scopes: repo
-   */
-  private async getFile(args: any) {
-    if (!args.owner || !args.repo || !args.path) throw new Error("Owner, repo, and path are required");
-    const response = await this.octokit.repos.getContent({
-      owner: args.owner,
-      repo: args.repo,
-      path: args.path,
-      ref: args.branch
-    });
-    const fileData = response.data as any;
-    const content = fileData.encoding === 'base64' 
-      ? Buffer.from(fileData.content, 'base64').toString('utf-8')
-      : fileData.content;
-    return {
-      success: true,
-      action: "get_file",
-      file: {
-        ...fileData,
-        decodedContent: content
+  private async executeCreateRepository(args: any): Promise<any> {
+    try {
+      if (!args.name) {
+        return { success: false, error: "Name parameter is required for create_repository action" };
       }
-    };
+
+      console.log(`🔨 Creating repository: ${args.name}`);
+      
+      const createParams: any = {
+        name: args.name,
+        description: args.description || '',
+        private: args.private || false,
+        has_issues: args.hasIssues !== false,
+        has_projects: args.hasProjects !== false,
+        has_wiki: args.hasWiki !== false,
+        has_downloads: args.hasDownloads !== false,
+        allow_squash_merge: args.allowSquashMerge !== false,
+        allow_merge_commit: args.allowMergeCommit !== false,
+        allow_rebase_merge: args.allowRebaseMerge !== false,
+        auto_init: args.autoInit || false
+      };
+
+      if (args.gitignoreTemplate) {
+        createParams.gitignore_template = args.gitignoreTemplate;
+      }
+
+      if (args.licenseTemplate) {
+        createParams.license_template = args.licenseTemplate;
+      }
+
+      const response = await this.octokit.rest.repos.createForAuthenticatedUser(createParams);
+      const repo = response.data;
+
+      return {
+        success: true,
+        action: "create_repository",
+        name: repo.name,
+        fullName: repo.full_name,
+        owner: repo.owner.login,
+        description: repo.description,
+        url: repo.html_url,
+        cloneUrl: repo.clone_url,
+        sshUrl: repo.ssh_url,
+        private: repo.private,
+        createdAt: repo.created_at,
+        defaultBranch: repo.default_branch,
+        hasIssues: repo.has_issues,
+        hasProjects: repo.has_projects,
+        hasWiki: repo.has_wiki,
+        hasDownloads: repo.has_downloads,
+        allowSquashMerge: repo.allow_squash_merge,
+        allowMergeCommit: repo.allow_merge_commit,
+        allowRebaseMerge: repo.allow_rebase_merge
+      };
+
+    } catch (error: unknown) {
+      console.error("❌ Create repository failed:", error);
+      return {
+        success: false,
+        action: "create_repository",
+        error: `Create repository failed: ${error instanceof Error ? error.message : String(error)}`,
+        name: args.name
+      };
+    }
   }
 
-  /**
-   * Lists files in a repository path.
-   * @param args - Owner, repo, path, branch, page, perPage.
-   * @returns List of files.
-   * @throws Error on 404 if path not found.
-   * Required scopes: repo
-   */
-  private async listFiles(args: any) {
-    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
-    const response = await this.octokit.repos.getContent({
-      owner: args.owner,
-      repo: args.repo,
-      path: args.path || '',
-      ref: args.branch
-    });
-    return {
-      success: true,
-      action: "list_files",
-      files: response.data,
-      count: Array.isArray(response.data) ? response.data.length : 1
-    };
+  private async executeUpdateRepository(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo) {
+        return { success: false, error: "Owner and repo parameters are required for update_repository action" };
+      }
+
+      console.log(`🔧 Updating repository: ${args.owner}/${args.repo}`);
+      
+      const updateParams: any = {
+        owner: args.owner,
+        repo: args.repo
+      };
+
+      // Only include parameters that are provided
+      if (args.name) updateParams.name = args.name;
+      if (args.description !== undefined) updateParams.description = args.description;
+      if (args.private !== undefined) updateParams.private = args.private;
+      if (args.hasIssues !== undefined) updateParams.has_issues = args.hasIssues;
+      if (args.hasProjects !== undefined) updateParams.has_projects = args.hasProjects;
+      if (args.hasWiki !== undefined) updateParams.has_wiki = args.hasWiki;
+      if (args.hasDownloads !== undefined) updateParams.has_downloads = args.hasDownloads;
+      if (args.allowSquashMerge !== undefined) updateParams.allow_squash_merge = args.allowSquashMerge;
+      if (args.allowMergeCommit !== undefined) updateParams.allow_merge_commit = args.allowMergeCommit;
+      if (args.allowRebaseMerge !== undefined) updateParams.allow_rebase_merge = args.allowRebaseMerge;
+
+      const response = await this.octokit.rest.repos.update(updateParams);
+      const repo = response.data;
+
+      return {
+        success: true,
+        action: "update_repository",
+        name: repo.name,
+        fullName: repo.full_name,
+        owner: repo.owner.login,
+        description: repo.description,
+        url: repo.html_url,
+        private: repo.private,
+        updatedAt: repo.updated_at,
+        hasIssues: repo.has_issues,
+        hasProjects: repo.has_projects,
+        hasWiki: repo.has_wiki,
+        hasDownloads: repo.has_downloads,
+        allowSquashMerge: repo.allow_squash_merge,
+        allowMergeCommit: repo.allow_merge_commit,
+        allowRebaseMerge: repo.allow_rebase_merge
+      };
+
+    } catch (error: unknown) {
+      console.error("❌ Update repository failed:", error);
+      return {
+        success: false,
+        action: "update_repository",
+        error: `Update repository failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo
+      };
+    }
   }
 
-  /**
-   * Renames a file using a tree update for atomicity.
-   * @param args - Owner, repo, path, title (new path), message, branch.
-   * @returns Success message.
-   * @throws Error on 404 if file not found or 403 if unauthorized.
-   * Required scopes: repo
-   */
-  private async renameFile(args: any) {
-    if (!args.owner || !args.repo || !args.path || !args.title) throw new Error("Owner, repo, path, and title are required");
-    const baseRef = await this.octokit.git.getRef({
-      owner: args.owner,
-      repo: args.repo,
-      ref: `heads/${args.branch}`
-    });
-    const baseCommit = await this.octokit.git.getCommit({
-      owner: args.owner,
-      repo: args.repo,
-      commit_sha: baseRef.data.object.sha
-    });
-    const currentFile = await this.octokit.repos.getContent({
-      owner: args.owner,
-      repo: args.repo,
-      path: args.path,
-      ref: args.branch
-    });
-    const tree = await this.octokit.git.createTree({
-      owner: args.owner,
-      repo: args.repo,
-      base_tree: baseCommit.data.tree.sha,
-      tree: [
-        { path: args.path, mode: '100644', type: 'blob', sha: null }, // Delete old
-        { path: args.title, mode: '100644', type: 'blob', sha: (currentFile.data as any).sha } // New path
-      ]
-    });
-    const commit = await this.octokit.git.createCommit({
-      owner: args.owner,
-      repo: args.repo,
-      message: args.message || `Rename ${args.path} to ${args.title}`,
-      tree: tree.data.sha,
-      parents: [baseRef.data.object.sha]
-    });
-    await this.octokit.git.updateRef({
-      owner: args.owner,
-      repo: args.repo,
-      ref: `heads/${args.branch}`,
-      sha: commit.data.sha
-    });
-    return {
-      success: true,
-      action: "rename_file",
-      message: `File renamed from ${args.path} to ${args.title}`
-    };
-  }
+  private async executeCreateFile(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo || !args.path || !args.content || !args.message) {
+        return { 
+          success: false, 
+          error: "Owner, repo, path, content, and message parameters are required for create_file action" 
+        };
+      }
 
-  /**
-   * Creates a commit by updating a file.
-   * @param args - Owner, repo, path, content, message, branch, parents (optional).
-   * @returns Commit data.
-   * @throws Error if tree creation fails.
-   * Required scopes: repo
-   */
-  private async createCommit(args: any) {
-    if (!args.owner || !args.repo || !args.path || !args.content || !args.message) throw new Error("Owner, repo, path, content, and message are required");
-    const baseRef = await this.octokit.git.getRef({
-      owner: args.owner,
-      repo: args.repo,
-      ref: `heads/${args.branch}`
-    });
-    const baseCommit = await this.octokit.git.getCommit({
-      owner: args.owner,
-      repo: args.repo,
-      commit_sha: baseRef.data.object.sha
-    });
-    const blob = await this.octokit.git.createBlob({
-      owner: args.owner,
-      repo: args.repo,
-      content: args.content,
-      encoding: 'utf-8'
-    });
-    const tree = await this.octokit.git.createTree({
-      owner: args.owner,
-      repo: args.repo,
-      base_tree: baseCommit.data.tree.sha,
-      tree: [{
+      console.log(`📝 Creating file: ${args.owner}/${args.repo}/${args.path}`);
+      
+      const createParams: any = {
+        owner: args.owner,
+        repo: args.repo,
         path: args.path,
-        mode: '100644',
-        type: 'blob',
-        sha: blob.data.sha
-      }]
-    });
-    const commit = await this.octokit.git.createCommit({
-      owner: args.owner,
-      repo: args.repo,
-      message: args.message,
-      tree: tree.data.sha,
-      parents: args.parents || [baseRef.data.object.sha]
-    });
-    await this.octokit.git.updateRef({
-      owner: args.owner,
-      repo: args.repo,
-      ref: `heads/${args.branch}`,
-      sha: commit.data.sha
-    });
-    return {
-      success: true,
-      action: "create_commit",
-      commit: commit.data,
-      message: "Commit created successfully"
-    };
+        message: args.message,
+        content: Buffer.from(args.content, 'utf8').toString('base64')
+      };
+
+      if (args.branch) {
+        createParams.branch = args.branch;
+      }
+
+      // Add committer info if provided
+      if (args.committerName || args.committerEmail) {
+        createParams.committer = {};
+        if (args.committerName) createParams.committer.name = args.committerName;
+        if (args.committerEmail) createParams.committer.email = args.committerEmail;
+      }
+
+      // Add author info if provided
+      if (args.authorName || args.authorEmail) {
+        createParams.author = {};
+        if (args.authorName) createParams.author.name = args.authorName;
+        if (args.authorEmail) createParams.author.email = args.authorEmail;
+      }
+
+      const response = await this.octokit.rest.repos.createOrUpdateFileContents(createParams);
+
+      return {
+        success: true,
+        action: "create_file",
+        owner: args.owner,
+        repo: args.repo,
+        path: args.path,
+        sha: response.data.content?.sha || '',
+        message: args.message,
+        branch: args.branch || 'default',
+        url: response.data.content?.html_url || '',
+        downloadUrl: response.data.content?.download_url || '',
+        commitSha: response.data.commit.sha,
+        commitUrl: response.data.commit.html_url,
+        createdAt: new Date().toISOString()
+      };
+
+    } catch (error: unknown) {
+      console.error("❌ Create file failed:", error);
+      return {
+        success: false,
+        action: "create_file",
+        error: `Create file failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo,
+        path: args.path
+      };
+    }
   }
 
-  /**
-   * Retrieves a commit's details.
-   * @param args - Owner, repo, commit_sha.
-   * @returns Commit data.
-   * @throws Error on 404 if commit not found.
-   * Required scopes: repo
-   */
-  private async getCommit(args: any) {
-    if (!args.owner || !args.repo || !args.commit_sha) throw new Error("Owner, repo, and commit_sha are required");
-    const response = await this.octokit.repos.getCommit({
-      owner: args.owner,
-      repo: args.repo,
-      ref: args.commit_sha
-    });
-    return {
-      success: true,
-      action: "get_commit",
-      commit: response.data
-    };
+  private async executeUpdateFile(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo || !args.path || !args.content || !args.message || !args.sha) {
+        return { 
+          success: false, 
+          error: "Owner, repo, path, content, message, and sha parameters are required for update_file action" 
+        };
+      }
+
+      console.log(`📝 Updating file: ${args.owner}/${args.repo}/${args.path}`);
+      
+      const updateParams: any = {
+        owner: args.owner,
+        repo: args.repo,
+        path: args.path,
+        message: args.message,
+        content: Buffer.from(args.content, 'utf8').toString('base64'),
+        sha: args.sha
+      };
+
+      if (args.branch) {
+        updateParams.branch = args.branch;
+      }
+
+      // Add committer info if provided
+      if (args.committerName || args.committerEmail) {
+        updateParams.committer = {};
+        if (args.committerName) updateParams.committer.name = args.committerName;
+        if (args.committerEmail) updateParams.committer.email = args.committerEmail;
+      }
+
+      // Add author info if provided
+      if (args.authorName || args.authorEmail) {
+        updateParams.author = {};
+        if (args.authorName) updateParams.author.name = args.authorName;
+        if (args.authorEmail) updateParams.author.email = args.authorEmail;
+      }
+
+      const response = await this.octokit.rest.repos.createOrUpdateFileContents(updateParams);
+
+      return {
+        success: true,
+        action: "update_file",
+        owner: args.owner,
+        repo: args.repo,
+        path: args.path,
+        sha: response.data.content?.sha || '',
+        message: args.message,
+        branch: args.branch || 'default',
+        url: response.data.content?.html_url || '',
+        downloadUrl: response.data.content?.download_url || '',
+        commitSha: response.data.commit.sha,
+        commitUrl: response.data.commit.html_url,
+        updatedAt: new Date().toISOString()
+      };
+
+    } catch (error: unknown) {
+      console.error("❌ Update file failed:", error);
+      return {
+        success: false,
+        action: "update_file",
+        error: `Update file failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo,
+        path: args.path
+      };
+    }
   }
 
-  /**
-   * Lists commits in a repository.
-   * @param args - Owner, repo, branch, page, perPage.
-   * @returns List of commits.
-   * @throws Error on 403 if unauthorized.
-   * Required scopes: repo
-   */
-  private async listCommits(args: any) {
-    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
-    const response = await this.octokit.paginate(this.octokit.repos.listCommits, {
-      owner: args.owner,
-      repo: args.repo,
-      sha: args.branch,
-      page: args.page,
-      per_page: args.perPage
-    });
-    return {
-      success: true,
-      action: "list_commits",
-      commits: response,
-      count: response.length
-    };
+  private async executeDeleteFile(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo || !args.path || !args.message || !args.sha) {
+        return { 
+          success: false, 
+          error: "Owner, repo, path, message, and sha parameters are required for delete_file action" 
+        };
+      }
+
+      console.log(`🗑️ Deleting file: ${args.owner}/${args.repo}/${args.path}`);
+      
+      const deleteParams: any = {
+        owner: args.owner,
+        repo: args.repo,
+        path: args.path,
+        message: args.message,
+        sha: args.sha
+      };
+
+      if (args.branch) {
+        deleteParams.branch = args.branch;
+      }
+
+      // Add committer info if provided
+      if (args.committerName || args.committerEmail) {
+        deleteParams.committer = {};
+        if (args.committerName) deleteParams.committer.name = args.committerName;
+        if (args.committerEmail) deleteParams.committer.email = args.committerEmail;
+      }
+
+      // Add author info if provided
+      if (args.authorName || args.authorEmail) {
+        deleteParams.author = {};
+        if (args.authorName) deleteParams.author.name = args.authorName;
+        if (args.authorEmail) deleteParams.author.email = args.authorEmail;
+      }
+
+      const response = await this.octokit.rest.repos.deleteFile(deleteParams);
+
+      return {
+        success: true,
+        action: "delete_file",
+        owner: args.owner,
+        repo: args.repo,
+        path: args.path,
+        message: args.message,
+        branch: args.branch || 'default',
+        commitSha: response.data.commit.sha,
+        commitUrl: response.data.commit.html_url,
+        deletedAt: new Date().toISOString()
+      };
+
+    } catch (error: unknown) {
+      console.error("❌ Delete file failed:", error);
+      return {
+        success: false,
+        action: "delete_file",
+        error: `Delete file failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo,
+        path: args.path
+      };
+    }
   }
 
-  /**
-   * Compares two commits.
-   * @param args - Owner, repo, base, head.
-   * @returns Comparison data.
-   * @throws Error on 404 if commits not found.
-   * Required scopes: repo
-   */
-  private async compareCommits(args: any) {
-    if (!args.owner || !args.repo || !args.base || !args.head) throw new Error("Owner, repo, base, and head are required");
-    const response = await this.octokit.repos.compareCommits({
-      owner: args.owner,
-      repo: args.repo,
-      base: args.base,
-      head: args.head
-    });
-    return {
-      success: true,
-      action: "compare_commits",
-      comparison: response.data
-    };
+  private async executeSearchRepositories(args: any): Promise<any> {
+    try {
+      if (!args.query) {
+        return { success: false, error: "Query parameter is required for search_repositories action" };
+      }
+
+      console.log(`🔍 Searching repositories: "${args.query}"`);
+      
+      const searchParams: any = {
+        q: args.query,
+        sort: args.sort || "stars",
+        order: args.order || "desc",
+        per_page: Math.min(args.perPage || 10, 100)
+      };
+
+      if (args.language) {
+        searchParams.q += ` language:${args.language}`;
+      }
+
+      const response = await this.octokit.rest.search.repos(searchParams);
+
+      const processedResults = response.data.items.map((repo: any) => ({
+        name: repo.name,
+        fullName: repo.full_name,
+        owner: repo.owner.login,
+        description: repo.description,
+        url: repo.html_url,
+        stars: repo.stargazers_count,
+        forks: repo.forks_count,
+        watchers: repo.watchers_count,
+        language: repo.language,
+        topics: repo.topics || [],
+        createdAt: repo.created_at,
+        updatedAt: repo.updated_at,
+        license: repo.license?.name || null,
+        isPrivate: repo.private,
+        hasIssues: repo.has_issues,
+        hasWiki: repo.has_wiki,
+        hasPages: repo.has_pages
+      }));
+
+      return {
+        success: true,
+        action: "search_repositories",
+        query: args.query,
+        totalCount: response.data.total_count,
+        results: processedResults,
+        searchTime: new Date().toISOString()
+      };
+
+    } catch (error: unknown) {
+      console.error("❌ Repository search failed:", error);
+      return {
+        success: false,
+        action: "search_repositories",
+        error: `Repository search failed: ${error instanceof Error ? error.message : String(error)}`,
+        query: args.query
+      };
+    }
   }
 
-  /**
-   * Creates a new branch.
-   * @param args - Owner, repo, branch, base.
-   * @returns Branch data.
-   * @throws Error on 422 if branch exists.
-   * Required scopes: repo
-   */
-  private async createBranch(args: any) {
-    if (!args.owner || !args.repo || !args.branch) throw new Error("Owner, repo, and branch are required");
-    const baseRef = await this.octokit.git.getRef({
-      owner: args.owner,
-      repo: args.repo,
-      ref: `heads/${args.base || 'main'}`
-    });
-    const response = await this.octokit.git.createRef({
-      owner: args.owner,
-      repo: args.repo,
-      ref: `refs/heads/${args.branch}`,
-      sha: baseRef.data.object.sha
-    });
-    return {
-      success: true,
-      action: "create_branch",
-      branch: response.data,
-      message: `Branch ${args.branch} created successfully`
-    };
+  private async executeGetRepository(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo) {
+        return { success: false, error: "Owner and repo parameters are required for get_repository action" };
+      }
+
+      console.log(`📁 Getting repository: ${args.owner}/${args.repo}`);
+      
+      // Get repository info
+      const repoResponse = await this.octokit.rest.repos.get({
+        owner: args.owner,
+        repo: args.repo
+      });
+
+      const repo = repoResponse.data;
+      let result: any = {
+        success: true,
+        action: "get_repository",
+        name: repo.name,
+        fullName: repo.full_name,
+        owner: repo.owner.login,
+        description: repo.description,
+        url: repo.html_url,
+        cloneUrl: repo.clone_url,
+        sshUrl: repo.ssh_url,
+        stars: repo.stargazers_count,
+        forks: repo.forks_count,
+        watchers: repo.watchers_count,
+        openIssues: repo.open_issues_count,
+        language: repo.language,
+        topics: repo.topics || [],
+        createdAt: repo.created_at,
+        updatedAt: repo.updated_at,
+        pushedAt: repo.pushed_at,
+        size: repo.size,
+        defaultBranch: repo.default_branch,
+        license: repo.license?.name || null,
+        isPrivate: repo.private,
+        isFork: repo.fork,
+        hasIssues: repo.has_issues,
+        hasProjects: repo.has_projects,
+        hasWiki: repo.has_wiki,
+        hasPages: repo.has_pages,
+        hasDownloads: repo.has_downloads,
+        archived: repo.archived,
+        disabled: repo.disabled
+      };
+
+      // Get README if requested
+      if (args.includeReadme !== false) {
+        try {
+          const readmeResponse = await this.octokit.rest.repos.getReadme({
+            owner: args.owner,
+            repo: args.repo
+          });
+          result.readme = {
+            content: Buffer.from(readmeResponse.data.content, 'base64').toString('utf8'),
+            name: readmeResponse.data.name,
+            path: readmeResponse.data.path
+          };
+        } catch {
+          result.readme = null;
+        }
+      }
+
+      // Get languages if requested
+      if (args.includeLanguages !== false) {
+        try {
+          const languagesResponse = await this.octokit.rest.repos.listLanguages({
+            owner: args.owner,
+            repo: args.repo
+          });
+          result.languages = languagesResponse.data;
+        } catch {
+          result.languages = {};
+        }
+      }
+
+      // Get contributors if requested
+      if (args.includeContributors !== false) {
+        try {
+          const contributorsResponse = await this.octokit.rest.repos.listContributors({
+            owner: args.owner,
+            repo: args.repo,
+            per_page: 10
+          });
+          result.contributors = contributorsResponse.data.map((contributor: any) => ({
+            login: contributor.login,
+            contributions: contributor.contributions,
+            avatarUrl: contributor.avatar_url,
+            profileUrl: contributor.html_url
+          }));
+        } catch {
+          result.contributors = [];
+        }
+      }
+
+      result.retrievedAt = new Date().toISOString();
+      return result;
+
+    } catch (error: unknown) {
+      console.error("❌ Get repository failed:", error);
+      return {
+        success: false,
+        action: "get_repository",
+        error: `Get repository failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo
+      };
+    }
   }
 
-  /**
-   * Deletes a branch.
-   * @param args - Owner, repo, branch.
-   * @returns Success message.
-   * @throws Error on 404 if branch not found.
-   * Required scopes: repo
-   */
-  private async deleteBranch(args: any) {
-    if (!args.owner || !args.repo || !args.branch) throw new Error("Owner, repo, and branch are required");
-    await this.octokit.git.deleteRef({
-      owner: args.owner,
-      repo: args.repo,
-      ref: `heads/${args.branch}`
-    });
-    return {
-      success: true,
-      action: "delete_branch",
-      message: `Branch ${args.branch} deleted successfully`
-    };
+  private async executeGetContents(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo) {
+        return { success: false, error: "Owner and repo parameters are required for get_contents action" };
+      }
+
+      console.log(`📂 Getting contents: ${args.owner}/${args.repo}${args.path ? `/${args.path}` : ''}`);
+      
+      const params: any = {
+        owner: args.owner,
+        repo: args.repo,
+        path: args.path || ''
+      };
+
+      if (args.ref) {
+        params.ref = args.ref;
+      }
+
+      const response = await this.octokit.rest.repos.getContent(params);
+      
+      let processedContents;
+      
+      if (Array.isArray(response.data)) {
+        // Directory listing
+        processedContents = response.data.map((item: any) => ({
+          name: item.name,
+          path: item.path,
+          type: item.type,
+          size: item.size,
+          sha: item.sha,
+          url: item.html_url,
+          downloadUrl: item.download_url
+        }));
+      } else {
+        // Single file
+        const item = response.data as any;
+        processedContents = {
+          name: item.name,
+          path: item.path,
+          type: item.type,
+          size: item.size,
+          sha: item.sha,
+          url: item.html_url,
+          downloadUrl: item.download_url,
+          content: (item.type === 'file' && item.content) ? Buffer.from(item.content, 'base64').toString('utf8') : null
+        };
+      }
+
+      return {
+        success: true,
+        action: "get_contents",
+        owner: args.owner,
+        repo: args.repo,
+        path: args.path || '',
+        ref: args.ref || 'default',
+        contents: processedContents,
+        isDirectory: Array.isArray(response.data),
+        retrievedAt: new Date().toISOString()
+      };
+
+    } catch (error: unknown) {
+      console.error("❌ Get contents failed:", error);
+      return {
+        success: false,
+        action: "get_contents",
+        error: `Get contents failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo,
+        path: args.path || ''
+      };
+    }
   }
 
-  /**
-   * Lists branches in a repository.
-   * @param args - Owner, repo, page, perPage.
-   * @returns List of branches.
-   * @throws Error on 403 if unauthorized.
-   * Required scopes: repo
-   */
-  private async listBranches(args: any) {
-    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
-    const response = await this.octokit.paginate(this.octokit.repos.listBranches, {
-      owner: args.owner,
-      repo: args.repo,
-      page: args.page,
-      per_page: args.perPage
-    });
-    return {
-      success: true,
-      action: "list_branches",
-      branches: response,
-      count: response.length
-    };
+  private async executeGetFile(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo || !args.path) {
+        return { success: false, error: "Owner, repo, and path parameters are required for get_file action" };
+      }
+
+      console.log(`📄 Getting file: ${args.owner}/${args.repo}/${args.path}`);
+      
+      const params: any = {
+        owner: args.owner,
+        repo: args.repo,
+        path: args.path
+      };
+
+      if (args.ref) {
+        params.ref = args.ref;
+      }
+
+      const response = await this.octokit.rest.repos.getContent(params);
+      const file = response.data as any;
+
+      let content = null;
+      if (file.type === 'file' && file.content && args.decode !== false) {
+        content = Buffer.from(file.content, 'base64').toString('utf8');
+      }
+
+      return {
+        success: true,
+        action: "get_file",
+        owner: args.owner,
+        repo: args.repo,
+        path: args.path,
+        name: file.name,
+        size: file.size,
+        sha: file.sha,
+        url: file.html_url,
+        downloadUrl: file.download_url,
+        content: content,
+        encoding: file.encoding,
+        ref: args.ref || 'default',
+        retrievedAt: new Date().toISOString()
+      };
+
+    } catch (error: unknown) {
+      console.error("❌ Get file failed:", error);
+      return {
+        success: false,
+        action: "get_file",
+        error: `Get file failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo,
+        path: args.path
+      };
+    }
   }
 
-  /**
-   * Retrieves a branch's details.
-   * @param args - Owner, repo, branch.
-   * @returns Branch data.
-   * @throws Error on 404 if branch not found.
-   * Required scopes: repo
-   */
-  private async getBranch(args: any) {
-    if (!args.owner || !args.repo || !args.branch) throw new Error("Owner, repo, and branch are required");
-    const response = await this.octokit.repos.getBranch({
-      owner: args.owner,
-      repo: args.repo,
-      branch: args.branch
-    });
-    return {
-      success: true,
-      action: "get_branch",
-      branch: response.data
-    };
+  private async executeGetIssues(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo) {
+        return { success: false, error: "Owner and repo parameters are required for get_issues action" };
+      }
+
+      console.log(`🐛 Getting issues: ${args.owner}/${args.repo}`);
+      
+      const params: any = {
+        owner: args.owner,
+        repo: args.repo,
+        state: args.state || 'open',
+        sort: args.sort || 'created',
+        direction: args.direction || 'desc',
+        per_page: Math.min(args.perPage || 30, 100)
+      };
+
+      if (args.labels) {
+        params.labels = args.labels;
+      }
+
+      const response = await this.octokit.rest.issues.listForRepo(params);
+
+      const processedIssues = response.data.map((issue: any) => ({
+        number: issue.number,
+        title: issue.title,
+        body: issue.body,
+        state: issue.state,
+        user: issue.user.login,
+        assignees: issue.assignees?.map((a: any) => a.login) || [],
+        labels: issue.labels?.map((l: any) => l.name) || [],
+        comments: issue.comments,
+        createdAt: issue.created_at,
+        updatedAt: issue.updated_at,
+        closedAt: issue.closed_at,
+        url: issue.html_url,
+        isPullRequest: !!issue.pull_request
+      }));
+
+      return {
+        success: true,
+        action: "get_issues",
+        owner: args.owner,
+        repo: args.repo,
+        state: args.state || 'open',
+        issues: processedIssues,
+        totalCount: processedIssues.length,
+        retrievedAt: new Date().toISOString()
+      };
+
+    } catch (error: unknown) {
+      console.error("❌ Get issues failed:", error);
+      return {
+        success: false,
+        action: "get_issues",
+        error: `Get issues failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo
+      };
+    }
   }
 
-  /**
-   * Merges a branch into another.
-   * @param args - Owner, repo, base, head, message.
-   * @returns Merge data.
-   * @throws Error on 409 if merge conflicts.
-   * Required scopes: repo
-   */
-  private async mergeBranch(args: any) {
-    if (!args.owner || !args.repo || !args.base || !args.head) throw new Error("Owner, repo, base, and head are required");
-    const response = await this.octokit.repos.merge({
-      owner: args.owner,
-      repo: args.repo,
-      base: args.base,
-      head: args.head,
-      commit_message: args.message
-    });
-    return {
-      success: true,
-      action: "merge_branch",
-      merge: response.data,
-      message: `Branch ${args.head} merged into ${args.base}`
-    };
+  private async executeGetPullRequests(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo) {
+        return { success: false, error: "Owner and repo parameters are required for get_pull_requests action" };
+      }
+
+      console.log(`🔀 Getting pull requests: ${args.owner}/${args.repo}`);
+      
+      const params: any = {
+        owner: args.owner,
+        repo: args.repo,
+        state: args.state || 'open',
+        sort: args.sort || 'created',
+        direction: args.direction || 'desc',
+        per_page: Math.min(args.perPage || 30, 100)
+      };
+
+      if (args.head) {
+        params.head = args.head;
+      }
+      if (args.base) {
+        params.base = args.base;
+      }
+
+      const response = await this.octokit.rest.pulls.list(params);
+
+      const processedPRs = response.data.map((pr: any) => ({
+        number: pr.number,
+        title: pr.title,
+        body: pr.body,
+        state: pr.state,
+        user: pr.user.login,
+        assignees: pr.assignees?.map((a: any) => a.login) || [],
+        requestedReviewers: pr.requested_reviewers?.map((r: any) => r.login) || [],
+        labels: pr.labels?.map((l: any) => l.name) || [],
+        head: {
+          ref: pr.head.ref,
+          sha: pr.head.sha,
+          repo: pr.head.repo?.full_name
+        },
+        base: {
+          ref: pr.base.ref,
+          sha: pr.base.sha,
+          repo: pr.base.repo.full_name
+        },
+        merged: pr.merged,
+        mergeable: pr.mergeable,
+        comments: pr.comments,
+        reviewComments: pr.review_comments,
+        commits: pr.commits,
+        additions: pr.additions,
+        deletions: pr.deletions,
+        changedFiles: pr.changed_files,
+        createdAt: pr.created_at,
+        updatedAt: pr.updated_at,
+        closedAt: pr.closed_at,
+        mergedAt: pr.merged_at,
+        url: pr.html_url
+      }));
+
+      return {
+        success: true,
+        action: "get_pull_requests",
+        owner: args.owner,
+        repo: args.repo,
+        state: args.state || 'open',
+        pullRequests: processedPRs,
+        totalCount: processedPRs.length,
+        retrievedAt: new Date().toISOString()
+      };
+
+    } catch (error: unknown) {
+      console.error("❌ Get pull requests failed:", error);
+      return {
+        success: false,
+        action: "get_pull_requests",
+        error: `Get pull requests failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo
+      };
+    }
   }
 
-  /**
-   * Creates a new issue.
-   * @param args - Owner, repo, title, body, labels, assignees.
-   * @returns Issue data.
-   * @throws Error on 403 if issues disabled or 422 if invalid.
-   * Required scopes: repo
-   */
-  private async createIssue(args: any) {
-    if (!args.owner || !args.repo || !args.title) throw new Error("Owner, repo, and title are required");
-    const response = await this.octokit.issues.create({
-      owner: args.owner,
-      repo: args.repo,
-      title: args.title,
-      body: args.body,
-      labels: args.labels,
-      assignees: args.assignees
-    });
-    return {
-      success: true,
-      action: "create_issue",
-      issue: response.data,
-      message: `Issue #${response.data.number} created successfully`
-    };
+  private async executeGetCommits(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo) {
+        return { success: false, error: "Owner and repo parameters are required for get_commits action" };
+      }
+
+      console.log(`📝 Getting commits: ${args.owner}/${args.repo}`);
+      
+      const params: any = {
+        owner: args.owner,
+        repo: args.repo,
+        per_page: Math.min(args.perPage || 30, 100)
+      };
+
+      if (args.sha) params.sha = args.sha;
+      if (args.path) params.path = args.path;
+      if (args.author) params.author = args.author;
+      if (args.since) params.since = args.since;
+      if (args.until) params.until = args.until;
+
+      const response = await this.octokit.rest.repos.listCommits(params);
+
+      const processedCommits = response.data.map((commit: any) => ({
+        sha: commit.sha,
+        message: commit.commit.message,
+        author: {
+          name: commit.commit.author.name,
+          email: commit.commit.author.email,
+          date: commit.commit.author.date,
+          username: commit.author?.login
+        },
+        committer: {
+          name: commit.commit.committer.name,
+          email: commit.commit.committer.email,
+          date: commit.commit.committer.date,
+          username: commit.committer?.login
+        },
+        url: commit.html_url,
+        commentCount: commit.commit.comment_count,
+        verification: commit.commit.verification
+      }));
+
+      return {
+        success: true,
+        action: "get_commits",
+        owner: args.owner,
+        repo: args.repo,
+        commits: processedCommits,
+        totalCount: processedCommits.length,
+        filters: {
+          sha: args.sha,
+          path: args.path,
+          author: args.author,
+          since: args.since,
+          until: args.until
+        },
+        retrievedAt: new Date().toISOString()
+      };
+
+    } catch (error: unknown) {
+      console.error("❌ Get commits failed:", error);
+      return {
+        success: false,
+        action: "get_commits",
+        error: `Get commits failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo
+      };
+    }
   }
 
-  /**
-   * Updates an issue.
-   * @param args - Owner, repo, issue_number, title, body, state, labels, assignees.
-   * @returns Updated issue data.
-   * @throws Error on 404 if issue not found.
-   * Required scopes: repo
-   */
-  private async updateIssue(args: any) {
-    if (!args.owner || !args.repo || !args.issue_number) throw new Error("Owner, repo, and issue_number are required");
-    const response = await this.octokit.issues.update({
-      owner: args.owner,
-      repo: args.repo,
-      issue_number: args.issue_number,
-      title: args.title,
-      body: args.body,
-      state: args.state,
-      labels: args.labels,
-      assignees: args.assignees
-    });
-    return {
-      success: true,
-      action: "update_issue",
-      issue: response.data,
-      message: `Issue #${args.issue_number} updated successfully`
-    };
+  private async executeGetReleases(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo) {
+        return { success: false, error: "Owner and repo parameters are required for get_releases action" };
+      }
+
+      console.log(`🚀 Getting releases: ${args.owner}/${args.repo}`);
+      
+      const params: any = {
+        owner: args.owner,
+        repo: args.repo,
+        per_page: Math.min(args.perPage || 30, 100)
+      };
+
+      const response = await this.octokit.rest.repos.listReleases(params);
+
+      let processedReleases = response.data.map((release: any) => ({
+        id: release.id,
+        name: release.name,
+        tagName: release.tag_name,
+        targetCommitish: release.target_commitish,
+        body: release.body,
+        draft: release.draft,
+        prerelease: release.prerelease,
+        author: release.author?.login,
+        createdAt: release.created_at,
+        publishedAt: release.published_at,
+        url: release.html_url,
+        tarballUrl: release.tarball_url,
+        zipballUrl: release.zipball_url,
+        assets: release.assets?.map((asset: any) => ({
+          name: asset.name,
+          size: asset.size,
+          downloadCount: asset.download_count,
+          contentType: asset.content_type,
+          downloadUrl: asset.browser_download_url,
+          createdAt: asset.created_at,
+          updatedAt: asset.updated_at
+        })) || []
+      }));
+
+      // Filter based on preferences
+      if (args.includePrereleases === false) {
+        processedReleases = processedReleases.filter(release => !release.prerelease);
+      }
+
+      if (args.includeDrafts === false) {
+        processedReleases = processedReleases.filter(release => !release.draft);
+      }
+
+      return {
+        success: true,
+        action: "get_releases",
+        owner: args.owner,
+        repo: args.repo,
+        releases: processedReleases,
+        totalCount: processedReleases.length,
+        filters: {
+          includePrereleases: args.includePrereleases !== false,
+          includeDrafts: args.includeDrafts === true
+        },
+        retrievedAt: new Date().toISOString()
+      };
+
+    } catch (error: unknown) {
+      console.error("❌ Get releases failed:", error);
+      return {
+        success: false,
+        action: "get_releases",
+        error: `Get releases failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo
+      };
+    }
   }
 
-  /**
-   * Closes an issue.
-   * @param args - Owner, repo, issue_number.
-   * @returns Closed issue data.
-   * @throws Error on 404 if issue not found.
-   * Required scopes: repo
-   */
-  private async closeIssue(args: any) {
-    if (!args.owner || !args.repo || !args.issue_number) throw new Error("Owner, repo, and issue_number are required");
-    const response = await this.octokit.issues.update({
-      owner: args.owner,
-      repo: args.repo,
-      issue_number: args.issue_number,
-      state: 'closed'
-    });
-    return {
-      success: true,
-      action: "close_issue",
-      issue: response.data,
-      message: `Issue #${args.issue_number} closed successfully`
-    };
+  private async executeGetUser(args: any): Promise<any> {
+    try {
+      if (!args.username) {
+        return { success: false, error: "Username parameter is required for get_user action" };
+      }
+
+      console.log(`👤 Getting user: ${args.username}`);
+      
+      // Get user info
+      const userResponse = await this.octokit.rest.users.getByUsername({
+        username: args.username
+      });
+
+      const user = userResponse.data;
+      let result: any = {
+        success: true,
+        action: "get_user",
+        login: user.login,
+        name: user.name,
+        bio: user.bio,
+        company: user.company,
+        location: user.location,
+        email: user.email,
+        blog: user.blog,
+        twitterUsername: user.twitter_username,
+        publicRepos: user.public_repos,
+        publicGists: user.public_gists,
+        followers: user.followers,
+        following: user.following,
+        createdAt: user.created_at,
+        updatedAt: user.updated_at,
+        avatarUrl: user.avatar_url,
+        profileUrl: user.html_url,
+        type: user.type,
+        siteAdmin: user.site_admin,
+        hireable: user.hireable
+      };
+
+      // Get repositories if requested
+      if (args.includeRepositories !== false) {
+        try {
+          const reposResponse = await this.octokit.rest.repos.listForUser({
+            username: args.username,
+            type: args.repoType || 'owner',
+            sort: args.repoSort || 'updated',
+            per_page: 30
+          });
+
+          result.repositories = reposResponse.data.map((repo: any) => ({
+            name: repo.name,
+            fullName: repo.full_name,
+            description: repo.description,
+            url: repo.html_url,
+            stars: repo.stargazers_count,
+            forks: repo.forks_count,
+            language: repo.language,
+            topics: repo.topics || [],
+            createdAt: repo.created_at,
+            updatedAt: repo.updated_at,
+            isPrivate: repo.private,
+            isFork: repo.fork
+          }));
+        } catch {
+          result.repositories = [];
+        }
+      }
+
+      // Get organizations if requested
+      if (args.includeOrganizations !== false) {
+        try {
+          const orgsResponse = await this.octokit.rest.orgs.listForUser({
+            username: args.username,
+            per_page: 30
+          });
+
+          result.organizations = orgsResponse.data.map((org: any) => ({
+            login: org.login,
+            name: org.name,
+            description: org.description,
+            url: org.html_url,
+            avatarUrl: org.avatar_url
+          }));
+        } catch {
+          result.organizations = [];
+        }
+      }
+
+      result.retrievedAt = new Date().toISOString();
+      return result;
+
+    } catch (error: unknown) {
+      console.error("❌ Get user failed:", error);
+      return {
+        success: false,
+        action: "get_user",
+        error: `Get user failed: ${error instanceof Error ? error.message : String(error)}`,
+        username: args.username
+      };
+    }
   }
 
-  /**
-   * Lists issues in a repository.
-   * @param args - Owner, repo, state, page, perPage.
-   * @returns List of issues.
-   * @throws Error on 403 if unauthorized.
-   * Required scopes: repo
-   */
-  private async listIssues(args: any) {
-    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
-    const response = await this.octokit.paginate(this.octokit.issues.listForRepo, {
-      owner: args.owner,
-      repo: args.repo,
-      state: args.state || 'open',
-      page: args.page,
-      per_page: args.perPage
-    });
-    return {
-      success: true,
-      action: "list_issues",
-      issues: response,
-      count: response.length
-    };
+  private async executeSearchUsers(args: any): Promise<any> {
+    try {
+      if (!args.query) {
+        return { success: false, error: "Query parameter is required for search_users action" };
+      }
+
+      console.log(`🔍 Searching users: "${args.query}"`);
+      
+      const searchParams: any = {
+        q: args.query,
+        per_page: Math.min(args.perPage || 30, 100)
+      };
+
+      if (args.sort) {
+        searchParams.sort = args.sort;
+        searchParams.order = args.order || 'desc';
+      }
+
+      const response = await this.octokit.rest.search.users(searchParams);
+
+      const processedResults = response.data.items.map((user: any) => ({
+        login: user.login,
+        name: user.name,
+        bio: user.bio,
+        company: user.company,
+        location: user.location,
+        email: user.email,
+        blog: user.blog,
+        publicRepos: user.public_repos,
+        publicGists: user.public_gists,
+        followers: user.followers,
+        following: user.following,
+        createdAt: user.created_at,
+        updatedAt: user.updated_at,
+        avatarUrl: user.avatar_url,
+        profileUrl: user.html_url,
+        type: user.type,
+        score: user.score
+      }));
+
+      return {
+        success: true,
+        action: "search_users",
+        query: args.query,
+        totalCount: response.data.total_count,
+        results: processedResults,
+        searchTime: new Date().toISOString()
+      };
+
+    } catch (error: unknown) {
+      console.error("❌ User search failed:", error);
+      return {
+        success: false,
+        action: "search_users",
+        error: `User search failed: ${error instanceof Error ? error.message : String(error)}`,
+        query: args.query
+      };
+    }
   }
 
-  /**
-   * Retrieves an issue's details.
-   * @param args - Owner, repo, issue_number.
-   * @returns Issue data.
-   * @throws Error on 404 if issue not found.
-   * Required scopes: repo
-   */
-  private async getIssue(args: any) {
-    if (!args.owner || !args.repo || !args.issue_number) throw new Error("Owner, repo, and issue_number are required");
-    const response = await this.octokit.issues.get({
-      owner: args.owner,
-      repo: args.repo,
-      issue_number: args.issue_number
-    });
-    return {
-      success: true,
-      action: "get_issue",
-      issue: response.data
-    };
+  // Convenience methods for direct access
+  async getAuthenticatedUser(): Promise<any> {
+    return this.execute({ action: "get_authenticated_user" });
   }
 
-  /**
-   * Adds a comment to an issue.
-   * @param args - Owner, repo, issue_number, body.
-   * @returns Comment data.
-   * @throws Error on 404 if issue not found.
-   * Required scopes: repo
-   */
-  private async addIssueComment(args: any) {
-    if (!args.owner || !args.repo || !args.issue_number || !args.body) throw new Error("Owner, repo, issue_number, and body are required");
-    const response = await this.octokit.issues.createComment({
-      owner: args.owner,
-      repo: args.repo,
-      issue_number: args.issue_number,
-      body: args.body
-    });
-    return {
-      success: true,
-      action: "add_issue_comment",
-      comment: response.data,
-      message: `Comment added to issue #${args.issue_number}`
-    };
+  async createRepository(name: string, options: any = {}): Promise<any> {
+    return this.execute({ action: "create_repository", name, ...options });
   }
 
-  /**
-   * Creates a pull request.
-   * @param args - Owner, repo, title, body, head, base, draft.
-   * @returns Pull request data.
-   * @throws Error on 422 if branches invalid.
-   * Required scopes: repo
-   */
-  private async createPullRequest(args: any) {
-    if (!args.owner || !args.repo || !args.title || !args.head || !args.base) throw new Error("Owner, repo, title, head, and base are required");
-    const response = await this.octokit.pulls.create({
-      owner: args.owner,
-      repo: args.repo,
-      title: args.title,
-      body: args.body,
-      head: args.head,
-      base: args.base,
-      draft: args.draft ?? false
-    });
-    return {
-      success: true,
-      action: "create_pull_request",
-      pullRequest: response.data,
-      message: `Pull request #${response.data.number} created successfully`
-    };
+  async updateRepository(owner: string, repo: string, options: any = {}): Promise<any> {
+    return this.execute({ action: "update_repository", owner, repo, ...options });
   }
 
-  /**
-   * Updates a pull request.
-   * @param args - Owner, repo, pull_number, title, body, state.
-   * @returns Updated pull request data.
-   * @throws Error on 404 if PR not found.
-   * Required scopes: repo
-   */
-  private async updatePullRequest(args: any) {
-    if (!args.owner || !args.repo || !args.pull_number) throw new Error("Owner, repo, and pull_number are required");
-    const response = await this.octokit.pulls.update({
-      owner: args.owner,
-      repo: args.repo,
-      pull_number: args.pull_number,
-      title: args.title,
-      body: args.body,
-      state: args.state
-    });
-    return {
-      success: true,
-      action: "update_pull_request",
-      pullRequest: response.data,
-      message: `Pull request #${args.pull_number} updated successfully`
-    };
+  async createFile(owner: string, repo: string, path: string, content: string, message: string, options: any = {}): Promise<any> {
+    return this.execute({ action: "create_file", owner, repo, path, content, message, ...options });
   }
 
-  /**
-   * Merges a pull request.
-   * @param args - Owner, repo, pull_number, title, message.
-   * @returns Merge data.
-   * @throws Error on 409 if merge conflicts.
-   * Required scopes: repo
-   */
-  private async mergePullRequest(args: any) {
-    if (!args.owner || !args.repo || !args.pull_number) throw new Error("Owner, repo, and pull_number are required");
-    const response = await this.octokit.pulls.merge({
-      owner: args.owner,
-      repo: args.repo,
-      pull_number: args.pull_number,
-      commit_title: args.title,
-      commit_message: args.message
-    });
-    return {
-      success: true,
-      action: "merge_pull_request",
-      merge: response.data,
-      message: `Pull request #${args.pull_number} merged successfully`
-    };
+  async updateFile(owner: string, repo: string, path: string, content: string, message: string, sha: string, options: any = {}): Promise<any> {
+    return this.execute({ action: "update_file", owner, repo, path, content, message, sha, ...options });
   }
 
-  /**
-   * Closes a pull request.
-   * @param args - Owner, repo, pull_number.
-   * @returns Closed pull request data.
-   * @throws Error on 404 if PR not found.
-   * Required scopes: repo
-   */
-  private async closePullRequest(args: any) {
-    if (!args.owner || !args.repo || !args.pull_number) throw new Error("Owner, repo, and pull_number are required");
-    const response = await this.octokit.pulls.update({
-      owner: args.owner,
-      repo: args.repo,
-      pull_number: args.pull_number,
-      state: 'closed'
-    });
-    return {
-      success: true,
-      action: "close_pull_request",
-      pullRequest: response.data,
-      message: `Pull request #${args.pull_number} closed successfully`
-    };
+  async deleteFile(owner: string, repo: string, path: string, message: string, sha: string, options: any = {}): Promise<any> {
+    return this.execute({ action: "delete_file", owner, repo, path, message, sha, ...options });
   }
 
-  /**
-   * Lists pull requests in a repository.
-   * @param args - Owner, repo, state, page, perPage.
-   * @returns List of pull requests.
-   * @throws Error on 403 if unauthorized.
-   * Required scopes: repo
-   */
-  private async listPullRequests(args: any) {
-    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
-    const response = await this.octokit.paginate(this.octokit.pulls.list, {
-      owner: args.owner,
-      repo: args.repo,
-      state: args.state || 'open',
-      page: args.page,
-      per_page: args.perPage
-    });
-    return {
-      success: true,
-      action: "list_pull_requests",
-      pullRequests: response,
-      count: response.length
-    };
+  async searchRepositories(query: string, options: any = {}): Promise<any> {
+    return this.execute({ action: "search_repositories", query, ...options });
   }
 
-  /**
-   * Retrieves a pull request's details.
-   * @param args - Owner, repo, pull_number.
-   * @returns Pull request data.
-   * @throws Error on 404 if PR not found.
-   * Required scopes: repo
-   */
-  private async getPullRequest(args: any) {
-    if (!args.owner || !args.repo || !args.pull_number) throw new Error("Owner, repo, and pull_number are required");
-    const response = await this.octokit.pulls.get({
-      owner: args.owner,
-      repo: args.repo,
-      pull_number: args.pull_number
-    });
-    return {
-      success: true,
-      action: "get_pull_request",
-      pullRequest: response.data
-    };
+  async getRepository(owner: string, repo: string, options: any = {}): Promise<any> {
+    return this.execute({ action: "get_repository", owner, repo, ...options });
   }
 
-  /**
-   * Creates a release.
-   * @param args - Owner, repo, tag, title, body, draft, prerelease, generateReleaseNotes.
-   * @returns Release data.
-   * @throws Error on 422 if tag invalid.
-   * Required scopes: repo
-   */
-  private async createRelease(args: any) {
-    if (!args.owner || !args.repo || !args.tag) throw new Error("Owner, repo, and tag are required");
-    const response = await this.octokit.repos.createRelease({
-      owner: args.owner,
-      repo: args.repo,
-      tag_name: args.tag,
-      name: args.title,
-      body: args.body,
-      draft: args.draft ?? false,
-      prerelease: args.prerelease ?? false,
-      generate_release_notes: args.generateReleaseNotes ?? false
-    });
-    return {
-      success: true,
-      action: "create_release",
-      release: response.data,
-      message: `Release ${args.tag} created successfully`
-    };
+  async getContents(owner: string, repo: string, path: string = '', options: any = {}): Promise<any> {
+    return this.execute({ action: "get_contents", owner, repo, path, ...options });
   }
 
-  /**
-   * Updates a release.
-   * @param args - Owner, repo, release_id, title, body, draft, prerelease.
-   * @returns Updated release data.
-   * @throws Error on 404 if release not found.
-   * Required scopes: repo
-   */
-  private async updateRelease(args: any) {
-    if (!args.owner || !args.repo || !args.release_id) throw new Error("Owner, repo, and release_id are required");
-    const response = await this.octokit.repos.updateRelease({
-      owner: args.owner,
-      repo: args.repo,
-      release_id: args.release_id,
-      name: args.title,
-      body: args.body,
-      draft: args.draft,
-      prerelease: args.prerelease
-    });
-    return {
-      success: true,
-      action: "update_release",
-      release: response.data,
-      message: `Release updated successfully`
-    };
+  async getFile(owner: string, repo: string, path: string, options: any = {}): Promise<any> {
+    return this.execute({ action: "get_file", owner, repo, path, ...options });
   }
 
-  /**
-   * Deletes a release.
-   * @param args - Owner, repo, release_id.
-   * @returns Success message.
-   * @throws Error on 404 if release not found.
-   * Required scopes: repo
-   */
-  private async deleteRelease(args: any) {
-    if (!args.owner || !args.repo || !args.release_id) throw new Error("Owner, repo, and release_id are required");
-    await this.octokit.repos.deleteRelease({
-      owner: args.owner,
-      repo: args.repo,
-      release_id: args.release_id
-    });
-    return {
-      success: true,
-      action: "delete_release",
-      message: `Release deleted successfully`
-    };
+  async getIssues(owner: string, repo: string, options: any = {}): Promise<any> {
+    return this.execute({ action: "get_issues", owner, repo, ...options });
   }
 
-  /**
-   * Lists releases in a repository.
-   * @param args - Owner, repo, page, perPage.
-   * @returns List of releases.
-   * @throws Error on 403 if unauthorized.
-   * Required scopes: repo
-   */
-  private async listReleases(args: any) {
-    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
-    const response = await this.octokit.paginate(this.octokit.repos.listReleases, {
-      owner: args.owner,
-      repo: args.repo,
-      page: args.page,
-      per_page: args.perPage
-    });
-    return {
-      success: true,
-      action: "list_releases",
-      releases: response,
-      count: response.length
-    };
+  async getPullRequests(owner: string, repo: string, options: any = {}): Promise<any> {
+    return this.execute({ action: "get_pull_requests", owner, repo, ...options });
   }
 
-  /**
-   * Retrieves a release's details.
-   * @param args - Owner, repo, release_id.
-   * @returns Release data.
-   * @throws Error on 404 if release not found.
-   * Required scopes: repo
-   */
-  private async getRelease(args: any) {
-    if (!args.owner || !args.repo || !args.release_id) throw new Error("Owner, repo, and release_id are required");
-    const response = await this.octokit.repos.getRelease({
-      owner: args.owner,
-      repo: args.repo,
-      release_id: args.release_id
-    });
-    return {
-      success: true,
-      action: "get_release",
-      release: response.data
-    };
+  async getCommits(owner: string, repo: string, options: any = {}): Promise<any> {
+    return this.execute({ action: "get_commits", owner, repo, ...options });
   }
 
-  /**
-   * Retrieves user details.
-   * @param args - Username (optional, defaults to authenticated user).
-   * @returns User data.
-   * @throws Error on 404 if user not found.
-   * Required scopes: user (for authenticated user) or none (for public user data)
-   */
-  private async getUser(args: any) {
-    const response = args.username 
-      ? await this.octokit.users.getByUsername({ username: args.username })
-      : await this.octokit.users.getAuthenticated();
-    return {
-      success: true,
-      action: "get_user",
-      user: response.data
-    };
+  async getReleases(owner: string, repo: string, options: any = {}): Promise<any> {
+    return this.execute({ action: "get_releases", owner, repo, ...options });
   }
 
-  /**
-   * Lists repositories for a user.
-   * @param args - Username, page, perPage.
-   * @returns List of repositories.
-   * @throws Error on 403 if unauthorized.
-   * Required scopes: repo
-   */
-  private async listUserRepositories(args: any) {
-    if (!args.username) throw new Error("Username is required");
-    const response = await this.octokit.paginate(this.octokit.repos.listForUser, {
-      username: args.username,
-      page: args.page,
-      per_page: args.perPage,
-      sort: 'updated',
-      direction: 'desc'
-    });
-    return {
-      success: true,
-      action: "list_user_repos",
-      repositories: response,
-      count: response.length
-    };
+  async getUser(username: string, options: any = {}): Promise<any> {
+    return this.execute({ action: "get_user", username, ...options });
   }
 
-  /**
-   * Retrieves organization details.
-   * @param args - Owner (organization name).
-   * @returns Organization data.
-   * @throws Error on 404 if organization not found.
-   * Required scopes: admin:org
-   */
-  private async getOrganization(args: any) {
-    if (!args.owner) throw new Error("Owner is required");
-    const response = await this.octokit.orgs.get({
-      org: args.owner
-    });
-    return {
-      success: true,
-      action: "get_organization",
-      organization: response.data
-    };
-  }
-
-  /**
-   * Lists repositories for an organization.
-   * @param args - Owner (organization), page, perPage.
-   * @returns List of repositories.
-   * @throws Error on 403 if unauthorized.
-   * Required scopes: repo
-   */
-  private async listOrganizationRepositories(args: any) {
-    if (!args.owner) throw new Error("Owner is required");
-    const response = await this.octokit.paginate(this.octokit.repos.listForOrg, {
-      org: args.owner,
-      page: args.page,
-      per_page: args.perPage,
-      sort: 'updated',
-      direction: 'desc'
-    });
-    return {
-      success: true,
-      action: "list_org_repos",
-      repositories: response,
-      count: response.length
-    };
-  }
-
-  /**
-   * Adds a collaborator to a repository.
-   * @param args - Owner, repo, username, permission.
-   * @returns Success message.
-   * @throws Error on 403 if unauthorized or 422 if invalid.
-   * Required scopes: repo
-   */
-  private async addCollaborator(args: any) {
-    if (!args.owner || !args.repo || !args.username) throw new Error("Owner, repo, and username are required");
-    await this.octokit.repos.addCollaborator({
-      owner: args.owner,
-      repo: args.repo,
-      username: args.username,
-      permission: args.permission || 'push'
-    });
-    return {
-      success: true,
-      action: "add_collaborator",
-      message: `User ${args.username} added as collaborator with ${args.permission || 'push'} permission`
-    };
-  }
-
-  /**
-   * Removes a collaborator from a repository.
-   * @param args - Owner, repo, username.
-   * @returns Success message.
-   * @throws Error on 403 if unauthorized.
-   * Required scopes: repo
-   */
-  private async removeCollaborator(args: any) {
-    if (!args.owner || !args.repo || !args.username) throw new Error("Owner, repo, and username are required");
-    await this.octokit.repos.removeCollaborator({
-      owner: args.owner,
-      repo: args.repo,
-      username: args.username
-    });
-    return {
-      success: true,
-      action: "remove_collaborator",
-      message: `User ${args.username} removed as collaborator`
-    };
-  }
-
-  /**
-   * Lists collaborators in a repository.
-   * @param args - Owner, repo, page, perPage.
-   * @returns List of collaborators.
-   * @throws Error on 403 if unauthorized.
-   * Required scopes: repo
-   */
-  private async listCollaborators(args: any) {
-    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
-    const response = await this.octokit.paginate(this.octokit.repos.listCollaborators, {
-      owner: args.owner,
-      repo: args.repo,
-      page: args.page,
-      per_page: args.perPage
-    });
-    return {
-      success: true,
-      action: "list_collaborators",
-      collaborators: response,
-      count: response.length
-    };
-  }
-
-  /**
-   * Creates a webhook for a repository.
-   * @param args - Owner, repo, webhookUrl, webhookEvents.
-   * @returns Webhook data.
-   * @throws Error on 422 if invalid URL or events.
-   * Required scopes: repo:hook
-   */
-  private async createWebhook(args: any) {
-    if (!args.owner || !args.repo || !args.webhookUrl) throw new Error("Owner, repo, and webhookUrl are required");
-    const response = await this.octokit.repos.createWebhook({
-      owner: args.owner,
-      repo: args.repo,
-      config: {
-        url: args.webhookUrl,
-        content_type: 'json'
-      },
-      events: args.webhookEvents || ['push']
-    });
-    return {
-      success: true,
-      action: "create_webhook",
-      webhook: response.data,
-      message: `Webhook created successfully with ID ${response.data.id}`
-    };
-  }
-
-  /**
-   * Deletes a webhook.
-   * @param args - Owner, repo, hook_id.
-   * @returns Success message.
-   * @throws Error on 404 if webhook not found.
-   * Required scopes: repo:hook
-   */
-  private async deleteWebhook(args: any) {
-    if (!args.owner || !args.repo || !args.hook_id) throw new Error("Owner, repo, and hook_id are required");
-    await this.octokit.repos.deleteWebhook({
-      owner: args.owner,
-      repo: args.repo,
-      hook_id: args.hook_id
-    });
-    return {
-      success: true,
-      action: "delete_webhook",
-      message: `Webhook ${args.hook_id} deleted successfully`
-    };
-  }
-
-  /**
-   * Lists webhooks in a repository.
-   * @param args - Owner, repo, page, perPage.
-   * @returns List of webhooks.
-   * @throws Error on 403 if unauthorized.
-   * Required scopes: repo:hook
-   */
-  private async listWebhooks(args: any) {
-    if (!args.owner || !args.repo) throw new Error("Owner and repo are required");
-    const response = await this.octokit.paginate(this.octokit.repos.listWebhooks, {
-      owner: args.owner,
-      repo: args.repo,
-      page: args.page,
-      per_page: args.perPage
-    });
-    return {
-      success: true,
-      action: "list_webhooks",
-      webhooks: response,
-      count: response.length
-    };
+  async searchUsers(query: string, options: any = {}): Promise<any> {
+    return this.execute({ action: "search_users", query, ...options });
   }
 }

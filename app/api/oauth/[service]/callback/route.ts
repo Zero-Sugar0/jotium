@@ -141,16 +141,9 @@ export async function GET(
     const refreshToken = tokenData.refresh_token;
     const expiresIn = tokenData.expires_in;
     
-    // CHANGED: Set expiration far in the future or null to prevent auto-expiration
-    // Only set actual expiration if we don't have a refresh token
-    let expiresAt: Date | null = null;
-    if (expiresIn && !refreshToken) {
-      // If no refresh token, set expiration but add extra buffer time
-      expiresAt = new Date(Date.now() + (expiresIn * 1000) + (24 * 60 * 60 * 1000)); // Add 24 hours buffer
-    } else if (expiresIn && refreshToken) {
-      // If we have refresh token, set a very far future date or null
-      expiresAt = null; // or new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)); // 1 year
-    }
+    // ENSURE: Never expire tokens - set expiresAt to null to prevent auto-expiration
+    // This ensures credentials remain valid until user manually disconnects
+    const expiresAt: Date | null = null;
     
     const scope = tokenData.scope;
 
@@ -229,19 +222,19 @@ export async function GET(
       return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/account?oauth_error=true`);
     }
 
-    // Save connection to DB
+    // Save connection with permanent credentials (never expires)
     await saveOAuthConnection({
       userId: session.user.id,
       service,
       accessToken,
       refreshToken,
-      expiresAt, // This will now be null or far future
+      expiresAt: null, // ENSURE: Never expire tokens
       scope,
       externalUserId,
       externalUserName,
     });
 
-    console.log(`OAuth connection saved for ${service} with ${refreshToken ? 'refresh token' : 'no refresh token'}`);
+    console.log(`Permanent OAuth connection saved for ${service} with ${refreshToken ? 'refresh token' : 'no refresh token'}`);
 
     // Clear the state cookie
     const response = NextResponse.redirect(`${process.env.NEXTAUTH_URL}/account?oauth_success=true`);
