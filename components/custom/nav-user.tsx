@@ -2,20 +2,23 @@
 
 import {
   BadgeCheck,
-  Bell,
   ChevronsUpDown,
   CreditCard,
   FileText,
   HelpCircle,
   LogOut,
+  MessageSquareText,
   Shield,
   Sparkles,
 } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { signOut } from "next-auth/react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
+import {
+  AlertDialog,
+  AlertDialogContent,
+} from "@/components/ui/alert-dialog"
 import {
   Avatar,
   AvatarFallback,
@@ -41,6 +44,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
+import { FeedbackForm } from "./feedback-form"
+
 export function NavUser({
   user,
   onCloseSidebar,
@@ -56,23 +61,7 @@ export function NavUser({
   onCloseSidebar?: () => void;
 }) {
   const { isMobile } = useSidebar();
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  useEffect(() => {
-    async function fetchNotifications() {
-      try {
-        const res = await fetch("/api/notifications");
-        if (res.ok) {
-          const data = await res.json();
-          const count = data.notifications?.filter((n: any) => !n.read).length || 0;
-          setUnreadCount(count);
-        }
-      } catch (error) {
-        // Handle error silently
-      }
-    }
-    fetchNotifications();
-  }, []);
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
 
   const displayName = user.firstName && user.lastName
     ? `${user.firstName} ${user.lastName}`
@@ -93,9 +82,10 @@ export function NavUser({
   };
 
   return (
-    <SidebarMenu>
-      <SidebarMenuItem>
-        <DropdownMenu>
+    <>
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="sm"
@@ -152,19 +142,6 @@ export function NavUser({
                   Billing
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild className="gap-2 px-2 py-1 text-xs" onClick={onCloseSidebar}>
-                <Link href="/notifications" className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-2">
-                    <Bell className="size-4" />
-                    Notifications
-                  </div>
-                  {unreadCount > 0 && (
-                    <Badge variant="secondary" className="h-5 w-5 items-center justify-center p-0">
-                      {unreadCount}
-                    </Badge>
-                  )}
-                </Link>
-              </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
@@ -202,6 +179,18 @@ export function NavUser({
               </DropdownMenuSub>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                onClick={() => {
+                  setShowFeedbackForm(true);
+                }}
+                className="gap-2 px-2 py-1 text-xs cursor-pointer"
+              >
+                <MessageSquareText className="size-4" />
+                Submit Feedback
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={async () => {
                 onCloseSidebar?.();
@@ -217,5 +206,11 @@ export function NavUser({
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
+      <AlertDialog open={showFeedbackForm} onOpenChange={setShowFeedbackForm}>
+        <AlertDialogContent>
+          <FeedbackForm onClose={() => setShowFeedbackForm(false)} />
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

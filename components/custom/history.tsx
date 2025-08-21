@@ -2,7 +2,6 @@
 
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import cx from "classnames";
-import { MessageSquareText } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { User } from "next-auth";
@@ -13,7 +12,6 @@ import useSWR from "swr";
 import { ChatMeta } from "@/lib/redis-queries";
 import { fetcher, generateUUID } from "@/lib/utils";
 
-import { FeedbackForm } from "./feedback-form"; // Import the new component
 import {
   InfoIcon,
   MenuIcon,
@@ -53,7 +51,6 @@ export const History = ({ user }: { user: User | undefined }) => {
   const pathname = usePathname();
 
   const [isHistoryVisible, setIsHistoryVisible] = useState(false);
-  const [showFeedbackForm, setShowFeedbackForm] = useState(false); // New state for feedback form
   const {
     data: history,
     isLoading,
@@ -251,31 +248,8 @@ export const History = ({ user }: { user: User | undefined }) => {
             </div>
           </div>
 
-          {/* Feedback button */}
-          {user && (
-            <div className="mt-2">
-              <Button
-                className="font-normal text-sm flex flex-row items-center justify-start w-full h-10 pl-1 pr-2 gap-2 text-foreground"
-                variant="ghost"
-                onClick={() => {
-                  setShowFeedbackForm(true);
-                  setIsHistoryVisible(false); // Close sidebar when opening feedback form
-                }}
-              >
-                <MessageSquareText className="shrink-0" size={20} />
-                <span className="leading-none">Submit Feedback</span>
-              </Button>
-            </div>
-          )}
-
           {/* NavUser at the bottom of the sidebar */}
           <div className="pt-1">
-             {/* Feedback Form Dialog */}
-            <AlertDialog open={showFeedbackForm} onOpenChange={setShowFeedbackForm}>
-              <AlertDialogContent>
-                <FeedbackForm onClose={() => setShowFeedbackForm(false)} />
-              </AlertDialogContent>
-            </AlertDialog>
             {user && (
               <NavUser
                 user={{
@@ -293,13 +267,6 @@ export const History = ({ user }: { user: User | undefined }) => {
           </div>
         </SheetContent>
       </Sheet>
-
-      {/* Feedback Form Dialog */}
-      <AlertDialog open={showFeedbackForm} onOpenChange={setShowFeedbackForm}>
-        <AlertDialogContent>
-          <FeedbackForm onClose={() => setShowFeedbackForm(false)} />
-        </AlertDialogContent>
-      </AlertDialog>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>

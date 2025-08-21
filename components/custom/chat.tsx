@@ -1,4 +1,3 @@
-//components/custom/chat.tsx
 "use client";
 
 import { AnimatePresence } from "framer-motion";
@@ -38,8 +37,8 @@ export function Chat({
     initialMessages.length === MESSAGES_PER_PAGE
   ); // Assume more if initial load filled the page
   const [loadingMore, setLoadingMore] = useState(false);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const [messagesEndRef] = useScrollToBottom<HTMLDivElement>([messages.length]);
+  const [messagesContainerRef, messagesEndRef, forceScrollToBottom] =
+    useScrollToBottom<HTMLDivElement>([messages]);
   const [attachments, setAttachments] = useState<any[]>([]);
   const [firstName, setFirstName] = useState<string | undefined>(undefined);
   const [executingTools, setExecutingTools] = useState<string[]>([]); // New state for executing tools (array)
@@ -59,6 +58,11 @@ export function Chat({
 
     setLoadingMore(true);
     const nextPage = currentPage + 1;
+    
+    // Store current scroll position relative to the bottom
+    const container = messagesContainerRef.current;
+    const scrollFromBottom = container ? container.scrollHeight - container.scrollTop : 0;
+    
     try {
       const response = await fetch(
         `/api/message?chatId=${id}&page=${nextPage}&limit=${MESSAGES_PER_PAGE}`
@@ -72,6 +76,14 @@ export function Chat({
         setMessages((prev) => [...newMessages, ...prev]);
         setCurrentPage(nextPage);
         setHasMoreMessages(newMessages.length === MESSAGES_PER_PAGE);
+        
+        // Restore scroll position after loading more messages
+        if (container) {
+          requestAnimationFrame(() => {
+            const newScrollTop = container.scrollHeight - scrollFromBottom;
+            container.scrollTop = newScrollTop;
+          });
+        }
       } else {
         setHasMoreMessages(false);
       }
@@ -94,7 +106,7 @@ export function Chat({
       }
     };
 
-    container.addEventListener("scroll", handleScroll);
+    container.addEventListener("scroll", handleScroll, { passive: true });
     return () => container.removeEventListener("scroll", handleScroll);
   }, [hasMoreMessages, loadingMore, loadMoreMessages]);
 
@@ -117,6 +129,11 @@ export function Chat({
     setAttachments([]);
     setIsLoading(true);
     setError(null);
+
+    // Force scroll to bottom immediately when user sends a message
+    requestAnimationFrame(() => {
+      forceScrollToBottom();
+    });
 
     const response = await fetch("/api/chat", {
       method: "POST",
@@ -152,6 +169,11 @@ export function Chat({
         attachments: [],
       };
       setMessages((prev) => [...prev, assistantMessage]);
+
+      // Force scroll again when assistant message starts
+      requestAnimationFrame(() => {
+        forceScrollToBottom();
+      });
 
       const startTime = Date.now();
       let pendingAttachments: any[] = [];
@@ -193,8 +215,6 @@ export function Chat({
                     msg.id === assistantMessage.id ? { ...assistantMessage } : msg
                   )
                 );
-                // Scroll to bottom during streaming
-                messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
               } catch (error) {
                 console.error("Error parsing stream data:", error, jsonStr);
               }
@@ -213,53 +233,63 @@ export function Chat({
         )
       );
       setExecutingTools([]); // Reset executing tools after response
+      
+      // Final scroll to bottom when message is complete
+      requestAnimationFrame(() => {
+        forceScrollToBottom();
+      });
+      
       router.refresh(); // Refresh server components to update message count
     }
     setIsLoading(false);
   };
 
   return (
-    <div className="flex flex-col h-screen pt-12 bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Messages Container - Stable width system */}
-      <div
-        ref={messagesContainerRef}
-className="flex-1 overflow-y-auto custom-scrollbar pb-24 sm:pb-32"
-        style={{
-          scrollbarWidth: 'thin',
-          scrollbarColor: 'hsl(var(--border)) transparent'
-        }}
-      >
-        <style jsx>{`
-          div::-webkit-scrollbar {
-            width: 6px;
-          }
-          div::-webkit-scrollbar-track {
-            background: transparent;
-          }
-          div::-webkit-scrollbar-thumb {
-            background-color: hsl(var(--border));
-            border-radius: 3px;
-          }
-          div::-webkit-scrollbar-thumb:hover {
-            background-color: hsl(var(--border) / 0.8);
-          }
-          /* Shift code blocks slightly left on mobile for visual centering */
-          :global(pre) {
-            margin-left: -0.375rem;
-          }
-          @media (min-width: 640px) {
-            :global(pre) {
-              margin-left: 0;
+    <div className="flex flex-col h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      {/* Fixed Header Space */}
+      <div className="pt-12 shrink-0" />
+      
+      {/* Messages Container - This is the ONLY scrollable area */}
+      <div className="flex-1 overflow-hidden relative">
+        <div
+          ref={messagesContainerRef}
+          className="h-full overflow-y-auto scroll-smooth"
+          style={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'hsl(var(--border)) transparent'
+          }}
+        >
+          <style jsx>{`
+            div::-webkit-scrollbar {
+              width: 6px;
             }
-          }
-        `}</style>
-        
-        {/* Fixed width container that never changes */}
-        <div className="w-full max-w-none mx-auto">
-          {/* Responsive padding with stable inner container */}
+            div::-webkit-scrollbar-track {
+              background: transparent;
+            }
+            div::-webkit-scrollbar-thumb {
+              background-color: hsl(var(--border));
+              border-radius: 3px;
+            }
+            div::-webkit-scrollbar-thumb:hover {
+              background-color: hsl(var(--border) / 0.8);
+            }
+            /* Shift code blocks slightly left on mobile for visual centering */
+            :global(pre) {
+              margin-left: -0.375rem;
+            }
+            @media (min-width: 640px) {
+              :global(pre) {
+                margin-left: 0;
+              }
+            }
+          `}</style>
+          
+          {/* Content with proper padding */}
           <div className="px-3 sm:px-5 md:px-7 lg:mx-[132px] lg:px-10 xl:px-14 2xl:px-18">
-            {/* Fixed max-width content area - This ensures stable layout */}
-            <div className="max-w-4xl mx-auto layout-stable">
+            <div className="max-w-2xl mx-auto layout-stable">
+              {/* Top padding for first message */}
+              <div className="pt-4 sm:pt-6" />
+              
               <AnimatePresence mode="popLayout">
                 {loadingMore && (
                   <div className="text-center py-1.5 text-sm text-muted-foreground">
@@ -366,7 +396,6 @@ className="flex-1 overflow-y-auto custom-scrollbar pb-24 sm:pb-32"
                                           }
                                           assistantMessage.duration = Date.now() - startTime;
                                           setMessages((prev) => prev.map((msg) => msg.id === assistantMessage.id ? { ...assistantMessage } : msg));
-                                          messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
                                         } catch (error) {
                                           console.error("Error parsing stream data:", error, jsonStr);
                                         }
@@ -381,6 +410,12 @@ className="flex-1 overflow-y-auto custom-scrollbar pb-24 sm:pb-32"
                                 }
                                 setMessages((prev) => prev.map((msg) => msg.id === assistantMessage.id ? { ...assistantMessage } : msg));
                                 setExecutingTools([]);
+                                
+                                // Scroll to bottom after regeneration
+                                requestAnimationFrame(() => {
+                                  forceScrollToBottom();
+                                });
+                                
                                 router.refresh(); // Refresh server components to update message count
                               }
                             } catch (err) {
@@ -401,16 +436,18 @@ className="flex-1 overflow-y-auto custom-scrollbar pb-24 sm:pb-32"
                   />
                 ))}
               </AnimatePresence>
+              
+              {/* Bottom spacing to ensure last message is visible above input */}
+              <div className="h-40" />
+              <div ref={messagesEndRef} />
             </div>
           </div>
         </div>
-        
-        <div ref={messagesEndRef} className="h-16 sm:h-20" />
       </div>
 
-      {/* Error Display - Same stable width */}
+      {/* Error Display - Fixed position, not part of scroll */}
       {error && (
-        <div className="px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20 pb-4">
+        <div className="shrink-0 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20 pb-4">
           <div className="max-w-4xl mx-auto">
             <div className="bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded-xl p-4">
               <p className="text-red-700 dark:text-red-300 text-sm text-center">
@@ -421,8 +458,8 @@ className="flex-1 overflow-y-auto custom-scrollbar pb-24 sm:pb-32"
         </div>
       )}
 
-      {/* Input Section - Stable width system */}
-      <div className="fixed bottom-0 inset-x-0 w-full z-10 bg-background/80 backdrop-blur-sm">
+      {/* Input Section - Completely fixed, never scrolls */}
+      <div className="shrink-0 bg-background/80 backdrop-blur-sm border-t border-border/20">
         <div className="p-4 sm:p-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20">
           <div className="max-w-4xl mx-auto">
             <MultimodalInput

@@ -1,10 +1,13 @@
 "use client";
 
+import { Bell } from "lucide-react";
+import Link from "next/link";
 import { Session } from "next-auth";
 import { signOut } from "next-auth/react";
-// import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -22,6 +25,24 @@ interface UserMenuProps {
 }
 
 export function UserMenu({ session, messageCount, messageLimit }: UserMenuProps) {
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    async function fetchNotifications() {
+      try {
+        const res = await fetch("/api/notifications");
+        if (res.ok) {
+          const data = await res.json();
+          const count = data.notifications?.filter((n: any) => !n.read).length || 0;
+          setUnreadCount(count);
+        }
+      } catch (error) {
+        // Handle error silently
+      }
+    }
+    fetchNotifications();
+  }, []);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -60,6 +81,19 @@ export function UserMenu({ session, messageCount, messageLimit }: UserMenuProps)
             Messages: {messageCount} / {messageLimit === Infinity ? "Unlimited" : messageLimit}
           </p>
         </div>
+        <DropdownMenuItem asChild>
+          <Link href="/notifications" className="flex items-center justify-between w-full px-3 py-2 text-sm">
+            <div className="flex items-center gap-2">
+              <Bell className="size-4" />
+              Notifications
+            </div>
+            {unreadCount > 0 && (
+              <Badge variant="secondary" className="h-5 w-5 items-center justify-center p-0">
+                {unreadCount}
+              </Badge>
+            )}
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem
           className="p-0 z-50"
           onSelect={async (e) => {
