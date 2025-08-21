@@ -245,45 +245,17 @@ export function Chat({
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Fixed Header Space */}
-      <div className="pt-12 shrink-0" />
-      
-      {/* Messages Container - This is the ONLY scrollable area */}
-      <div className="flex-1 overflow-hidden relative">
+    <>
+      <div className="flex flex-col h-dvh bg-gradient-to-br from-background via-background to-muted/20">
+        {/* Messages Container - This is the ONLY scrollable area */}
         <div
           ref={messagesContainerRef}
-          className="h-full overflow-y-auto scroll-smooth"
+          className="flex-1 overflow-y-auto scroll-smooth pt-12"
           style={{
             scrollbarWidth: 'thin',
             scrollbarColor: 'hsl(var(--border)) transparent'
           }}
         >
-          <style jsx>{`
-            div::-webkit-scrollbar {
-              width: 6px;
-            }
-            div::-webkit-scrollbar-track {
-              background: transparent;
-            }
-            div::-webkit-scrollbar-thumb {
-              background-color: hsl(var(--border));
-              border-radius: 3px;
-            }
-            div::-webkit-scrollbar-thumb:hover {
-              background-color: hsl(var(--border) / 0.8);
-            }
-            /* Shift code blocks slightly left on mobile for visual centering */
-            :global(pre) {
-              margin-left: -0.375rem;
-            }
-            @media (min-width: 640px) {
-              :global(pre) {
-                margin-left: 0;
-              }
-            }
-          `}</style>
-          
           {/* Content with proper padding */}
           <div className="px-3 sm:px-5 md:px-7 lg:mx-[132px] lg:px-10 xl:px-14 2xl:px-18">
             <div className="max-w-2xl mx-auto layout-stable">
@@ -443,42 +415,68 @@ export function Chat({
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Error Display - Fixed position, not part of scroll */}
-      {error && (
-        <div className="shrink-0 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20 pb-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded-xl p-4">
-              <p className="text-red-700 dark:text-red-300 text-sm text-center">
-                {error}
-              </p>
+        {/* Error Display - Fixed position, not part of scroll */}
+        {error && (
+          <div className="shrink-0 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20 pb-4">
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded-xl p-4">
+                <p className="text-red-700 dark:text-red-300 text-sm text-center">
+                  {error}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Input Section - Completely fixed, never scrolls */}
+        <div className="shrink-0 bg-background/80 backdrop-blur-sm border-t border-border/20">
+          <div className="p-4 sm:p-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20">
+            <div className="max-w-4xl mx-auto">
+              <MultimodalInput
+                input={input}
+                setInput={setInput}
+                handleSubmit={handleSubmit}
+                isLoading={isLoading}
+                stop={() => {}}
+                messages={messages as any}
+                attachments={attachments}
+                setAttachments={setAttachments}
+                append={async () => null}
+                messageCount={messageCount}
+                messageLimit={messageLimit}
+                messageLimitResetAt={messageLimitResetAt}
+              />
             </div>
           </div>
         </div>
-      )}
-
-      {/* Input Section - Completely fixed, never scrolls */}
-      <div className="shrink-0 bg-background/80 backdrop-blur-sm border-t border-border/20">
-        <div className="p-4 sm:p-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20">
-          <div className="max-w-4xl mx-auto">
-            <MultimodalInput
-              input={input}
-              setInput={setInput}
-              handleSubmit={handleSubmit}
-              isLoading={isLoading}
-              stop={() => {}}
-              messages={messages as any}
-              attachments={attachments}
-              setAttachments={setAttachments}
-              append={async () => null}
-              messageCount={messageCount}
-              messageLimit={messageLimit}
-              messageLimitResetAt={messageLimitResetAt}
-            />
-          </div>
-        </div>
       </div>
-    </div>
+      {/* Global styles for scrollbar and code blocks */}
+      <style jsx global>{`
+        /* For Webkit browsers (Chrome, Safari) */
+        div::-webkit-scrollbar {
+          width: 6px;
+        }
+        div::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        div::-webkit-scrollbar-thumb {
+          background-color: hsl(var(--border));
+          border-radius: 3px;
+        }
+        div::-webkit-scrollbar-thumb:hover {
+          background-color: hsl(var(--border) / 0.8);
+        }
+        /* Shift code blocks slightly left on mobile for visual centering */
+        :global(pre) {
+          margin-left: -0.375rem;
+        }
+        @media (min-width: 640px) {
+          :global(pre) {
+            margin-left: 0;
+          }
+        }
+      `}</style>
+    </>
   );
 }
