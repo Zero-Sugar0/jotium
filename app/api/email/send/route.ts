@@ -37,7 +37,18 @@ interface PasswordResetEmailData extends BaseEmailData {
   resetUrl?: string;
 }
 
-type EmailData = WelcomeEmailData | SubscriptionReceiptEmailData | PasswordResetEmailData;
+interface FeedbackEmailData extends BaseEmailData {
+  type: 'feedback';
+  data: {
+    name: string;
+    email: string;
+    feedbackText: string;
+    sentiment: 'positive' | 'neutral' | 'negative' | null;
+    timestamp: string;
+  };
+}
+
+type EmailData = WelcomeEmailData | SubscriptionReceiptEmailData | PasswordResetEmailData | FeedbackEmailData;
 
 export async function POST(req: NextRequest) {
   try {
@@ -76,11 +87,30 @@ export async function POST(req: NextRequest) {
                      'Unknown IP';
 
     // Prepare data with additional context
-    const emailData = {
-      ...body,
-      userAgent,
-      ipAddress,
-    };
+    let emailData;
+    
+    if (body.type === 'feedback') {
+      // Handle feedback emails differently
+      const feedbackBody = body as FeedbackEmailData;
+      emailData = {
+        to: body.to,
+        type: body.type,
+        name: feedbackBody.data.name,
+        email: feedbackBody.data.email,
+        feedbackText: feedbackBody.data.feedbackText,
+        sentiment: feedbackBody.data.sentiment,
+        timestamp: feedbackBody.data.timestamp,
+        userAgent,
+        ipAddress,
+      };
+    } else {
+      // Handle other email types
+      emailData = {
+        ...body,
+        userAgent,
+        ipAddress,
+      };
+    }
 
     // Use the direct email service
     const result = await sendEmail({
@@ -142,7 +172,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     message: 'Email API is working',
-    availableTypes: ['welcome', 'subscription-receipt', 'password-reset'],
+    availableTypes: ['welcome', 'subscription-receipt', 'password-reset', 'feedback'],
     example: {
       welcome: {
         to: 'user@example.com',
@@ -172,6 +202,17 @@ export async function GET(req: NextRequest) {
         lastName: 'Doe',
         resetToken: 'reset_token_here',
         resetUrl: 'https://yourapp.com/reset-password?token=reset_token_here'
+      },
+      feedback: {
+        to: 'admin@example.com',
+        type: 'feedback',
+        data: {
+          name: 'John Doe',
+          email: 'john@example.com',
+          feedbackText: 'Great product!',
+          sentiment: 'positive',
+          timestamp: '2025-01-15T10:30:00Z'
+        }
       }
     }
   });

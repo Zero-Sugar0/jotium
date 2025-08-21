@@ -209,7 +209,7 @@ export const {
     },
     async signOut(params) {
       if ("token" in params && params.token) {
-        console.log(`User signed out: ${params.token.email}`);
+        // console.log(`User signed out: ${params.token.email}`);
       } else if ("session" in params && params.session) {
         const user = await getUserById(params.session.userId);
         if (user) {

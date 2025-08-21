@@ -303,7 +303,7 @@ export async function POST(request: NextRequest) {
             userId: session.user.id,
             messages: finalMessages,
           });
-          console.log('✅ Chat saved to Redis:', chatId);
+          // console.log('✅ Chat saved to Redis:', chatId);
         } catch (error) {
           console.error('❌ Error saving chat to Redis:', error);
         }
