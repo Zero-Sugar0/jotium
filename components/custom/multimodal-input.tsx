@@ -3,6 +3,7 @@
 
 import { Attachment, ChatRequestOptions, CreateMessage, Message } from "ai";
 import { motion, AnimatePresence } from "framer-motion";
+import { AudioLines, Mic, Square, X } from "lucide-react";
 import React, {
   useRef,
   useEffect,
@@ -14,6 +15,7 @@ import React, {
 } from "react";
 import { toast } from "sonner";
 
+import { RecordingWaves, useAudio, AudioButtons } from "./audio";
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from "./icons";
 import { MessageLimitBanner } from "./message-limit-banner";
 import { PreviewAttachment } from "./preview-attachment";
@@ -86,6 +88,17 @@ export function MultimodalInput({
   const [isFocused, setIsFocused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
+  // Use the audio hook
+  const {
+    isRecording,
+    isTranscribing,
+    audioBlob,
+    startRecording,
+    stopRecording,
+    cancelRecording,
+    transcribeAudio
+  } = useAudio(setInput, textareaRef);
+
   useEffect(() => {
     if (textareaRef.current) {
       adjustHeight();
@@ -94,10 +107,10 @@ export function MultimodalInput({
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768); // Assuming 768px as the mobile breakpoint
+      setIsMobile(window.innerWidth < 768);
     };
 
-    handleResize(); // Set initial value
+    handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -118,7 +131,7 @@ export function MultimodalInput({
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
 
   const submitForm = useCallback(() => {
-    if (!input.trim() && attachments.length === 0) return;
+    if (!input.trim() && attachments.length === 0 && !audioBlob) return;
     
     handleSubmit(undefined, {
       experimental_attachments: attachments,
@@ -127,7 +140,7 @@ export function MultimodalInput({
     if (typeof window !== "undefined" && window.innerWidth > 768) {
       textareaRef.current?.focus();
     }
-  }, [attachments, handleSubmit, input]);
+  }, [attachments, handleSubmit, input, audioBlob]);
 
   const uploadFile = async (file: File) => {
     const formData = new FormData();
@@ -183,7 +196,6 @@ export function MultimodalInput({
     [setAttachments],
   );
 
-
   const handleRemoveAttachment = useCallback(
     (attachmentToRemove: Attachment) => {
       setAttachments((currentAttachments) =>
@@ -195,7 +207,15 @@ export function MultimodalInput({
     [setAttachments],
   );
 
-  const hasContent = input.trim().length > 0 || attachments.length > 0;
+  const hasContent = input.trim().length > 0 || attachments.length > 0 || !!audioBlob;
+
+  const handleAudioClick = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
 
   return (
     <div className="w-full flex justify-center">
@@ -292,45 +312,49 @@ export function MultimodalInput({
           relative bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl sm:rounded-3xl
           transition-all duration-200 shadow-sm
           ${isFocused ? "border-primary/50 shadow-md ring-2 sm:ring-4 ring-primary/10" : "hover:border-border"}
-          ${hasContent ? "border-primary/30" : ""}
+          ${input.trim().length > 0 ? "border-primary/30" : ""}
         `} style={{ animation: 'glowing 2s infinite alternate' }}>
           <MessageLimitBanner
             messageCount={messageCount}
             messageLimit={messageLimit}
             messageLimitResetAt={messageLimitResetAt}
           />
-          <Textarea
-            ref={textareaRef}
-            placeholder="Ask Jotium anything..."
-            value={input}
-            onChange={handleInput}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            className={`
-              min-h-[72px] sm:min-h-[88px] max-h-[250px] sm:max-h-[300px] overflow-y-auto resize-none 
-              border-0 bg-transparent text-sm sm:text-sm placeholder:text-muted-foreground/60 
-              focus-visible:ring-0 focus-visible:ring-offset-0 p-3 sm:p-4 
-              pr-20 sm:pr-28 leading-relaxed thin-scrollbar
-            `}
-            rows={2}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.shiftKey) {
-                if (isMobile) {
-                  // On mobile, allow the default behavior so Enter inserts a newline.
-                  // Do not send; messages are sent via the submit button on mobile.
-                  return;
-                } else {
-                  // On desktop, send message
-                  event.preventDefault();
-                  if (isLoading) {
-                    toast.error("Please wait for the agent to finish its response!");
+          
+          {isRecording ? (
+            <div className="p-3 sm:p-4">
+              <RecordingWaves isRecording={isRecording} />
+            </div>
+          ) : (
+            <Textarea
+              ref={textareaRef}
+              placeholder="Ask Jotium anything..."
+              value={input}
+              onChange={handleInput}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              className={`
+                min-h-[72px] sm:min-h-[88px] max-h-[250px] sm:max-h-[300px] overflow-y-auto resize-none 
+                border-0 bg-transparent text-sm sm:text-sm placeholder:text-muted-foreground/60 
+                focus-visible:ring-0 focus-visible:ring-offset-0 p-3 sm:p-4 
+                pr-20 sm:pr-28 leading-relaxed thin-scrollbar
+              `}
+              rows={2}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  if (isMobile) {
+                    return;
                   } else {
-                    submitForm();
+                    event.preventDefault();
+                    if (isLoading) {
+                      toast.error("Please wait for the agent to finish its response!");
+                    } else {
+                      submitForm();
+                    }
                   }
                 }
-              }
-            }}
-          />
+              }}
+            />
+          )}
 
           {/* Action Buttons - Responsive positioning */}
           <div className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 flex items-center gap-1.5 sm:gap-2">
@@ -341,7 +365,7 @@ export function MultimodalInput({
                 fileInputRef.current?.click();
               }}
               variant="outline"
-              disabled={isLoading}
+              disabled={isLoading || isRecording || isTranscribing}
               size="sm"
             >
               <PaperclipIcon size={14} className="sm:size-4" />
@@ -358,23 +382,54 @@ export function MultimodalInput({
               >
                 <StopIcon size={14} className="sm:size-4" />
               </Button>
+            ) : isTranscribing ? (
+              <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 border border-primary/20 rounded-full">
+                <AudioLines size={14} className="sm:size-4 text-primary animate-pulse" />
+                <span className="text-xs text-primary font-medium">Transcribing...</span>
+              </div>
             ) : (
               <Button
                 className={`
                   rounded-full p-1.5 sm:p-2 size-8 sm:size-10 transition-all duration-200
-                  ${hasContent
+                  ${input.trim().length > 0
                     ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg hover:scale-105"
-                    : "bg-muted text-muted-foreground cursor-not-allowed"
+                    : isRecording
+                    ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
+                    : "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground"
                   }
                 `}
                 onClick={(event) => {
                   event.preventDefault();
-                  submitForm();
+                  if (input.trim().length > 0) {
+                    submitForm();
+                  } else {
+                    handleAudioClick();
+                  }
                 }}
-                disabled={!hasContent || uploadQueue.length > 0}
+                disabled={uploadQueue.length > 0 || isTranscribing}
                 size="sm"
               >
-                <ArrowUpIcon size={14} className="sm:size-4" />
+                {input.trim().length > 0 ? (
+                  <ArrowUpIcon size={14} className="sm:size-4" />
+                ) : isRecording ? (
+                  <Square size={14} className="sm:size-4" />
+                ) : (
+                  <Mic size={14} className="sm:size-4" />
+                )}
+              </Button>
+            )}
+
+            {/* Cancel recording button */}
+            {isRecording && (
+              <Button
+                className="rounded-full p-1.5 sm:p-2 size-8 sm:size-10 bg-orange-500 hover:bg-orange-600 text-white transition-all duration-200"
+                onClick={(event) => {
+                  event.preventDefault();
+                  cancelRecording();
+                }}
+                size="sm"
+              >
+                <X size={14} className="sm:size-4" />
               </Button>
             )}
           </div>
