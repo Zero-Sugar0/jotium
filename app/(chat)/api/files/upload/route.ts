@@ -12,9 +12,32 @@ const FileSchema = z.object({
     })
     .refine(
       (file) =>
-        ["image/jpeg", "image/png", "application/pdf"].includes(file.type),
+        [
+          // Images
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "image/gif",
+          "image/bmp",
+          "image/tiff",
+          // PDF
+          "application/pdf",
+          // Audio formats supported by Gemini
+          "audio/wav",
+          "audio/wave",
+          "audio/x-wav",
+          "audio/mp3",
+          "audio/mpeg",
+          "audio/mp4",
+          "audio/aac",
+          "audio/aiff",
+          "audio/x-aiff",
+          "audio/ogg",
+          "audio/flac",
+          "audio/x-flac",
+        ].includes(file.type),
       {
-        message: "File type should be JPEG, PNG, or PDF",
+        message: "File type should be JPEG, PNG, WebP, PDF, or supported audio formats (WAV, MP3, AAC, AIFF, OGG, FLAC)",
       },
     ),
 });
