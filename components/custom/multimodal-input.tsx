@@ -3,7 +3,6 @@
 
 import { Attachment, ChatRequestOptions, CreateMessage, Message } from "ai";
 import { motion, AnimatePresence } from "framer-motion";
-import { AudioLines, Mic, Square, X } from "lucide-react";
 import React, {
   useRef,
   useEffect,
@@ -14,35 +13,36 @@ import React, {
   ChangeEvent,
 } from "react";
 import { toast } from "sonner";
+import { AudioLines, Mic, Square, X } from "lucide-react";
 
-import { RecordingWaves, useAudio, AudioButtons } from "./audio";
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from "./icons";
 import { MessageLimitBanner } from "./message-limit-banner";
 import { PreviewAttachment } from "./preview-attachment";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
+import { RecordingWaves, useAudio, AudioButtons } from "./audio";
 
 const suggestedActions = [
   {
-    title: "Project & Communication",
+    title: "Project Mngmt.",
     label: "Create a Linear project, schedule a meeting, and send an email.",
     action: "Please create a new project in Linear called 'Jotium AI Feature Development'. Add initial tasks: 'Implement new user authentication flow', 'Develop real-time chat functionality', and 'Integrate third-party API for data enrichment'. Once the project is set up, schedule a project kickoff meeting for next Wednesday at 11 AM in Google Calendar, and send an email to devteam@example.com with the project overview and meeting invitation.",
     icon: "💼",
   },
   {
-    title: "Financial Analysis & Report",
-    label: "Analyze stock performance and email a report.",
-    action: "Provide a detailed market analysis for Tesla stock (TSLA) covering its performance over the past three months. Include key trends and a summary of recent news affecting its price. Once complete, email the full report to finance.updates@example.com.",
+    title: "Renewable & Report",
+    label: "Trends in global renewable energy capacity.",
+    action: "What are the trends in global renewable energy capacity in the last 10 years?\n1. Do a search and provide at least 3 relevant links.\n2. Summarize capacity growth rates (solar, wind, hydro).\n3. Visualize the data using bar, line, pie, and scatter charts.",
     icon: "📈",
   },
   {
-    title: "Flight Booking & Itinerary",
+    title: "Flight & Itinerary",
     label: "Find flights, add to calendar, and email details.",
     action: "Find the cheapest round-trip flights from San Francisco (SFO) to Tokyo (NRT) for a two-week trip starting exactly two weeks from today. Once you find suitable flights, please add the travel dates to my Google Calendar and send an email with the flight details and itinerary to my.travel@example.com.",
     icon: "✈️",
   },
   {
-    title: "Code & Communication",
+    title: "Code & Reminder",
     label: "Create GitHub issue, email team, and set calendar reminder.",
     action: "For the 'Jotium AI Feature Development' project in Linear, please create a new GitHub issue titled 'Refactor AgenticDecisionEngine for better extensibility'. Assign it to developer@example.com. Once the issue is created, send an email to team-leads@example.com notifying them about this new refactoring task and its importance, and add a reminder to my Google Calendar for next Monday to follow up on this issue.",
     icon: "💻",
