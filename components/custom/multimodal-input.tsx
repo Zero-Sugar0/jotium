@@ -3,6 +3,7 @@
 
 import { Attachment, ChatRequestOptions, CreateMessage, Message } from "ai";
 import { motion, AnimatePresence } from "framer-motion";
+import { AudioLines, Mic, Square, X } from "lucide-react";
 import React, {
   useRef,
   useEffect,
@@ -13,18 +14,17 @@ import React, {
   ChangeEvent,
 } from "react";
 import { toast } from "sonner";
-import { AudioLines, Mic, Square, X } from "lucide-react";
 
+import { RecordingWaves, useAudio, AudioButtons } from "./audio";
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from "./icons";
 import { MessageLimitBanner } from "./message-limit-banner";
 import { PreviewAttachment } from "./preview-attachment";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
-import { RecordingWaves, useAudio, AudioButtons } from "./audio";
 
 const suggestedActions = [
   {
-    title: "Project Mngmt.",
+    title: "Project Work",
     label: "Create a Linear project, schedule a meeting, and send an email.",
     action: "Please create a new project in Linear called 'Jotium AI Feature Development'. Add initial tasks: 'Implement new user authentication flow', 'Develop real-time chat functionality', and 'Integrate third-party API for data enrichment'. Once the project is set up, schedule a project kickoff meeting for next Wednesday at 11 AM in Google Calendar, and send an email to devteam@example.com with the project overview and meeting invitation.",
     icon: "💼",
