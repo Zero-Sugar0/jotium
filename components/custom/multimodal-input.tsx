@@ -218,223 +218,247 @@ export function MultimodalInput({
   };
 
   return (
-    <div className="w-full flex justify-center">
-      <div className="relative w-full md:max-w-xl lg:max-w-xl xl:max-w-2xl flex flex-col gap-1 sm:gap-1">
-        {/* Suggested Actions - Responsive grid */}
-        <AnimatePresence>
-          {messages.length === 0 &&
-            attachments.length === 0 &&
-            uploadQueue.length === 0 && (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 w-full"
-              >
-                {suggestedActions.map((suggestedAction, index) => (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 * index }}
-                    key={index}
-                    className="block"
-                  >
-                    <button
-                      onClick={() => {
-                        setInput(suggestedAction.action);
-                        textareaRef.current?.focus();
-                      }}
-                      className="group w-full text-left bg-background/60 backdrop-blur-sm border border-border/50 hover:border-border transition-all duration-200 rounded-2xl p-2 hover:bg-muted/50 hover:shadow-sm hover:-translate-y-0.5"
+    <>
+      <div className="w-full flex justify-center">
+        <div className="relative w-full md:max-w-xl lg:max-w-xl xl:max-w-2xl flex flex-col gap-1 sm:gap-1">
+          {/* Suggested Actions - Responsive grid */}
+          <AnimatePresence>
+            {messages.length === 0 &&
+              attachments.length === 0 &&
+              uploadQueue.length === 0 && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 w-full"
+                >
+                  {suggestedActions.map((suggestedAction, index) => (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 * index }}
+                      key={index}
+                      className="block"
                     >
-                      <div className="flex items-start gap-2">
-                        <span className="text-[11px] group-hover:scale-110 transition-transform duration-200 shrink-0">
-                          {suggestedAction.icon}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <span className="font-medium text-foreground block text-[10px]">
-                            {suggestedAction.title}
+                      <button
+                        onClick={() => {
+                          setInput(suggestedAction.action);
+                          textareaRef.current?.focus();
+                        }}
+                        className="group w-full text-left bg-background/60 backdrop-blur-sm border border-border/50 hover:border-border transition-all duration-200 rounded-2xl p-2 hover:bg-muted/50 hover:shadow-sm hover:-translate-y-0.5"
+                      >
+                        <div className="flex items-start gap-2">
+                          <span className="text-[11px] group-hover:scale-110 transition-transform duration-200 shrink-0">
+                            {suggestedAction.icon}
                           </span>
-                          <span className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
-                            {suggestedAction.label}
-                          </span>
+                          <div className="flex-1 min-w-0">
+                            <span className="font-medium text-foreground block text-[10px]">
+                              {suggestedAction.title}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
+                              {suggestedAction.label}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    </button>
-                  </motion.div>
+                      </button>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+          </AnimatePresence>
+
+          <input
+            type="file"
+            className="fixed -top-4 -left-4 size-0.5 opacity-0 pointer-events-none"
+            ref={fileInputRef}
+            multiple
+            onChange={handleFileChange}
+            tabIndex={-1}
+          />
+
+          {/* Attachments Preview - Responsive */}
+          <AnimatePresence>
+            {(attachments.length > 0 || uploadQueue.length > 0) && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="flex flex-row gap-2 overflow-x-auto pb-1"
+              >
+                {attachments.map((attachment) => (
+                  <PreviewAttachment 
+                    key={attachment.url} 
+                    attachment={attachment} 
+                    onRemove={() => handleRemoveAttachment(attachment)} 
+                  />
+                ))}
+
+                {uploadQueue.map((filename) => (
+                  <PreviewAttachment
+                    key={filename}
+                    attachment={{
+                      url: "",
+                      name: filename,
+                      contentType: "",
+                    }}
+                    isUploading={true}
+                  />
                 ))}
               </motion.div>
             )}
-        </AnimatePresence>
+          </AnimatePresence>
 
-        <input
-          type="file"
-          className="fixed -top-4 -left-4 size-0.5 opacity-0 pointer-events-none"
-          ref={fileInputRef}
-          multiple
-          onChange={handleFileChange}
-          tabIndex={-1}
-        />
-
-        {/* Attachments Preview - Responsive */}
-        <AnimatePresence>
-          {(attachments.length > 0 || uploadQueue.length > 0) && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="flex flex-row gap-2 overflow-x-auto pb-1"
-            >
-              {attachments.map((attachment) => (
-                <PreviewAttachment 
-                  key={attachment.url} 
-                  attachment={attachment} 
-                  onRemove={() => handleRemoveAttachment(attachment)} 
-                />
-              ))}
-
-              {uploadQueue.map((filename) => (
-                <PreviewAttachment
-                  key={filename}
-                  attachment={{
-                    url: "",
-                    name: filename,
-                    contentType: "",
-                  }}
-                  isUploading={true}
-                />
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Input Container - Responsive sizing */}
-        <div className={`
-          relative bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl sm:rounded-3xl
-          transition-all duration-200 shadow-sm
-          ${isFocused ? "border-primary/50 shadow-md ring-2 sm:ring-4 ring-primary/10" : "hover:border-border"}
-          ${input.trim().length > 0 ? "border-primary/30" : ""}
-        `} style={{ animation: 'glowing 2s infinite alternate' }}>
-          <MessageLimitBanner
-            messageCount={messageCount}
-            messageLimit={messageLimit}
-            messageLimitResetAt={messageLimitResetAt}
-          />
-          
-          {isRecording ? (
-            <div className="p-3 sm:p-4">
-              <RecordingWaves isRecording={isRecording} />
-            </div>
-          ) : (
-            <Textarea
-              ref={textareaRef}
-              placeholder="Ask Jotium anything..."
-              value={input}
-              onChange={handleInput}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              className={`
-                min-h-[72px] sm:min-h-[88px] max-h-[250px] sm:max-h-[300px] overflow-y-auto resize-none 
-                border-0 bg-transparent text-sm sm:text-sm placeholder:text-muted-foreground/60 
-                focus-visible:ring-0 focus-visible:ring-offset-0 p-3 sm:p-4 
-                pr-20 sm:pr-28 leading-relaxed thin-scrollbar
-              `}
-              rows={2}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && !event.shiftKey) {
-                  if (isMobile) {
-                    return;
-                  } else {
-                    event.preventDefault();
-                    if (isLoading) {
-                      toast.error("Please wait for the agent to finish its response!");
-                    } else {
-                      submitForm();
-                    }
-                  }
-                }
-              }}
+          {/* Input Container - Responsive sizing */}
+          <div className={`
+            relative bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl sm:rounded-3xl
+            transition-all duration-200 shadow-sm
+            ${isFocused ? "border-primary/50 shadow-md ring-2 sm:ring-4 ring-primary/10" : "hover:border-border"}
+            ${input.trim().length > 0 ? "border-primary/30" : ""}
+          `} style={{ animation: 'glowing 2s infinite alternate' }}>
+            <MessageLimitBanner
+              messageCount={messageCount}
+              messageLimit={messageLimit}
+              messageLimitResetAt={messageLimitResetAt}
             />
-          )}
-
-          {/* Action Buttons - Responsive positioning */}
-          <div className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 flex items-center gap-1.5 sm:gap-2">
-            <Button
-              className="rounded-full p-1.5 sm:p-2 size-8 sm:size-10 border-border/50 bg-background/50 hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all duration-200"
-              onClick={(event) => {
-                event.preventDefault();
-                fileInputRef.current?.click();
-              }}
-              variant="outline"
-              disabled={isLoading || isRecording || isTranscribing}
-              size="sm"
-            >
-              <PaperclipIcon size={14} className="sm:size-4" />
-            </Button>
-
-            {isLoading ? (
-              <Button
-                className="rounded-full p-1.5 sm:p-2 size-8 sm:size-10 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200"
-                onClick={(event) => {
-                  event.preventDefault();
-                  stop();
-                }}
-                size="sm"
-              >
-                <StopIcon size={14} className="sm:size-4" />
-              </Button>
-            ) : isTranscribing ? (
-              <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 border border-primary/20 rounded-full">
-                <AudioLines size={14} className="sm:size-4 text-primary animate-pulse" />
-                <span className="text-xs text-primary font-medium">Transcribing...</span>
+            
+            {isRecording ? (
+              <div className="p-3 sm:p-4">
+                <RecordingWaves isRecording={isRecording} />
               </div>
             ) : (
-              <Button
+              <Textarea
+                ref={textareaRef}
+                placeholder="Ask Jotium anything..."
+                value={input}
+                onChange={handleInput}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
                 className={`
-                  rounded-full p-1.5 sm:p-2 size-8 sm:size-10 transition-all duration-200
-                  ${input.trim().length > 0
-                    ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg hover:scale-105"
-                    : isRecording
-                    ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
-                    : "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground"
-                  }
+                  min-h-[72px] sm:min-h-[88px] max-h-[250px] sm:max-h-[300px] overflow-y-auto resize-none 
+                  border-0 bg-transparent text-sm sm:text-sm placeholder:text-muted-foreground/60 
+                  focus-visible:ring-0 focus-visible:ring-offset-0 p-3 sm:p-4 
+                  pr-20 sm:pr-28 leading-relaxed thin-scrollbar
                 `}
-                onClick={(event) => {
-                  event.preventDefault();
-                  if (input.trim().length > 0) {
-                    submitForm();
-                  } else {
-                    handleAudioClick();
+                rows={2}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    if (isMobile) {
+                      return;
+                    } else {
+                      event.preventDefault();
+                      if (isLoading) {
+                        toast.error("Please wait for the agent to finish its response!");
+                      } else {
+                        submitForm();
+                      }
+                    }
                   }
                 }}
-                disabled={uploadQueue.length > 0 || isTranscribing}
-                size="sm"
-              >
-                {input.trim().length > 0 ? (
-                  <ArrowUpIcon size={14} className="sm:size-4" />
-                ) : isRecording ? (
-                  <Square size={14} className="sm:size-4" />
-                ) : (
-                  <Mic size={14} className="sm:size-4" />
-                )}
-              </Button>
+              />
             )}
 
-            {/* Cancel recording button */}
-            {isRecording && (
+            {/* Action Buttons - Responsive positioning */}
+            <div className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 flex items-center gap-1.5 sm:gap-2">
               <Button
-                className="rounded-full p-1.5 sm:p-2 size-8 sm:size-10 bg-orange-500 hover:bg-orange-600 text-white transition-all duration-200"
+                className="rounded-full p-1.5 sm:p-2 size-8 sm:size-10 border-border/50 bg-background/50 hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all duration-200"
                 onClick={(event) => {
                   event.preventDefault();
-                  cancelRecording();
+                  fileInputRef.current?.click();
                 }}
+                variant="outline"
+                disabled={isLoading || isRecording || isTranscribing}
                 size="sm"
               >
-                <X size={14} className="sm:size-4" />
+                <PaperclipIcon size={14} className="sm:size-4" />
               </Button>
-            )}
+
+              {isLoading ? (
+                <Button
+                  className="rounded-full p-1.5 sm:p-2 size-8 sm:size-10 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    stop();
+                  }}
+                  size="sm"
+                >
+                  <StopIcon size={14} className="sm:size-4" />
+                </Button>
+              ) : isTranscribing ? (
+                <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 border border-primary/20 rounded-full">
+                  <AudioLines size={14} className="sm:size-4 text-primary animate-pulse" />
+                  <span className="text-xs text-primary font-medium">Transcribing...</span>
+                </div>
+              ) : (
+                <Button
+                  className={`
+                    rounded-full p-1.5 sm:p-2 size-8 sm:size-10 transition-all duration-200
+                    ${input.trim().length > 0
+                      ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg hover:scale-105"
+                      : isRecording
+                      ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
+                      : "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground"
+                    }
+                  `}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    if (input.trim().length > 0) {
+                      submitForm();
+                    } else {
+                      handleAudioClick();
+                    }
+                  }}
+                  disabled={uploadQueue.length > 0 || isTranscribing}
+                  size="sm"
+                >
+                  {input.trim().length > 0 ? (
+                    <ArrowUpIcon size={14} className="sm:size-4" />
+                  ) : isRecording ? (
+                    <Square size={14} className="sm:size-4" />
+                  ) : (
+                    <Mic size={14} className="sm:size-4" />
+                  )}
+                </Button>
+              )}
+
+              {/* Cancel recording button */}
+              {isRecording && (
+                <Button
+                  className="rounded-full p-1.5 sm:p-2 size-8 sm:size-10 bg-orange-500 hover:bg-orange-600 text-white transition-all duration-200"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    cancelRecording();
+                  }}
+                  size="sm"
+                >
+                  <X size={14} className="sm:size-4" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+      {/* Global styles for scrollbar and code blocks */}
+      <style jsx global>{`
+        /* For Webkit browsers (Chrome, Safari) */
+        .thin-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .thin-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .thin-scrollbar::-webkit-scrollbar-thumb {
+          background-color: hsl(var(--border));
+          border-radius: 3px;
+        }
+        .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+          background-color: hsl(var(--border) / 0.8);
+        }
+        /* For Firefox */
+        .thin-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: hsl(var(--border)) transparent;
+        }
+      `}</style>
+    </>
   );
 }
