@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell } from "lucide-react";
+import { Bell, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Session } from "next-auth";
 import { signOut } from "next-auth/react";
@@ -78,9 +78,15 @@ export function UserMenu({ session, messageCount, messageLimit }: UserMenuProps)
         </div>
         <div className="px-3 py-2 border-b border-border/50">
           <p className="text-xs text-muted-foreground">
-            Messages: {messageCount} / {messageLimit === Infinity ? "Unlimited" : messageLimit}
+            Messages: {messageCount} / {messageLimit === "Unlimited" ? "Unlimited" : messageLimit}
           </p>
         </div>
+        <DropdownMenuItem asChild>
+          <Link href="/pricing" className="flex items-center gap-2 w-full px-3 py-2 text-sm">
+            <Sparkles className="size-4" />
+            Upgrade Plan
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/notifications" className="flex items-center justify-between w-full px-3 py-2 text-sm">
             <div className="flex items-center gap-2">

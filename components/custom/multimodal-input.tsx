@@ -218,7 +218,7 @@ export function MultimodalInput({
   };
 
   return (
-    <>
+    <div className="fixed bottom-0 left-0 w-full bg-transparent z-30 p-2 mb-2">
       <div className="w-full flex justify-center">
         <div className="relative w-full md:max-w-xl lg:max-w-xl xl:max-w-2xl flex flex-col gap-1 sm:gap-1">
           {/* Suggested Actions - Responsive grid */}
@@ -459,6 +459,6 @@ export function MultimodalInput({
           scrollbar-color: hsl(var(--border)) transparent;
         }
       `}</style>
-    </>
+    </div>
   );
 }
