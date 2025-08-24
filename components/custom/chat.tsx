@@ -429,27 +429,20 @@ export function Chat({
           </div>
         )}
 
-        {/* Input Section - Completely fixed, never scrolls */}
-        <div className="shrink-0 bg-background/80 backdrop-blur-sm border-t border-border/20">
-          <div className="p-4 sm:p-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20">
-            <div className="max-w-4xl mx-auto">
-              <MultimodalInput
-                input={input}
-                setInput={setInput}
-                handleSubmit={handleSubmit}
-                isLoading={isLoading}
-                stop={() => {}}
-                messages={messages as any}
-                attachments={attachments}
-                setAttachments={setAttachments}
-                append={async () => null}
-                messageCount={messageCount}
-                messageLimit={messageLimit}
-                messageLimitResetAt={messageLimitResetAt}
-              />
-            </div>
-          </div>
-        </div>
+        <MultimodalInput
+          input={input}
+          setInput={setInput}
+          handleSubmit={handleSubmit}
+          isLoading={isLoading}
+          stop={() => {}}
+          messages={messages as any}
+          attachments={attachments}
+          setAttachments={setAttachments}
+          append={async () => null}
+          messageCount={messageCount}
+          messageLimit={messageLimit}
+          messageLimitResetAt={messageLimitResetAt}
+        />
       </div>
       {/* Global styles for scrollbar and code blocks */}
       <style jsx global>{`

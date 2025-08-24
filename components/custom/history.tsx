@@ -38,6 +38,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { Input } from "../ui/input";
 import {
   Sheet,
   SheetContent,
@@ -82,6 +83,11 @@ export const History = ({ user }: { user: User | undefined }) => {
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredHistory = history?.filter((chat) =>
+    chat.title?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleDelete = async () => {
     const deletePromise = fetch(`/api/chat?id=${deleteId}`, {
@@ -131,50 +137,61 @@ export const History = ({ user }: { user: User | undefined }) => {
           setIsHistoryVisible(state);
         }}
       >
-        <SheetContent side="left" className="p-3 w-[68vw] sm:w-72 max-w-[90vw] bg-background/80 backdrop-blur-md border-r border-border/50">
-          <SheetHeader>
-            <VisuallyHidden.Root>
-              <SheetTitle className="text-left">History</SheetTitle>
-              <SheetDescription className="text-left">
-                {history === undefined ? "loading" : history.length} chats
-              </SheetDescription>
-            </VisuallyHidden.Root>
-          </SheetHeader>
+        <SheetContent side="left" className="p-3 w-[68vw] sm:w-72 max-w-[90vw] bg-background/80 backdrop-blur-md border-r border-border/50 flex flex-col h-full">
+          <div>
+            <SheetHeader>
+              <VisuallyHidden.Root>
+                <SheetTitle className="text-left">History</SheetTitle>
+                <SheetDescription className="text-left">
+                  {history === undefined ? "loading" : history.length} chats
+                </SheetDescription>
+              </VisuallyHidden.Root>
+            </SheetHeader>
 
-          <div className="text-sm flex flex-row items-center justify-between">
-            <div className="flex flex-row gap-2">
-              <div className="dark:text-zinc-300">History</div>
+            <div className="text-sm flex flex-row items-center justify-between">
+              <div className="flex flex-row gap-2">
+                <div className="dark:text-zinc-300">History</div>
 
-              <div className="dark:text-zinc-400 text-zinc-500">
-                {history === undefined ? "loading" : history.length} chats
+                <div className="dark:text-zinc-400 text-zinc-500">
+                  {history === undefined ? "loading" : history.length} chats
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="mt-8 sm:mt-10 flex flex-col flex-1">
-            {user && (
-              <Button
-                className="font-normal text-sm flex flex-row justify-between text-white"
-                asChild
-                onClick={() => setIsHistoryVisible(false)} // Close sidebar on new chat click
-              >
-                <Link href={`/chat/${generateUUID()}`} prefetch={false}>
-                  <div>Start a new chat</div>
-                  <PencilEditIcon size={14} />
-                </Link>
-              </Button>
-            )}
+          <div className="mt-8 sm:mt-10 flex flex-col flex-1 overflow-hidden">
+            <div className="px-1">
+              <Input
+                type="search"
+                placeholder="Search history..."
+                className="mb-2 h-9"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {user && (
+                <Button
+                  className="font-normal text-sm flex flex-row justify-between text-white w-full"
+                  asChild
+                  onClick={() => setIsHistoryVisible(false)} // Close sidebar on new chat click
+                >
+                  <Link href={`/chat/${generateUUID()}`} prefetch={false}>
+                    <div>Start a new chat</div>
+                    <PencilEditIcon size={14} />
+                  </Link>
+                </Button>
+              )}
+            </div>
 
-            <div className="flex flex-col overflow-y-scroll p-1 h-[calc(100dvh-280px)] tiny-scrollbar">
+            <div className="flex flex-col overflow-y-auto p-1 flex-1 tiny-scrollbar mt-2">
               {!user ? (
-                <div className="text-zinc-500 h-dvh w-full flex flex-row justify-center items-center text-sm gap-2">
+                <div className="text-zinc-500 h-full w-full flex flex-row justify-center items-center text-sm gap-2 text-center">
                   <InfoIcon />
                   <div>Login to save and revisit previous chats!</div>
                 </div>
               ) : null}
 
               {!isLoading && history?.length === 0 && user ? (
-                <div className="text-zinc-500 h-dvh w-full flex flex-row justify-center items-center text-sm gap-2">
+                <div className="text-zinc-500 h-full w-full flex flex-row justify-center items-center text-sm gap-2 text-center">
                   <InfoIcon />
                   <div>No chats found</div>
                 </div>
@@ -192,8 +209,8 @@ export const History = ({ user }: { user: User | undefined }) => {
                 </div>
               ) : null}
 
-              {history &&
-                history.map((chat) => (
+              {filteredHistory &&
+                filteredHistory.map((chat) => (
                   <div
                     key={chat.id}
                     className={cx(
@@ -249,7 +266,7 @@ export const History = ({ user }: { user: User | undefined }) => {
           </div>
 
           {/* NavUser at the bottom of the sidebar */}
-          <div className="pt-1">
+          <div className="pt-1 mb-2">
             {user && (
               <NavUser
                 user={{
@@ -263,7 +280,7 @@ export const History = ({ user }: { user: User | undefined }) => {
                 onCloseSidebar={() => setIsHistoryVisible(false)} // Pass close handler to NavUser
               />
             )}
-            <div className="mt-1 mb-1 text-center text-[10px] text-muted-foreground">jotium v0.1.9</div>
+            <div className="mt-1 text-center text-[10px] text-muted-foreground">jotium v0.1.9</div>
           </div>
         </SheetContent>
       </Sheet>

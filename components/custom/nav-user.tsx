@@ -120,14 +120,6 @@ export function NavUser({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem asChild className="gap-2 px-2 py-1 text-xs" onClick={onCloseSidebar}>
-                <Link href="/pricing" className="flex items-center w-full">
-                  <Sparkles className="size-4" />
-                  Upgrade Plan
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild className="gap-2 px-2 py-1 text-xs" onClick={onCloseSidebar}>
