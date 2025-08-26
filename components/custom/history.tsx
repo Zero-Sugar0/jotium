@@ -1,3 +1,4 @@
+//components/custom/history.tsx
 "use client";
 
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
@@ -18,7 +19,6 @@ import {
   MoreHorizontalIcon,
   PencilEditIcon,
   TrashIcon,
-  // MessageSquareTextIcon, // replaced by lucide-react MessageSquareText
 } from "./icons";
 import { NavUser } from "./nav-user";
 import {
@@ -138,29 +138,35 @@ export const History = ({ user }: { user: User | undefined }) => {
         }}
       >
         <SheetContent side="left" className="p-3 w-[68vw] sm:w-72 max-w-[90vw] bg-background/80 backdrop-blur-md border-r border-border/50 flex flex-col h-full">
-          <div>
-            <SheetHeader>
-              <VisuallyHidden.Root>
-                <SheetTitle className="text-left">History</SheetTitle>
-                <SheetDescription className="text-left">
-                  {history === undefined ? "loading" : history.length} chats
-                </SheetDescription>
-              </VisuallyHidden.Root>
-            </SheetHeader>
-
-            <div className="text-sm flex flex-row items-center justify-between">
+          <SheetHeader className="pb-2">
+            <VisuallyHidden.Root>
+              <SheetTitle className="text-left">History</SheetTitle>
+              <SheetDescription className="text-left">
+                {history === undefined ? "loading" : history.length} chats
+              </SheetDescription>
+            </VisuallyHidden.Root>
+            <div className="text-sm flex flex-row items-center">
               <div className="flex flex-row gap-2">
                 <div className="dark:text-zinc-300">History</div>
-
                 <div className="dark:text-zinc-400 text-zinc-500">
-                  {history === undefined ? "loading" : history.length} chats
+                  {history?.length ?? ""}
                 </div>
               </div>
             </div>
-          </div>
+          </SheetHeader>
 
-          <div className="mt-8 sm:mt-10 flex flex-col flex-1 overflow-hidden">
+          <div className="mt-4 flex flex-col flex-1 overflow-hidden">
             <div className="px-1">
+              <Button
+                className="font-normal text-sm flex flex-row justify-between w-full mb-2"
+                variant="outline"
+                asChild
+                onClick={() => setIsHistoryVisible(false)} // Close sidebar on tasks click
+              >
+                <Link href="/task" prefetch={false}>
+                  <div>Tasks</div>
+                </Link>
+              </Button>
               <Input
                 type="search"
                 placeholder="Search history..."

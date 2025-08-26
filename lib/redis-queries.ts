@@ -120,6 +120,7 @@ export async function saveChat(chat: {
   createdAt: string;
   userId: string;
   messages: any[];
+  title?: string;
 }) {
   await saveChatMeta({
     id: chat.id,
@@ -139,6 +140,11 @@ export async function saveChat(chat: {
     }));
     
     await saveChatMessages(chat.id, chatMessages);
+    
+    // If title is provided, update it
+    if (chat.title) {
+      await redis.hset(redisKeys.chatMeta(chat.id), { title: chat.title });
+    }
   }
 }
 
