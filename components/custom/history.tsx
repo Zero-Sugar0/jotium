@@ -1,7 +1,9 @@
+//components/custom/history.tsx
 "use client";
 
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import cx from "classnames";
+import { AlarmClockIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { User } from "next-auth";
@@ -18,7 +20,6 @@ import {
   MoreHorizontalIcon,
   PencilEditIcon,
   TrashIcon,
-  // MessageSquareTextIcon, // replaced by lucide-react MessageSquareText
 } from "./icons";
 import { NavUser } from "./nav-user";
 import {
@@ -138,39 +139,28 @@ export const History = ({ user }: { user: User | undefined }) => {
         }}
       >
         <SheetContent side="left" className="p-3 w-[68vw] sm:w-72 max-w-[90vw] bg-background/80 backdrop-blur-md border-r border-border/50 flex flex-col h-full">
-          <div>
-            <SheetHeader>
-              <VisuallyHidden.Root>
-                <SheetTitle className="text-left">History</SheetTitle>
-                <SheetDescription className="text-left">
-                  {history === undefined ? "loading" : history.length} chats
-                </SheetDescription>
-              </VisuallyHidden.Root>
-            </SheetHeader>
-
-            <div className="text-sm flex flex-row items-center justify-between">
+          <SheetHeader className="pb-2">
+            <VisuallyHidden.Root>
+              <SheetTitle className="text-left">History</SheetTitle>
+              <SheetDescription className="text-left">
+                {history === undefined ? "loading" : history.length} chats
+              </SheetDescription>
+            </VisuallyHidden.Root>
+            <div className="text-sm flex flex-row items-center">
               <div className="flex flex-row gap-2">
                 <div className="dark:text-zinc-300">History</div>
-
                 <div className="dark:text-zinc-400 text-zinc-500">
-                  {history === undefined ? "loading" : history.length} chats
+                  {history?.length ?? ""}
                 </div>
               </div>
             </div>
-          </div>
+          </SheetHeader>
 
-          <div className="mt-8 sm:mt-10 flex flex-col flex-1 overflow-hidden">
+          <div className="mt-4 flex flex-col flex-1 overflow-hidden">
             <div className="px-1">
-              <Input
-                type="search"
-                placeholder="Search history..."
-                className="mb-2 h-9"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
               {user && (
                 <Button
-                  className="font-normal text-sm flex flex-row justify-between text-white w-full"
+                  className="font-normal text-sm flex flex-row justify-between text-white w-full mb-2"
                   asChild
                   onClick={() => setIsHistoryVisible(false)} // Close sidebar on new chat click
                 >
@@ -180,18 +170,36 @@ export const History = ({ user }: { user: User | undefined }) => {
                   </Link>
                 </Button>
               )}
+              <Button
+                className="font-normal text-sm flex flex-row justify-between w-full mb-2"
+                variant="default"
+                asChild
+                onClick={() => setIsHistoryVisible(false)} // Close sidebar on tasks click
+              >
+                <Link href="/task" prefetch={false}>
+                  <div>Tasks</div>
+                  <AlarmClockIcon size={14} />
+                </Link>
+              </Button>
+              <Input
+                type="search"
+                placeholder="Search history..."
+                className="mb-2 h-9"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
 
             <div className="flex flex-col overflow-y-auto p-1 flex-1 tiny-scrollbar mt-2">
               {!user ? (
-                <div className="text-zinc-500 h-full w-full flex flex-row justify-center items-center text-sm gap-2 text-center">
+                <div className="text-zinc-500 size-full flex flex-row justify-center items-center text-sm gap-2 text-center">
                   <InfoIcon />
                   <div>Login to save and revisit previous chats!</div>
                 </div>
               ) : null}
 
               {!isLoading && history?.length === 0 && user ? (
-                <div className="text-zinc-500 h-full w-full flex flex-row justify-center items-center text-sm gap-2 text-center">
+                <div className="text-zinc-500 size-full flex flex-row justify-center items-center text-sm gap-2 text-center">
                   <InfoIcon />
                   <div>No chats found</div>
                 </div>

@@ -26,7 +26,8 @@ export class WebSearchTool {
           },
           searchDepth: {
             type: Type.STRING,
-            description: "Search depth: 'basic' for quick results or 'advanced' for comprehensive search (default: advanced)"
+            description: "Search depth: 'basic' for quick results or 'advanced' for comprehensive search (default: advanced)",
+            enum: ["basic", "advanced"]
           },
           includeAnswer: {
             type: Type.BOOLEAN,
@@ -48,11 +49,11 @@ export class WebSearchTool {
     };
   }
 
-  // New content extraction functionality
+  // Fixed content extraction functionality
   getExtractDefinition(): FunctionDeclaration {
     return {
       name: "web_extract",
-      description: "Extract structured content and information from specific web pages or URLs. Perfect for getting detailed content from articles, blog posts, documentation, or any web page where you need the full text content extracted and processed. Always outputs content in markdown format with advanced extraction depth.",
+      description: "Extract structured content and information from specific web pages or URLs. Perfect for getting detailed content from articles, blog posts, documentation, or any web page. Content is automatically returned in markdown format with advanced extraction depth.",
       parameters: {
         type: Type.OBJECT,
         properties: {
@@ -61,9 +62,10 @@ export class WebSearchTool {
             items: { type: Type.STRING },
             description: "Array of URLs to extract content from. Can handle multiple URLs simultaneously for batch processing."
           },
-          includeMetadata: {
-            type: Type.BOOLEAN,
-            description: "Whether to include page metadata like title, description, author, publish date, and other structured data (default: true)"
+          extractDepth: {
+            type: Type.STRING,
+            description: "Content extraction depth: 'basic' for quick content extraction, 'advanced' for comprehensive content analysis (default: advanced)",
+            enum: ["basic", "advanced"]
           }
         },
         required: ["urls"]
@@ -71,7 +73,7 @@ export class WebSearchTool {
     };
   }
 
-  // New web crawling functionality
+  // Fixed web crawling functionality
   getCrawlDefinition(): FunctionDeclaration {
     return {
       name: "web_crawl",
@@ -85,33 +87,24 @@ export class WebSearchTool {
           },
           instructions: {
             type: Type.STRING,
-            description: "Detailed instructions for what information to look for and extract during the crawl. Be specific about the type of content, data points, or information you want to gather."
-          },
-          maxDepth: {
-            type: Type.NUMBER,
-            description: "Maximum depth of links to follow from the starting URL. Depth 0 = only start page, depth 1 = start page + direct links, etc. (default: 1, max: 3)"
-          },
-          maxBreadth: {
-            type: Type.NUMBER,
-            description: "Maximum number of pages to crawl per depth level. Controls how many links to follow at each level to prevent excessive crawling (default: 10, max: 50)"
+            description: "Detailed instructions for what information to look for and extract during the crawl. Be specific about the type of content, data points, or information you want to gather. Example: 'Find all documentation about the Python SDK' or 'Collect all pricing information and contact details'"
           },
           extractDepth: {
             type: Type.STRING,
-            description: "Content extraction depth: 'basic' for quick content extraction, 'advanced' for comprehensive content analysis and structured data extraction (default: advanced)"
+            description: "Content extraction depth: 'basic' for quick content extraction, 'advanced' for comprehensive content analysis and structured data extraction (default: advanced)",
+            enum: ["basic", "advanced"]
           },
-          includeDomains: {
+          categories: {
             type: Type.ARRAY,
-            items: { type: Type.STRING },
-            description: "Restrict crawling to specific domains only. Useful for staying within certain websites or subdomains."
+            items: { 
+              type: Type.STRING,
+              enum: ["Documentation", "Contact", "Blogs", "About", "People", "Media", "News", "Products", "Services", "Support"]
+            },
+            description: "Categories of content to focus on during crawling. Helps filter and prioritize certain types of pages."
           },
-          excludeDomains: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING },
-            description: "Domains to exclude from crawling. Prevents the crawler from following links to specified domains."
-          },
-          followExternalLinks: {
-            type: Type.BOOLEAN,
-            description: "Whether to follow links that lead to external domains outside the starting URL's domain (default: false)"
+          maxPages: {
+            type: Type.NUMBER,
+            description: "Maximum number of pages to crawl. Controls the scope of the crawling operation (default: 10, max: 100)"
           }
         },
         required: ["startUrl", "instructions"]
@@ -183,29 +176,29 @@ export class WebSearchTool {
     try {
       console.log(`📄 Extracting content from ${args.urls.length} URL(s)`);
       
+      // Simplified options based on actual Tavily API
       const extractOptions: any = {
-        extractDepth: "advanced",
-        includeImages: false,
-        contentFormat: "markdown"
+        extractDepth: args.extractDepth || "advanced"
       };
-
-      // Add metadata option if provided
-      if (args.includeMetadata !== undefined) {
-        extractOptions.includeMetadata = args.includeMetadata;
-      }
 
       const result = await this.tavilyClient.extract(args.urls, extractOptions);
 
-      // Process extracted content
-      const processedResults = result.results?.map((item: { url: string; title: string; content: string; metadata: any; images: any[]; status: string; }) => ({
+      // Process extracted content - content is automatically in markdown format
+      const processedResults = result.results?.map((item: { 
+        url: string; 
+        raw_content: string; 
+        title?: string;
+        favicon?: string;
+        status_code?: number; 
+      }) => ({
         url: item.url,
-        title: item.title,
-        content: item.content,
-        metadata: item.metadata || {},
-        images: item.images || [],
+        title: item.title || '',
+        content: item.raw_content || '', // This is already in markdown format
+        favicon: item.favicon || '',
         extractedAt: new Date().toISOString(),
-        contentLength: item.content?.length || 0,
-        status: item.status || 'success'
+        contentLength: item.raw_content?.length || 0,
+        status: item.status_code === 200 ? 'success' : 'failed',
+        statusCode: item.status_code
       })) || [];
 
       return {
@@ -233,46 +226,47 @@ export class WebSearchTool {
       console.log(`🕷️ Starting crawl from: "${args.startUrl}"`);
       console.log(`📋 Instructions: "${args.instructions}"`);
       
+      // Build crawl options based on actual Tavily API
       const crawlOptions: any = {
-        instructions: args.instructions,
-        maxDepth: Math.min(args.maxDepth || 1, 3),
-        maxBreadth: Math.min(args.maxBreadth || 10, 50),
-        extractDepth: args.extractDepth || "advanced",
-        followExternalLinks: args.followExternalLinks || false
+        extractDepth: args.extractDepth || "advanced"
       };
 
-      // Add domain filters if provided
-      if (args.includeDomains && args.includeDomains.length > 0) {
-        crawlOptions.includeDomains = args.includeDomains;
-      }
-      
-      if (args.excludeDomains && args.excludeDomains.length > 0) {
-        crawlOptions.excludeDomains = args.excludeDomains;
+      // Add categories if provided
+      if (args.categories && args.categories.length > 0) {
+        crawlOptions.categories = args.categories;
       }
 
-      const result = await this.tavilyClient.crawl(args.startUrl, crawlOptions);
+      // Add max pages if provided
+      if (args.maxPages) {
+        crawlOptions.maxPages = Math.min(args.maxPages, 100);
+      }
+
+      const result = await this.tavilyClient.crawl(args.startUrl, args.instructions, crawlOptions);
 
       // Process crawl results
-      const processedPages = result.results?.map((page: { url: string; title: string; content: string; depth: number; parent_url: string | null; links: any[]; metadata: any; }) => ({
+      const processedPages = result.results?.map((page: { 
+        url: string; 
+        raw_content: string; 
+        title?: string;
+        favicon?: string;
+      }) => ({
         url: page.url,
-        title: page.title,
-        content: page.content,
-        depth: page.depth || 0,
-        parent_url: page.parent_url || null,
+        title: page.title || '',
+        content: page.raw_content || '', // Content in markdown format
+        favicon: page.favicon || '',
         extractedAt: new Date().toISOString(),
-        contentLength: page.content?.length || 0,
-        links: page.links || [],
-        metadata: page.metadata || {}
+        contentLength: page.raw_content?.length || 0
       })) || [];
 
       return {
         success: true,
         startUrl: args.startUrl,
         instructions: args.instructions,
-        crawlSummary: result.summary || "Crawl completed successfully",
+        baseUrl: result.base_url || args.startUrl,
+        crawlSummary: `Crawled ${processedPages.length} pages successfully`,
         pages: processedPages,
         totalPages: processedPages.length,
-        maxDepthReached: Math.max(...processedPages.map((p: { depth: number; }) => p.depth), 0),
+        responseTime: result.response_time || 0,
         crawlTime: new Date().toISOString(),
         crawlOptions: crawlOptions,
         discoveredUrls: processedPages.map((p: { url: string; }) => p.url)

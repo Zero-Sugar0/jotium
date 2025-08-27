@@ -1,4 +1,3 @@
-//db/schema.ts
 import { Message } from "@/ai/types";
 import { InferSelectModel } from "drizzle-orm";
 import {
@@ -101,3 +100,29 @@ export const oauthConnection = pgTable("OAuthConnection", {
 });
 
 export type OAuthConnection = InferSelectModel<typeof oauthConnection>;
+
+/* -------------------------------------------------------------------------- */
+/*                               Task Table                                   */
+/* -------------------------------------------------------------------------- */
+
+export const task = pgTable("Task", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  userId: uuid("userId")
+    .notNull()
+    .references(() => user.id),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: varchar("description", { length: 2000 }).notNull(),
+  frequency: varchar("frequency", { length: 20 }).notNull(), // Daily, Weekly, Monthly, Once, Yearly
+  time: varchar("time", { length: 10 }).notNull(), // HH:MM format
+  day: varchar("day", { length: 10 }), // e.g., Monday (used for Weekly)
+  date: date("date"), // used for Once/Monthly/Yearly
+  isActive: boolean("isActive").notNull().default(true),
+  timezone: varchar("timezone", { length: 50 }).notNull().default('America/Los_Angeles'), // User's timezone
+  lastRunStatus: varchar("lastRunStatus", { length: 20 }), // success, failed, pending
+  nextRunAt: timestamp("nextRunAt"), // Calculated next run time
+  lastRunAt: timestamp("lastRunAt"), // Last execution time
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});
+
+export type Task = InferSelectModel<typeof task>;
