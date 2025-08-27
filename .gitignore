@@ -10,6 +10,7 @@ coverage
 
 .github
 
+ai/mcp
 # next.js
 .next/
 out/

@@ -1,11 +1,12 @@
 //app/api/tasks/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/app/(auth)/auth";
-import { db } from "@/lib/db";
-import { task, Task } from "@/db/schema";
-import { generateUUID } from "@/lib/utils";
 import { eq } from "drizzle-orm";
+import {NextRequest, NextResponse } from "next/server";
+
+import { auth } from "@/app/(auth)/auth";
+import { task, Task } from "@/db/schema";
+import { db } from "@/lib/db";
 import scheduler from "@/lib/taskScheduler";
+import { generateUUID } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   const session = await auth();

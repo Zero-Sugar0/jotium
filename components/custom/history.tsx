@@ -3,6 +3,7 @@
 
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import cx from "classnames";
+import { AlarmClockIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { User } from "next-auth";
@@ -157,26 +158,9 @@ export const History = ({ user }: { user: User | undefined }) => {
 
           <div className="mt-4 flex flex-col flex-1 overflow-hidden">
             <div className="px-1">
-              <Button
-                className="font-normal text-sm flex flex-row justify-between w-full mb-2"
-                variant="outline"
-                asChild
-                onClick={() => setIsHistoryVisible(false)} // Close sidebar on tasks click
-              >
-                <Link href="/task" prefetch={false}>
-                  <div>Tasks</div>
-                </Link>
-              </Button>
-              <Input
-                type="search"
-                placeholder="Search history..."
-                className="mb-2 h-9"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
               {user && (
                 <Button
-                  className="font-normal text-sm flex flex-row justify-between text-white w-full"
+                  className="font-normal text-sm flex flex-row justify-between text-white w-full mb-2"
                   asChild
                   onClick={() => setIsHistoryVisible(false)} // Close sidebar on new chat click
                 >
@@ -186,18 +170,36 @@ export const History = ({ user }: { user: User | undefined }) => {
                   </Link>
                 </Button>
               )}
+              <Button
+                className="font-normal text-sm flex flex-row justify-between w-full mb-2"
+                variant="default"
+                asChild
+                onClick={() => setIsHistoryVisible(false)} // Close sidebar on tasks click
+              >
+                <Link href="/task" prefetch={false}>
+                  <div>Tasks</div>
+                  <AlarmClockIcon size={14} />
+                </Link>
+              </Button>
+              <Input
+                type="search"
+                placeholder="Search history..."
+                className="mb-2 h-9"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
 
             <div className="flex flex-col overflow-y-auto p-1 flex-1 tiny-scrollbar mt-2">
               {!user ? (
-                <div className="text-zinc-500 h-full w-full flex flex-row justify-center items-center text-sm gap-2 text-center">
+                <div className="text-zinc-500 size-full flex flex-row justify-center items-center text-sm gap-2 text-center">
                   <InfoIcon />
                   <div>Login to save and revisit previous chats!</div>
                 </div>
               ) : null}
 
               {!isLoading && history?.length === 0 && user ? (
-                <div className="text-zinc-500 h-full w-full flex flex-row justify-center items-center text-sm gap-2 text-center">
+                <div className="text-zinc-500 size-full flex flex-row justify-center items-center text-sm gap-2 text-center">
                   <InfoIcon />
                   <div>No chats found</div>
                 </div>

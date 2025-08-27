@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { auth } from "@/app/(auth)/auth";
 import { getUserById } from "@/db/queries";
 import { getUserChats } from "@/lib/redis-queries";

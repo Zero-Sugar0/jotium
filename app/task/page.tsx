@@ -1,18 +1,15 @@
 //app/task/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { Plus, Pen, Play, Pause, Trash2, RotateCcw, ChevronLeft, ChevronRight, MessageCircle, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { TaskCreationDialog } from "@/components/custom/task-dialog";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+
+import { LoaderIcon } from "@/components/custom/icons";
+import { Markdown } from "@/components/custom/markdown";
+import { TaskCreationDialog } from "@/components/custom/task-dialog";
+import { Button } from "@/components/ui/button";
 import {
   Drawer,
   DrawerContent,
@@ -20,9 +17,13 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { Markdown } from "@/components/custom/markdown";
-import { LoaderIcon } from "@/components/custom/icons";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 // Custom hook for media query
 const useMediaQuery = (query: string) => {
@@ -247,7 +248,7 @@ const TaskDetailContent = ({
           <div className="p-6 text-center">
             <h3 className="text-base font-medium mb-2">No execution records yet</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              This task hasn't been executed yet. Click Test to run it manually.
+              This task has not been executed yet. Click Test to run it manually.
             </p>
           </div>
         ) : (
@@ -310,6 +311,7 @@ interface TaskExecution {
 }
 
 export default function TasksPage() {
+  // Pre-defined tasks and user tasks
   // Pre-defined tasks and user tasks
   const [tasks, setTasks] = useState<Task[]>([]);
 
@@ -639,7 +641,7 @@ export default function TasksPage() {
                             task.isActive 
                               ? 'bg-amber-500/20 hover:bg-amber-500/30' 
                               : 'bg-green-500/20 hover:bg-green-500/30'
-                          }`}
+                        }`}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleToggleTask(task.id);
@@ -834,5 +836,5 @@ export default function TasksPage() {
         </Drawer>
       )}
     </>
-  );
-}
+    );
+  }

@@ -87,7 +87,7 @@ export default function NotificationsPage() {
             {notifications.map((n) => (
               <li
                 key={n.id}
-                className={`py-4 flex flex-col gap-1 cursor-pointer rounded-lg p-4 transition-colors ${!n.read ? 'bg-muted/30 hover:bg-muted/50' : 'hover:bg-muted/20'}`}
+                className={`p-4 flex flex-col gap-1 cursor-pointer rounded-lg transition-colors ${!n.read ? 'bg-muted/30 hover:bg-muted/50' : 'hover:bg-muted/20'}`}
                 onClick={() => {
                   if (!n.read) markAsRead(n.id);
                   setSelectedNotification(n);

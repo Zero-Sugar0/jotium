@@ -19,6 +19,7 @@
     "@google/genai": "^1.8.0",
     "@mendable/firecrawl-js": "^1.29.1",
     "@modelcontextprotocol/sdk": "^1.17.4",
+    "@modelcontextprotocol/server-sequential-thinking": "^2025.7.1",
     "@notionhq/client": "^4.0.1",
     "@octokit/rest": "^22.0.0",
     "@radix-ui/react-alert-dialog": "^1.1.2",

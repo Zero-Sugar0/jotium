@@ -1,8 +1,8 @@
 import { AIAgent } from "@/ai/jotium";
-import { getUserAIModel } from "@/lib/user-model";
 import { getUserLanguage } from "@/db/queries";
-import { generateUUID } from "@/lib/utils";
 import { saveChat } from "@/lib/redis-queries";
+import { getUserAIModel } from "@/lib/user-model";
+import { generateUUID } from "@/lib/utils";
 
 /**
  * Executes a single user-defined task.
