@@ -165,6 +165,12 @@ export class GoogleDriveTool {
       return { success: false, error: "MIME type is required" };
     }
 
+    // Handle PDF files specifically
+    let mimeType = args.mimeType;
+    if (args.fileName.toLowerCase().endsWith('.pdf') || args.mimeType === 'application/pdf') {
+      mimeType = 'application/pdf';
+    }
+
     // Create file metadata
     const metadata = {
       name: args.fileName,
@@ -179,7 +185,7 @@ export class GoogleDriveTool {
     let body = delimiter +
       'Content-Type: application/json\r\n\r\n' +
       JSON.stringify(metadata) + delimiter +
-      `Content-Type: ${args.mimeType}\r\n` +
+      `Content-Type: ${mimeType}\r\n` +
       'Content-Transfer-Encoding: base64\r\n\r\n' +
       args.fileContent +
       close_delim;
@@ -195,14 +201,79 @@ export class GoogleDriveTool {
 
     if (!response.ok) {
       const error = await response.text();
+      console.error("Upload error:", error);
+      
+      // Try simple upload as fallback
+      if (response.status === 400) {
+        return await this.simpleUploadFile(args, headers);
+      }
+      
       return { success: false, error: `Failed to upload file: ${error}` };
     }
 
     const result = await response.json();
     return {
       success: true,
-      file: this.formatFileInfo(result)
+      file: this.formatFileInfo(result),
+      message: `Successfully uploaded ${args.fileName} to Google Drive`
     };
+  }
+
+  private async simpleUploadFile(args: any, headers: any): Promise<any> {
+    try {
+      let mimeType = args.mimeType;
+      if (args.fileName.toLowerCase().endsWith('.pdf')) {
+        mimeType = 'application/pdf';
+      }
+
+      const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=media', {
+        method: 'POST',
+        headers: {
+          'Authorization': headers.Authorization,
+          'Content-Type': mimeType,
+          'Content-Length': String(args.fileContent.length)
+        },
+        body: Buffer.from(args.fileContent, 'base64')
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        return { success: false, error: `Simple upload failed: ${error}` };
+      }
+
+      const result = await response.json();
+      
+      // Update file name
+      if (args.fileName !== result.name) {
+        await fetch(`https://www.googleapis.com/drive/v3/files/${result.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': headers.Authorization,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ name: args.fileName })
+        });
+      }
+
+      return {
+        success: true,
+        file: this.formatFileInfo({ ...result, name: args.fileName }),
+        message: `Successfully uploaded ${args.fileName} to Google Drive`
+      };
+    } catch (error) {
+      return { success: false, error: `Simple upload failed: ${error}` };
+    }
+  }
+
+  // New method for PDF upload
+  async uploadPdf(fileName: string, fileContent: string, parentFolderId?: string): Promise<any> {
+    return this.execute({
+      action: "upload_file",
+      fileName: fileName,
+      fileContent: fileContent,
+      mimeType: "application/pdf",
+      parentFolderId: parentFolderId
+    });
   }
 
   private async downloadFile(args: any, headers: any): Promise<any> {

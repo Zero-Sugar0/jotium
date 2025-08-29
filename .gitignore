@@ -10,12 +10,13 @@ coverage
 
 .github
 
-ai/mcp
 # next.js
 .next/
 out/
 build
 
+ai/mcp
+mcp
 # misc
 .DS_Store
 *.pem

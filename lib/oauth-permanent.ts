@@ -3,11 +3,11 @@
 
 import { 
   getOAuthConnection, 
-  getDecryptedOAuthRefreshToken, 
-  getDecryptedOAuthAccessToken,
   saveOAuthConnection,
   deleteOAuthConnection 
 } from "@/db/queries";
+
+import { getValidOAuthAccessToken as getRefreshedOAuthAccessToken } from "./oauth-refresh";
 
 /**
  * Ensures OAuth credentials are stored as permanent (never expiring)
@@ -52,13 +52,8 @@ export async function storePermanentOAuthConnection({
  * This ensures credentials remain valid indefinitely
  */
 export async function getPermanentOAuthAccessToken(userId: string, service: string): Promise<string | null> {
-  const connection = await getOAuthConnection({ userId, service });
-  if (!connection) {
-    return null;
-  }
-  
-  // Always return the access token regardless of any expiration
-  return await getDecryptedOAuthAccessToken({ userId, service });
+  // Use the getValidOAuthAccessToken from oauth-refresh to ensure token is refreshed if needed
+  return await getRefreshedOAuthAccessToken(userId, service);
 }
 
 /**

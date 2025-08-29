@@ -180,11 +180,11 @@ export const Message = ({
                 prose-blockquote:border-l-primary
                 prose-blockquote:text-foreground/80
                 
-                /* Mobile: normal size, Tablet/Desktop: smaller */
-                prose-p:text-sm md:prose-p:text-xs lg:prose-p:text-xs
-                prose-li:text-sm md:prose-li:text-xs lg:prose-li:text-xs
-                prose-headings:text-base md:prose-headings:text-sm lg:prose-headings:text-sm
-                prose-code:text-xs md:prose-code:text-xs lg:prose-code:text-xs
+                /* Mobile: normal size, Tablet/Desktop: slightly larger */
+                prose-p:text-sm md:prose-p:text-[8px] lg:prose-p:text-[8px]
+                prose-li:text-sm md:prose-li:text-[8px] lg:prose-li:text-[8px]
+                prose-headings:text-base md:prose-headings:text-[9px] lg:prose-headings:text-[8px]
+                prose-code:text-xs md:prose-code:text-[8px] lg:prose-code:text-[8px]
                 
                 /* Tighter inline code styling */
                 prose-code:bg-muted/60
@@ -255,19 +255,20 @@ export const Message = ({
           {typeof content === "string" && isEditing && (
             <div className="flex flex-col gap-2 w-full">
               <textarea
-                className="w-full min-h-[120px] rounded-2xl sm:rounded-2xl md:rounded-3xl border border-border bg-background p-3 sm:p-4 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+                className="w-full min-h-[120px] rounded-xl border border-border bg-background p-3 sm:p-4 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary shadow-sm resize-none"
                 value={draftContent}
                 onChange={(e) => setDraftContent(e.target.value)}
+                style={{ borderRadius: '0.75rem' }}
               />
               <div className="flex items-center gap-2">
                 <button
-                  className="inline-flex items-center rounded-full bg-primary px-4 py-1.5 text-xs sm:text-sm font-medium text-primary-foreground hover:opacity-90 shadow"
+                  className="inline-flex items-center rounded-full bg-primary px-4 py-1.5 text-xs sm:text-sm font-medium text-primary-foreground hover:opacity-90 shadow transition-all"
                   onClick={handleSaveEdit}
                 >
                   Save
                 </button>
                 <button
-                  className="inline-flex items-center rounded-full border px-4 py-1.5 text-xs sm:text-sm font-medium hover:bg-muted"
+                  className="inline-flex items-center rounded-full border border-border px-4 py-1.5 text-xs sm:text-sm font-medium hover:bg-muted transition-all"
                   onClick={handleCancelEdit}
                 >
                   Cancel

@@ -44,6 +44,7 @@ export function Chat({
   const [firstName, setFirstName] = useState<string | undefined>(undefined);
   const [executingTools, setExecutingTools] = useState<string[]>([]); // New state for executing tools (array)
   const [messageToolsMap, setMessageToolsMap] = useState<{[messageId: string]: string[]}>({});  // Track tools per message
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
   const router = useRouter(); // Initialize useRouter
 
   useEffect(() => {
@@ -131,6 +132,10 @@ export function Chat({
     setIsLoading(true);
     setError(null);
 
+    // Create new AbortController for this request
+    const controller = new AbortController();
+    setAbortController(controller);
+
     // Force scroll to bottom immediately when user sends a message
     requestAnimationFrame(() => {
       forceScrollToBottom();
@@ -140,21 +145,29 @@ export function Chat({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, messages: [...messages, userMessage] }),
+      signal: controller.signal,
     });
 
     if (response.status === 429) {
       console.error("Error: Message limit reached.");
       toast.error("You've reached your daily message limit. Please upgrade your plan for more messages.");
       setIsLoading(false);
+      setAbortController(null);
       setMessages((prev) => prev.slice(0, prev.length - 1));
       return;
     }
 
     if (!response.ok) {
-      console.error("Error: Failed to send message.");
-      toast.error("Failed to send message. Please try again.");
+      if (response.status === 0 && controller.signal.aborted) {
+        // Request was aborted by user
+        setMessages((prev) => prev.slice(0, prev.length - 1));
+      } else {
+        console.error("Error: Failed to send message.");
+        toast.error("Failed to send message. Please try again.");
+        setMessages((prev) => prev.slice(0, prev.length - 1));
+      }
       setIsLoading(false);
-      setMessages((prev) => prev.slice(0, prev.length - 1));
+      setAbortController(null);
       return;
     }
 
@@ -303,6 +316,10 @@ export function Chat({
                               setIsLoading(true);
                               setError(null);
                               setExecutingTools([]);
+                              // Create new AbortController for regeneration
+                              const controller = new AbortController();
+                              setAbortController(controller);
+                              
                               // Trim conversation to the edited message (inclusive)
                               const baseMessages = messages
                                 .slice(0, index + 1)
@@ -315,10 +332,19 @@ export function Chat({
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ id, messages: baseMessages, regenerate: true }),
+                                signal: controller.signal,
                               });
 
                               if (!response.ok) {
-                                throw new Error("Failed to regenerate response");
+                                if (response.status === 0 && controller.signal.aborted) {
+                                  // Request was aborted by user
+                                  setMessages((prev) => prev.slice(0, prev.length - 1));
+                                } else {
+                                  throw new Error("Failed to regenerate response");
+                                }
+                                setIsLoading(false);
+                                setAbortController(null);
+                                return;
                               }
 
                               if (response.body) {
@@ -383,6 +409,7 @@ export function Chat({
                                 }
                                 setMessages((prev) => prev.map((msg) => msg.id === assistantMessage.id ? { ...assistantMessage } : msg));
                                 setExecutingTools([]);
+                                setAbortController(null);
                                 
                                 // Scroll to bottom after regeneration
                                 requestAnimationFrame(() => {
@@ -396,6 +423,7 @@ export function Chat({
                               toast.error("Failed to regenerate response");
                             } finally {
                               setIsLoading(false);
+                              setAbortController(null);
                             }
                           }
                         : undefined
@@ -435,7 +463,14 @@ export function Chat({
           setInput={setInput}
           handleSubmit={handleSubmit}
           isLoading={isLoading}
-          stop={() => {}}
+          stop={() => {
+            if (abortController) {
+              abortController.abort();
+              setAbortController(null);
+              setIsLoading(false);
+              setExecutingTools([]);
+            }
+          }}
           messages={messages as any}
           attachments={attachments}
           setAttachments={setAttachments}

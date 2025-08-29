@@ -636,6 +636,16 @@ export async function listOAuthConnections({ userId }: { userId: string }) {
   return connections;
 }
 
+// List all OAuth connections for all users
+export async function listAllOAuthConnections(): Promise<OAuthConnection[]> {
+  try {
+    return await db.select().from(oauthConnection);
+  } catch (error) {
+    console.error("Failed to list all OAuth connections:", error);
+    throw error;
+  }
+}
+
 // Generate password reset token
 export async function createPasswordResetToken(email: string): Promise<string | null> {
   try {

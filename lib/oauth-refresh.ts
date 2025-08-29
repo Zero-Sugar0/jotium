@@ -156,10 +156,25 @@ export async function refreshOAuthToken(userId: string, service: string): Promis
 export async function getValidOAuthAccessToken(userId: string, service: string): Promise<string | null> {
   const connection = await getOAuthConnection({ userId, service });
   if (!connection) {
+    console.log(`No OAuth connection found for user ${userId}, service ${service}`);
     return null;
   }
 
-  // ENSURE: Never check expiration since we want permanent credentials
-  // Always return the access token regardless of any expiration
-  return await getDecryptedOAuthAccessToken({ userId, service });
+  // GitHub tokens don't expire and don't have refresh tokens, so return existing
+  if (service === "github") {
+    return await getDecryptedOAuthAccessToken({ userId, service });
+  }
+
+  // For other services, attempt to refresh the token
+  // The refreshOAuthToken function will handle updating the stored tokens
+  const newAccessToken = await refreshOAuthToken(userId, service);
+  
+  if (newAccessToken) {
+    return newAccessToken;
+  } else {
+    // If refresh failed, return the existing access token as a fallback.
+    // It might be invalid, but we've logged the refresh failure.
+    console.warn(`Failed to refresh token for ${service}. Returning existing token as fallback.`);
+    return await getDecryptedOAuthAccessToken({ userId, service });
+  }
 }
