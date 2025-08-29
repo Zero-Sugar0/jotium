@@ -146,14 +146,14 @@ export const History = ({ user }: { user: User | undefined }) => {
                 {history === undefined ? "loading" : history.length} chats
               </SheetDescription>
             </VisuallyHidden.Root>
-            <div className="text-sm flex flex-row items-center">
-              <div className="flex flex-row gap-2">
-                <div className="dark:text-zinc-300">History</div>
-                <div className="dark:text-zinc-400 text-zinc-500">
-                  {history?.length ?? ""}
-                </div>
+          <div className="text-sm flex flex-row items-center">
+            <div className="flex flex-row gap-2">
+              <div className="dark:text-zinc-300 font-bold">History</div>
+              <div className="dark:text-zinc-400 text-zinc-500">
+                {history?.length ?? ""}
               </div>
             </div>
+          </div>
           </SheetHeader>
 
           <div className="mt-4 flex flex-col flex-1 overflow-hidden">
@@ -171,23 +171,33 @@ export const History = ({ user }: { user: User | undefined }) => {
                 </Button>
               )}
               <Button
-                className="font-normal text-sm flex flex-row justify-between w-full mb-2"
-                variant="default"
+                className="font-normal text-base flex flex-row justify-between text-foreground w-full mb-2"
+                variant="ghost"
                 asChild
                 onClick={() => setIsHistoryVisible(false)} // Close sidebar on tasks click
               >
                 <Link href="/task" prefetch={false}>
-                  <div>Tasks</div>
-                  <AlarmClockIcon size={14} />
+                  <div className="text-base">Tasks</div>
+                  <AlarmClockIcon size={16} className="text-foreground" />
                 </Link>
               </Button>
-              <Input
-                type="search"
-                placeholder="Search history..."
-                className="mb-2 h-9"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              <div className="relative mb-2">
+                <Input
+                  type="search"
+                  placeholder="Search history..."
+                  className="h-9 pr-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  autoFocus={false}
+                  tabIndex={-1}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                  </svg>
+                </div>
+              </div>
             </div>
 
             <div className="flex flex-col overflow-y-auto p-1 flex-1 tiny-scrollbar mt-2">
