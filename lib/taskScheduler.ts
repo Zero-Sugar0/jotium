@@ -9,8 +9,8 @@ import { executeTask } from "./runTask";
 /**
  * Task Scheduler Service
  * 
- * This service runs in the background and automatically executes user-defined tasks
- * at their scheduled times (daily, weekly, monthly, etc.)
+ * This service now serves as a compatibility layer for local development.
+ * In production, Vercel Cron handles task scheduling via /api/cron/execute-tasks
  */
 export class TaskScheduler {
   private static instance: TaskScheduler;
@@ -27,12 +27,20 @@ export class TaskScheduler {
   }
 
   /**
-   * Initialize the scheduler - load all active tasks and schedule them
+   * Initialize the scheduler - only for local development
+   * In production, Vercel Cron handles scheduling
    */
   public async initialize() {
     if (this.isInitialized) return;
     
-    console.log("🔄 Initializing task scheduler...");
+    // Skip initialization in production (Vercel environment)
+    if (process.env.VERCEL === "1") {
+      console.log("🔄 Production environment detected - using Vercel Cron");
+      this.isInitialized = true;
+      return;
+    }
+    
+    console.log("🔄 Initializing task scheduler for local development...");
     
     // Load all active tasks from database
     const activeTasks = await db.select().from(task).where(eq(task.isActive, true));
@@ -48,8 +56,14 @@ export class TaskScheduler {
 
   /**
    * Schedule a single task based on its frequency and time
+   * Only runs in local development
    */
   private async scheduleTask(taskData: any) {
+    // Skip scheduling in production
+    if (process.env.VERCEL === "1") {
+      return;
+    }
+
     const { id, frequency, time, day, date, timezone } = taskData;
 
     if (this.scheduledTasks.has(id)) {
@@ -58,7 +72,6 @@ export class TaskScheduler {
     }
 
     let cronExpression: string;
-
     const [hours, minutes] = time.split(":").map(Number);
 
     switch (frequency) {
@@ -147,12 +160,20 @@ export class TaskScheduler {
 
   /**
    * Add or update a task in the scheduler
+   * In production, this only updates the database - Vercel Cron handles execution
    */
   public async addOrUpdateTask(taskData: any) {
     // Remove existing schedule if any
     await this.removeTask(taskData.id);
     
-    // Schedule if active
+    // In production, we only need to ensure the task is in the database
+    // Vercel Cron will handle the scheduling
+    if (process.env.VERCEL === "1") {
+      console.log(`📝 Task ${taskData.name} updated in database - Vercel Cron will handle scheduling`);
+      return;
+    }
+    
+    // Schedule if active (local development only)
     if (taskData.isActive) {
       await this.scheduleTask(taskData);
     }
@@ -162,6 +183,11 @@ export class TaskScheduler {
    * Remove a task from the scheduler
    */
   public async removeTask(taskId: string) {
+    // Skip in production
+    if (process.env.VERCEL === "1") {
+      return;
+    }
+
     const scheduledTask = this.scheduledTasks.get(taskId);
     if (scheduledTask) {
       scheduledTask.stop();
@@ -174,6 +200,12 @@ export class TaskScheduler {
    * Reload all tasks (useful for updates)
    */
   public async reloadTasks() {
+    // Skip in production
+    if (process.env.VERCEL === "1") {
+      console.log("🔄 Skipping reload in production - Vercel Cron handles this");
+      return;
+    }
+
     console.log("🔄 Reloading all tasks...");
     
     // Stop all current schedules
@@ -190,6 +222,15 @@ export class TaskScheduler {
    * Get status of the scheduler
    */
   public getStatus() {
+    if (process.env.VERCEL === "1") {
+      return {
+        isInitialized: true,
+        scheduledTaskCount: 0,
+        tasks: [],
+        note: "Using Vercel Cron for task scheduling"
+      };
+    }
+
     return {
       isInitialized: this.isInitialized,
       scheduledTaskCount: this.scheduledTasks.size,
