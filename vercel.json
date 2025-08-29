@@ -1,13 +1,8 @@
 {
-  "version": 2,
   "crons": [
     {
       "path": "/api/oauth/refresh-all",
       "schedule": "0 2 * * *"
-    },
-    {
-      "path": "/api/cron/execute-tasks",
-      "schedule": "*/10 * * * *"
     }
   ]
 }
