@@ -65,7 +65,7 @@ class GlobalToolCache {
   private tools: Map<string, Tool> = new Map();
   private mcpClients: Map<string, McpClientInfo> = new Map();
   private cacheConfig: ToolCacheConfig | null = null;
-  private cacheFilePath = "./tool_cache_config.json";
+  private isServerless: boolean;
 
   static getInstance(): GlobalToolCache {
     if (!GlobalToolCache.instance) {
@@ -74,10 +74,25 @@ class GlobalToolCache {
     return GlobalToolCache.instance;
   }
 
+  constructor() {
+    // Detect if running in serverless environment (Vercel, AWS Lambda, etc.)
+    this.isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.FUNCTION_NAME);
+    if (this.isServerless) {
+      console.log("Detected serverless environment, using in-memory cache only");
+    }
+  }
+
   async loadCacheConfig(): Promise<ToolCacheConfig | null> {
+    if (this.isServerless) {
+      // In serverless environments, return existing in-memory cache
+      return this.cacheConfig;
+    }
+    
     try {
-      const data = await fs.readFile(this.cacheFilePath, "utf-8");
-      return JSON.parse(data);
+      const data = await fs.readFile("./tool_cache_config.json", "utf-8");
+      const config = JSON.parse(data);
+      this.cacheConfig = config;
+      return config;
     } catch (error) {
       console.log("No existing tool cache config found");
       return null;
@@ -85,10 +100,22 @@ class GlobalToolCache {
   }
 
   async saveCacheConfig(config: ToolCacheConfig): Promise<void> {
+    // Always store in memory
+    this.cacheConfig = config;
+    
+    if (this.isServerless) {
+      // In serverless environments, only use in-memory storage
+      console.log("Serverless environment: Cache stored in memory only");
+      return;
+    }
+    
+    // In local/server environments, also save to file
     try {
-      await fs.writeFile(this.cacheFilePath, JSON.stringify(config, null, 2));
+      await fs.writeFile("./tool_cache_config.json", JSON.stringify(config, null, 2));
+      console.log("Cache config saved to file");
     } catch (error) {
-      console.error("Failed to save tool cache config:", error);
+      console.error("Failed to save tool cache config to file:", error);
+      // Don't throw error, in-memory cache is still functional
     }
   }
 
@@ -116,6 +143,10 @@ class GlobalToolCache {
     return this.cacheConfig;
   }
 
+  get isServerlessEnvironment(): boolean {
+    return this.isServerless;
+  }
+
   async clearCache(): Promise<void> {
     this.tools.clear();
     // Close MCP connections properly
@@ -130,10 +161,17 @@ class GlobalToolCache {
     this.mcpClients.clear();
     this.cacheConfig = null;
     
-    try {
-      await fs.unlink(this.cacheFilePath);
-    } catch (error) {
-      // File might not exist, which is fine
+    // Only try to delete file in non-serverless environments
+    if (!this.isServerless) {
+      try {
+        await fs.unlink("./tool_cache_config.json");
+        console.log("Cache config file deleted");
+      } catch (error) {
+        // File might not exist, which is fine
+        console.log("Cache config file deletion skipped (file may not exist)");
+      }
+    } else {
+      console.log("Serverless environment: In-memory cache cleared");
     }
   }
 }
@@ -300,13 +338,16 @@ export class AIAgent {
       return true;
     }
 
-    // Check cache age (reinitialize after 1 hour to ensure freshness)
-    const cacheAge = Date.now() - cachedConfig.lastUpdated;
-    const maxCacheAge = 60 * 60 * 1000; // 1 hour
-    
-    if (cacheAge > maxCacheAge) {
-      console.log("🔄 Tool cache expired, reinitializing tools...");
-      return true;
+    // In serverless environments, cache is only valid for the current execution
+    // In server environments, check cache age (reinitialize after 1 hour)
+    if (!this.globalCache.isServerlessEnvironment) {
+      const cacheAge = Date.now() - cachedConfig.lastUpdated;
+      const maxCacheAge = 60 * 60 * 1000; // 1 hour
+      
+      if (cacheAge > maxCacheAge) {
+        console.log("🔄 Tool cache expired, reinitializing tools...");
+        return true;
+      }
     }
 
     console.log("✅ Using cached tools (no configuration changes detected)");
