@@ -1,0 +1,85 @@
+{
+  "servers": [
+    {
+      "name": "supabase-mcp",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@supabase/mcp-server-supabase"],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "YOUR_API_KEY_HERE"
+      }
+    },
+    {
+      "name": "context7-mcp",
+      "transport": "stdio",
+      "command": "npx", 
+      "args": ["-y", "@upstash/context7-mcp"],
+      "env": {
+        "CONTEXT7_API_KEY": "YOUR_API_KEY_HERE"
+      }
+    },
+    {
+      "name": "github-mcp",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_API_KEY_HERE"
+      }
+    },
+    {
+      "name": "firecrawl-mcp",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "firecrawl-mcp"],
+      "env": {
+        "FIRECRAWL_API_KEY": "YOUR_API_KEY_HERE"
+      }
+    },
+    {
+      "name": "stripe",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", 
+        "@stripe/mcp", 
+        "--tools=all", 
+        "--api-key=YOUR_API_KEY_HERE"]
+    },
+    {
+      "name": "sequential-thinking",
+      "transport": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
+    },
+    {
+      "name": "perplexity-ask",
+      "transport": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "server-perplexity-ask"
+      ],
+      "env": {
+        "PERPLEXITY_API_KEY": "YOUR_API_KEY_HERE"
+      }
+    },
+    {
+      "name": "linkup",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "linkup-mcp-server"],
+      "env": {
+        "LINKUP_API_KEY": "{LINKUP_API_KEY}"
+      }
+    },
+    {
+      "name": "puppeteer",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
+    }
+  ]
+}

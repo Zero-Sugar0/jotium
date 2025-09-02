@@ -322,8 +322,14 @@ export class N8NTool {
         nodes: args.nodes || [],
         connections: args.connections || {},
         active: args.active || false,
+        settings: args.settings || { timezone: "UTC" }, // Add default settings
         tags: args.tags || []
       };
+    }
+
+    // Ensure settings are always present, even if not explicitly provided in template or args.workflow
+    if (!workflow.settings) {
+      workflow.settings = { timezone: "UTC" };
     }
 
     const response = await this.makeRequest('POST', '/workflows', workflow);
