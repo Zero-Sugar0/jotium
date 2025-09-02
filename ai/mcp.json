@@ -3,8 +3,8 @@
     {
       "name": "supabase-mcp",
       "transport": "stdio",
-      "command": "node",
-      "args": ["./node_modules/@supabase/mcp-server-supabase/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "@supabase/mcp-server-supabase"],
       "env": {
         "SUPABASE_ACCESS_TOKEN": "YOUR_API_KEY_HERE"
       }
@@ -12,8 +12,8 @@
     {
       "name": "context7-mcp",
       "transport": "stdio",
-      "command": "node",
-      "args": ["./node_modules/@upstash/context7-mcp/dist/index.js"],
+      "command": "npx", 
+      "args": ["-y", "@upstash/context7-mcp"],
       "env": {
         "CONTEXT7_API_KEY": "YOUR_API_KEY_HERE"
       }
@@ -21,8 +21,8 @@
     {
       "name": "github-mcp",
       "transport": "stdio",
-      "command": "node",
-      "args": ["./node_modules/@modelcontextprotocol/server-github/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_API_KEY_HERE"
       }
@@ -30,8 +30,8 @@
     {
       "name": "firecrawl-mcp",
       "transport": "stdio",
-      "command": "node",
-      "args": ["./node_modules/firecrawl-mcp/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "firecrawl-mcp"],
       "env": {
         "FIRECRAWL_API_KEY": "YOUR_API_KEY_HERE"
       }
@@ -39,27 +39,28 @@
     {
       "name": "stripe",
       "transport": "stdio",
-      "command": "node",
-      "args": [
-        "./node_modules/@stripe/mcp/dist/index.js",
+      "command": "npx",
+      "args": ["-y", 
+        "@stripe/mcp", 
         "--tools=all", 
-        "--api-key=YOUR_API_KEY_HERE"
-      ]
+        "--api-key=YOUR_API_KEY_HERE"]
     },
     {
       "name": "sequential-thinking",
       "transport": "stdio",
-      "command": "node",
+      "command": "npx",
       "args": [
-        "./node_modules/@modelcontextprotocol/server-sequential-thinking/dist/index.js"
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
       ]
     },
     {
       "name": "perplexity-ask",
       "transport": "stdio",
-      "command": "node",
+      "command": "npx",
       "args": [
-        "./node_modules/server-perplexity-ask/dist/index.js"
+        "-y",
+        "server-perplexity-ask"
       ],
       "env": {
         "PERPLEXITY_API_KEY": "YOUR_API_KEY_HERE"
@@ -68,8 +69,8 @@
     {
       "name": "linkup",
       "transport": "stdio",
-      "command": "node",
-      "args": ["./node_modules/linkup-mcp-server/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "linkup-mcp-server"],
       "env": {
         "LINKUP_API_KEY": "{LINKUP_API_KEY}"
       }
@@ -77,8 +78,8 @@
     {
       "name": "puppeteer",
       "transport": "stdio",
-      "command": "node",
-      "args": ["./node_modules/@modelcontextprotocol/server-puppeteer/dist/index.js"]
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
     }
   ]
 }
