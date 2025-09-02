@@ -2,6 +2,7 @@
 //ENHANCED VERSION WITH TOOL CACHING AND CHANGE DETECTION
 import { GoogleGenAI, FunctionDeclaration, mcpToTool } from "@google/genai";
 import * as fs from "fs/promises";
+import mcpConfig from './mcp.json' assert { type: 'json' };
 import dotenv from 'dotenv';
 import { getDecryptedApiKey, getDecryptedOAuthAccessToken } from "@/db/queries";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -236,29 +237,10 @@ export class AIAgent {
   // Get MCP configuration hash
   private async getMcpConfigHash(): Promise<string> {
     try {
-      const possiblePaths = [
-        "./ai/mcp.json",
-        "ai/mcp.json", 
-        "./mcp.json",
-        "mcp.json",
-        process.cwd() + "/ai/mcp.json",
-        process.cwd() + "/mcp.json"
-      ];
-      
-      let mcpConfigData = '';
-      for (const path of possiblePaths) {
-        try {
-          mcpConfigData = await fs.readFile(path, "utf-8");
-          console.log(`Found MCP config at: ${path}`);
-          break;
-        } catch (error) {
-          // Try next path
-        }
-      }
-      
+      const mcpConfigData = JSON.stringify(mcpConfig);
       return this.generateHash(mcpConfigData);
     } catch (error) {
-      console.log("MCP config not found, using empty hash");
+      console.log("MCP config not found or invalid, using empty hash");
       return '';
     }
   }
@@ -599,36 +581,18 @@ export class AIAgent {
 
   // Initialize MCP servers
   private async initializeMcpServers(): Promise<void> {
-    try {
-      const possiblePaths = [
-        "./ai/mcp.json",
-        "ai/mcp.json", 
-        "./mcp.json",
-        "mcp.json",
-        process.cwd() + "/ai/mcp.json",
-        process.cwd() + "/mcp.json"
-      ];
-      
-      let mcpConfigPath = '';
-      let data = '';
-      
-      for (const path of possiblePaths) {
-        try {
-          data = await fs.readFile(path, "utf-8");
-          mcpConfigPath = path;
-          console.log(`Found MCP config at: ${path}`);
-          break;
-        } catch (error) {
-          // Try next path
+    const filterUndefinedEnv = (env: any): Record<string, string> | undefined => {
+      if (!env) return undefined;
+      const filteredEnv: Record<string, string> = {};
+      for (const key in env) {
+        if (Object.prototype.hasOwnProperty.call(env, key) && typeof env[key] === 'string') {
+          filteredEnv[key] = env[key];
         }
       }
-      
-      if (!data) {
-        throw new Error("MCP config file not found in any expected location");
-      }
-      
-      const mcpConfig = JSON.parse(data);
+      return filteredEnv;
+    };
 
+    try {
       if (mcpConfig && mcpConfig.servers) {
         for (const serverConfig of mcpConfig.servers) {
           try {
@@ -637,7 +601,7 @@ export class AIAgent {
             const serverParams = new StdioClientTransport({
               command: serverConfig.command,
               args: serverConfig.args,
-              env: serverConfig.env || {}
+              env: filterUndefinedEnv(serverConfig.env)
             });
 
             const client = new Client({
