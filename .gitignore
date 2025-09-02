@@ -15,7 +15,6 @@ coverage
 out/
 build
 
-tool_cache_config.json
 # misc
 .DS_Store
 *.pem
@@ -39,3 +38,4 @@ yarn-error.log*
 .vercel
 .vscode
 .env*.local
+
