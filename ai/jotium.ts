@@ -2,7 +2,6 @@
 //ENHANCED VERSION WITH TOOL CACHING AND CHANGE DETECTION
 import { GoogleGenAI, FunctionDeclaration, mcpToTool } from "@google/genai";
 import * as fs from "fs/promises";
-import mcpConfig from './mcp.json' assert { type: 'json' };
 import dotenv from 'dotenv';
 import { getDecryptedApiKey, getDecryptedOAuthAccessToken } from "@/db/queries";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -66,7 +65,7 @@ class GlobalToolCache {
   private tools: Map<string, Tool> = new Map();
   private mcpClients: Map<string, McpClientInfo> = new Map();
   private cacheConfig: ToolCacheConfig | null = null;
-  private isServerless: boolean;
+  private cacheFilePath = "./tool_cache_config.json";
 
   static getInstance(): GlobalToolCache {
     if (!GlobalToolCache.instance) {
@@ -75,25 +74,10 @@ class GlobalToolCache {
     return GlobalToolCache.instance;
   }
 
-  constructor() {
-    // Detect if running in serverless environment (Vercel, AWS Lambda, etc.)
-    this.isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.FUNCTION_NAME);
-    if (this.isServerless) {
-      console.log("Detected serverless environment, using in-memory cache only");
-    }
-  }
-
   async loadCacheConfig(): Promise<ToolCacheConfig | null> {
-    if (this.isServerless) {
-      // In serverless environments, return existing in-memory cache
-      return this.cacheConfig;
-    }
-    
     try {
-      const data = await fs.readFile("./tool_cache_config.json", "utf-8");
-      const config = JSON.parse(data);
-      this.cacheConfig = config;
-      return config;
+      const data = await fs.readFile(this.cacheFilePath, "utf-8");
+      return JSON.parse(data);
     } catch (error) {
       console.log("No existing tool cache config found");
       return null;
@@ -101,22 +85,10 @@ class GlobalToolCache {
   }
 
   async saveCacheConfig(config: ToolCacheConfig): Promise<void> {
-    // Always store in memory
-    this.cacheConfig = config;
-    
-    if (this.isServerless) {
-      // In serverless environments, only use in-memory storage
-      console.log("Serverless environment: Cache stored in memory only");
-      return;
-    }
-    
-    // In local/server environments, also save to file
     try {
-      await fs.writeFile("./tool_cache_config.json", JSON.stringify(config, null, 2));
-      console.log("Cache config saved to file");
+      await fs.writeFile(this.cacheFilePath, JSON.stringify(config, null, 2));
     } catch (error) {
-      console.error("Failed to save tool cache config to file:", error);
-      // Don't throw error, in-memory cache is still functional
+      console.error("Failed to save tool cache config:", error);
     }
   }
 
@@ -144,10 +116,6 @@ class GlobalToolCache {
     return this.cacheConfig;
   }
 
-  get isServerlessEnvironment(): boolean {
-    return this.isServerless;
-  }
-
   async clearCache(): Promise<void> {
     this.tools.clear();
     // Close MCP connections properly
@@ -162,17 +130,10 @@ class GlobalToolCache {
     this.mcpClients.clear();
     this.cacheConfig = null;
     
-    // Only try to delete file in non-serverless environments
-    if (!this.isServerless) {
-      try {
-        await fs.unlink("./tool_cache_config.json");
-        console.log("Cache config file deleted");
-      } catch (error) {
-        // File might not exist, which is fine
-        console.log("Cache config file deletion skipped (file may not exist)");
-      }
-    } else {
-      console.log("Serverless environment: In-memory cache cleared");
+    try {
+      await fs.unlink(this.cacheFilePath);
+    } catch (error) {
+      // File might not exist, which is fine
     }
   }
 }
@@ -237,10 +198,10 @@ export class AIAgent {
   // Get MCP configuration hash
   private async getMcpConfigHash(): Promise<string> {
     try {
-      const mcpConfigData = JSON.stringify(mcpConfig);
-      return this.generateHash(mcpConfigData);
+      const mcpConfigPath = "./ai/mcp.json";
+      const data = await fs.readFile(mcpConfigPath, "utf-8");
+      return this.generateHash(data);
     } catch (error) {
-      console.log("MCP config not found or invalid, using empty hash");
       return '';
     }
   }
@@ -339,16 +300,13 @@ export class AIAgent {
       return true;
     }
 
-    // In serverless environments, cache is only valid for the current execution
-    // In server environments, check cache age (reinitialize after 1 hour)
-    if (!this.globalCache.isServerlessEnvironment) {
-      const cacheAge = Date.now() - cachedConfig.lastUpdated;
-      const maxCacheAge = 60 * 60 * 1000; // 1 hour
-      
-      if (cacheAge > maxCacheAge) {
-        console.log("🔄 Tool cache expired, reinitializing tools...");
-        return true;
-      }
+    // Check cache age (reinitialize after 1 hour to ensure freshness)
+    const cacheAge = Date.now() - cachedConfig.lastUpdated;
+    const maxCacheAge = 60 * 60 * 1000; // 1 hour
+    
+    if (cacheAge > maxCacheAge) {
+      console.log("🔄 Tool cache expired, reinitializing tools...");
+      return true;
     }
 
     console.log("✅ Using cached tools (no configuration changes detected)");
@@ -581,18 +539,11 @@ export class AIAgent {
 
   // Initialize MCP servers
   private async initializeMcpServers(): Promise<void> {
-    const filterUndefinedEnv = (env: any): Record<string, string> | undefined => {
-      if (!env) return undefined;
-      const filteredEnv: Record<string, string> = {};
-      for (const key in env) {
-        if (Object.prototype.hasOwnProperty.call(env, key) && typeof env[key] === 'string') {
-          filteredEnv[key] = env[key];
-        }
-      }
-      return filteredEnv;
-    };
-
     try {
+      const mcpConfigPath = "./ai/mcp.json";
+      const data = await fs.readFile(mcpConfigPath, "utf-8");
+      const mcpConfig = JSON.parse(data);
+
       if (mcpConfig && mcpConfig.servers) {
         for (const serverConfig of mcpConfig.servers) {
           try {
@@ -601,7 +552,7 @@ export class AIAgent {
             const serverParams = new StdioClientTransport({
               command: serverConfig.command,
               args: serverConfig.args,
-              env: filterUndefinedEnv(serverConfig.env)
+              env: serverConfig.env || {}
             });
 
             const client = new Client({
