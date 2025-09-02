@@ -15,8 +15,7 @@ coverage
 out/
 build
 
-ai/mcp
-mcp
+tool_cache_config.json
 # misc
 .DS_Store
 *.pem
