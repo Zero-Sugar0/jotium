@@ -236,10 +236,29 @@ export class AIAgent {
   // Get MCP configuration hash
   private async getMcpConfigHash(): Promise<string> {
     try {
-      const mcpConfigPath = "./ai/mcp.json";
-      const data = await fs.readFile(mcpConfigPath, "utf-8");
-      return this.generateHash(data);
+      const possiblePaths = [
+        "./ai/mcp.json",
+        "ai/mcp.json", 
+        "./mcp.json",
+        "mcp.json",
+        process.cwd() + "/ai/mcp.json",
+        process.cwd() + "/mcp.json"
+      ];
+      
+      let mcpConfigData = '';
+      for (const path of possiblePaths) {
+        try {
+          mcpConfigData = await fs.readFile(path, "utf-8");
+          console.log(`Found MCP config at: ${path}`);
+          break;
+        } catch (error) {
+          // Try next path
+        }
+      }
+      
+      return this.generateHash(mcpConfigData);
     } catch (error) {
+      console.log("MCP config not found, using empty hash");
       return '';
     }
   }
@@ -581,8 +600,33 @@ export class AIAgent {
   // Initialize MCP servers
   private async initializeMcpServers(): Promise<void> {
     try {
-      const mcpConfigPath = "./ai/mcp.json";
-      const data = await fs.readFile(mcpConfigPath, "utf-8");
+      const possiblePaths = [
+        "./ai/mcp.json",
+        "ai/mcp.json", 
+        "./mcp.json",
+        "mcp.json",
+        process.cwd() + "/ai/mcp.json",
+        process.cwd() + "/mcp.json"
+      ];
+      
+      let mcpConfigPath = '';
+      let data = '';
+      
+      for (const path of possiblePaths) {
+        try {
+          data = await fs.readFile(path, "utf-8");
+          mcpConfigPath = path;
+          console.log(`Found MCP config at: ${path}`);
+          break;
+        } catch (error) {
+          // Try next path
+        }
+      }
+      
+      if (!data) {
+        throw new Error("MCP config file not found in any expected location");
+      }
+      
       const mcpConfig = JSON.parse(data);
 
       if (mcpConfig && mcpConfig.servers) {
