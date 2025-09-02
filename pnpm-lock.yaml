@@ -23,12 +23,6 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^1.17.4
         version: 1.17.4
-      '@modelcontextprotocol/server-puppeteer':
-        specifier: ^2025.5.12
-        version: 2025.5.12(bufferutil@4.0.9)(typescript@5.8.3)
-      '@modelcontextprotocol/server-sequential-thinking':
-        specifier: ^2025.7.1
-        version: 2025.7.1
       '@notionhq/client':
         specifier: ^4.0.1
         version: 4.0.1
@@ -98,15 +92,9 @@ importers:
       '@slack/web-api':
         specifier: ^7.9.3
         version: 7.9.3
-      '@stripe/mcp':
-        specifier: ^0.2.4
-        version: 0.2.4(@langchain/core@0.3.72(@opentelemetry/api@1.9.0)(openai@4.104.0(ws@8.18.3(bufferutil@4.0.9))(zod@3.25.76)))(agents@0.0.84(@cloudflare/workers-types@4.20250831.0)(react@19.0.0-rc-7771d3a7-20240827))(ai@3.4.9(openai@4.104.0(ws@8.18.3(bufferutil@4.0.9))(zod@3.25.76))(react@19.0.0-rc-7771d3a7-20240827)(sswr@2.1.0(svelte@4.2.20))(svelte@4.2.20)(vue@3.5.17(typescript@5.8.3))(zod@3.25.76))(openai@4.104.0(ws@8.18.3(bufferutil@4.0.9))(zod@3.25.76))
       '@stripe/stripe-js':
         specifier: ^7.4.0
         version: 7.4.0
-      '@supabase/mcp-server-supabase':
-        specifier: ^0.5.1
-        version: 0.5.1
       '@supabase/supabase-js':
         specifier: ^2.50.5
         version: 2.50.5(bufferutil@4.0.9)
@@ -122,9 +110,6 @@ importers:
       '@types/node-cron':
         specifier: ^3.0.11
         version: 3.0.11
-      '@upstash/context7-mcp':
-        specifier: ^1.0.16
-        version: 1.0.16
       '@upstash/redis':
         specifier: ^1.35.1
         version: 1.35.1
@@ -173,9 +158,6 @@ importers:
       eslint-plugin-tailwindcss:
         specifier: ^3.17.5
         version: 3.18.0(tailwindcss@3.4.17)
-      firecrawl-mcp:
-        specifier: ^2.0.2
-        version: 2.0.2(bufferutil@4.0.9)
       form-data:
         specifier: ^4.0.3
         version: 4.0.3
@@ -194,9 +176,6 @@ importers:
       katex:
         specifier: ^0.16.22
         version: 0.16.22
-      linkup-mcp-server:
-        specifier: ^1.1.0
-        version: 1.1.0(@types/node@20.19.5)(typescript@5.8.3)
       lucide-react:
         specifier: ^0.446.0
         version: 0.446.0(react@19.0.0-rc-7771d3a7-20240827)
@@ -294,6 +273,21 @@ importers:
         specifier: ^3.23.8
         version: 3.25.76
     devDependencies:
+      '@modelcontextprotocol/server-github':
+        specifier: ^2025.4.8
+        version: 2025.4.8
+      '@modelcontextprotocol/server-puppeteer':
+        specifier: ^2025.5.12
+        version: 2025.5.12(bufferutil@4.0.9)(typescript@5.8.3)
+      '@modelcontextprotocol/server-sequential-thinking':
+        specifier: ^2025.7.1
+        version: 2025.7.1
+      '@stripe/mcp':
+        specifier: ^0.2.4
+        version: 0.2.4(@langchain/core@0.3.72(@opentelemetry/api@1.9.0)(openai@4.104.0(ws@8.18.3(bufferutil@4.0.9))(zod@3.25.76)))(agents@0.0.84(@cloudflare/workers-types@4.20250831.0)(react@19.0.0-rc-7771d3a7-20240827))(ai@3.4.9(openai@4.104.0(ws@8.18.3(bufferutil@4.0.9))(zod@3.25.76))(react@19.0.0-rc-7771d3a7-20240827)(sswr@2.1.0(svelte@4.2.20))(svelte@4.2.20)(vue@3.5.17(typescript@5.8.3))(zod@3.25.76))(openai@4.104.0(ws@8.18.3(bufferutil@4.0.9))(zod@3.25.76))
+      '@supabase/mcp-server-supabase':
+        specifier: ^0.5.1
+        version: 0.5.1
       '@types/d3-scale':
         specifier: ^4.0.8
         version: 4.0.9
@@ -315,6 +309,9 @@ importers:
       '@types/react-syntax-highlighter':
         specifier: ^15.5.13
         version: 15.5.13
+      '@upstash/context7-mcp':
+        specifier: ^1.0.16
+        version: 1.0.16
       drizzle-kit:
         specifier: ^0.25.0
         version: 0.25.0
@@ -330,9 +327,18 @@ importers:
       eslint-plugin-import:
         specifier: ^2.31.0
         version: 2.32.0(@typescript-eslint/parser@7.2.0(eslint@8.57.1)(typescript@5.8.3))(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1)
+      firecrawl-mcp:
+        specifier: ^2.0.2
+        version: 2.0.2(bufferutil@4.0.9)
+      linkup-mcp-server:
+        specifier: ^1.1.0
+        version: 1.1.0(@types/node@20.19.5)(typescript@5.8.3)
       postcss:
         specifier: ^8
         version: 8.5.6
+      server-perplexity-ask:
+        specifier: ^0.1.3
+        version: 0.1.3
       tailwindcss:
         specifier: ^3.4.1
         version: 3.4.17
@@ -1364,6 +1370,11 @@ packages:
     resolution: {integrity: sha512-zq24hfuAmmlNZvik0FLI58uE5sriN0WWsQzIlYnzSuKDAHFqJtBFrl/LfB1NLgJT5Y7dEBzaX4yAKqOPrcetaw==}
     engines: {node: '>=18'}
 
+  '@modelcontextprotocol/server-github@2025.4.8':
+    resolution: {integrity: sha512-8N43bQw9MlUB0piTZHK2JMh8kYPKxH57d4Z7Wb8PS4by2MkZ0FzI5xPImg3xumpev82VZw2VWHQJJJYp+WkwEw==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+    hasBin: true
+
   '@modelcontextprotocol/server-puppeteer@2025.5.12':
     resolution: {integrity: sha512-uG5QIxnnAkL6m7snXcsgC3k8ZnkYlikYZN016re6TEwtXwKUoJjRMzsqbwqw45IqP+7pXvN9vuPJ/OuHu70jow==}
     deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
@@ -2376,6 +2387,9 @@ packages:
 
   '@types/node@20.19.5':
     resolution: {integrity: sha512-M4CtoNkoQrYOD7O80KM7DjGdzwMvoXZ12SGUbxc0X1AK6gfBKjkJswW/B4MyTPMIuU0sodukEgj8CzIJKEAQXQ==}
+
+  '@types/node@22.18.0':
+    resolution: {integrity: sha512-m5ObIqwsUp6BZzyiy4RdZpzWGub9bqLJMvZDD0QMXhxjqMHMENlj+SqF5QxoUwaQNFe+8kz8XM8ZQhqkQPTgMQ==}
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
@@ -6204,6 +6218,11 @@ packages:
   server-only@0.0.1:
     resolution: {integrity: sha512-qepMx2JxAa5jjfzxG79yPPq+8BuFToHd1hm7kI+Z4zAq1ftQiP7HcxMhDDItrbtwVeLg/cY2JnKnrcFkmiswNA==}
 
+  server-perplexity-ask@0.1.3:
+    resolution: {integrity: sha512-3jW3IXIi/LgdQnM6aHTRShyyzn/AkWGP0b9AGIXI6aTYlYRhi+6Jwku7BVuiHRWaewj2BtwypjwfcBLG3e0fjw==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   set-function-length@1.2.2:
     resolution: {integrity: sha512-pgRc4hJ4/sNjWCSS9AmnS40x3bNMDTknHgL5UaMBTMyJnU90EgWh1Rz+MC9eFu4BuN/UwZjKQuY/1v3rM7HMfg==}
     engines: {node: '>= 0.4'}
@@ -7868,6 +7887,16 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@modelcontextprotocol/server-github@2025.4.8':
+    dependencies:
+      '@modelcontextprotocol/sdk': 1.0.1
+      '@types/node': 22.18.0
+      '@types/node-fetch': 2.6.13
+      node-fetch: 3.3.2
+      universal-user-agent: 7.0.3
+      zod: 3.25.76
+      zod-to-json-schema: 3.24.6(zod@3.25.76)
+
   '@modelcontextprotocol/server-puppeteer@2025.5.12(bufferutil@4.0.9)(typescript@5.8.3)':
     dependencies:
       '@modelcontextprotocol/sdk': 1.0.1
@@ -8982,6 +9011,10 @@ snapshots:
       undici-types: 5.26.5
 
   '@types/node@20.19.5':
+    dependencies:
+      undici-types: 6.21.0
+
+  '@types/node@22.18.0':
     dependencies:
       undici-types: 6.21.0
 
@@ -13385,6 +13418,15 @@ snapshots:
       - supports-color
 
   server-only@0.0.1: {}
+
+  server-perplexity-ask@0.1.3:
+    dependencies:
+      '@modelcontextprotocol/sdk': 1.17.4
+      axios: 1.11.0
+      dotenv: 16.6.1
+    transitivePeerDependencies:
+      - debug
+      - supports-color
 
   set-function-length@1.2.2:
     dependencies:
