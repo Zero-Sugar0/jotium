@@ -8,8 +8,9 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-  	fontFamily: {
-  		sans: ['var(--font-poppins)', 'Poppins', 'system-ui', 'sans-serif'],
+fontFamily: {
+  		// sans: ['var(--font-poppins)', 'Poppins', 'system-ui', 'sans-serif'],
+  		sans: ['var(--font-lato)', 'Lato', 'system-ui', 'sans-serif'],
   		mono: ['ui-monospace', 'SFMono-Regular', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace']
   	},
   	extend: {

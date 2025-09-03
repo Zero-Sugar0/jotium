@@ -31,11 +31,12 @@ export class SupabaseTool implements Tool {
               // Authentication
               "sign_up", "sign_in", "sign_out", "get_user", "update_user", "delete_user",
               "reset_password", "verify_email", "refresh_token", "get_session",
-              // Storage
-              "upload_file", "download_file", "delete_file", "list_files", "get_file_url",
-              "create_bucket", "delete_bucket", "list_buckets", "update_bucket",
+              // User Management (Admin)
+              "list_users",
               // Real-time
               "subscribe", "unsubscribe", "broadcast", "presence_track", "presence_untrack",
+              // Storage Signed URLs
+              "generate_signed_url",
               // Edge Functions
               "invoke_function", "list_functions",
               // Database Management
@@ -114,6 +115,11 @@ export class SupabaseTool implements Tool {
           fileOptions: {
             type: Type.OBJECT,
             description: "File upload options"
+          },
+          // Storage Signed URL fields
+          expiresIn: {
+            type: Type.NUMBER,
+            description: "Expiration time in seconds for the signed URL"
           },
           // Real-time fields
           channel: {
@@ -294,6 +300,11 @@ export class SupabaseTool implements Tool {
           break;
         case 'presence_untrack':
           result = await this.presenceUntrack(args.channel);
+          break;
+
+        // Storage Signed URLs
+        case 'generate_signed_url':
+          result = await this.generateSignedUrl(args);
           break;
 
         // Edge Functions
@@ -788,8 +799,18 @@ export class SupabaseTool implements Tool {
     const channel = this.client.channel(args.channel);
     
     if (args.table) {
+      const filter = { 
+        event: args.event || '*', 
+        schema: args.schema || 'public', 
+        table: args.table 
+      };
+
+      if (args.filterConfig) {
+        Object.assign(filter, args.filterConfig);
+      }
+
       channel.on('postgres_changes', 
-        { event: args.event || '*', schema: 'public', table: args.table },
+        filter,
         (payload) => {
           console.log('Change received!', payload);
           // Handle the change
@@ -828,6 +849,16 @@ export class SupabaseTool implements Tool {
     const channelRef = this.client.channel(channel);
     const response = await channelRef.untrack();
     return response;
+  }
+
+  // Storage Signed URLs
+  private async generateSignedUrl(args: any): Promise<any> {
+    const { data, error } = await this.client.storage
+      .from(args.bucket)
+      .createSignedUrl(args.filePath, args.expiresIn || 3600); // Default to 1 hour
+    
+    if (error) throw error;
+    return data;
   }
 
   // Edge Functions

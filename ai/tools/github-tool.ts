@@ -37,7 +37,25 @@ export class GitHubTool {
               "get_commits",
               "get_releases",
               "get_user",
-              "search_users"
+              "search_users",
+              "create_issue",
+              "update_issue",
+              "close_issue",
+              "add_comment_to_issue",
+              "create_pull_request",
+              "merge_pull_request",
+              "close_pull_request",
+              "add_reviewer_to_pull_request",
+              "add_comment_to_pull_request",
+              "get_organization",
+              "list_organization_members",
+              "search_code",
+              "search_issues_advanced",
+              "search_pull_requests_advanced",
+              "create_webhook",
+              "list_webhooks",
+              "update_webhook",
+              "delete_webhook"
             ]
           },
           // Repository creation/update parameters
@@ -264,10 +282,46 @@ export class GitHubTool {
         return this.executeGetUser(args);
       case "search_users":
         return this.executeSearchUsers(args);
+      case "create_issue":
+        return this.executeCreateIssue(args);
+      case "update_issue":
+        return this.executeUpdateIssue(args);
+      case "close_issue":
+        return this.executeCloseIssue(args);
+      case "add_comment_to_issue":
+        return this.executeAddCommentToIssue(args);
+      case "create_pull_request":
+        return this.executeCreatePullRequest(args);
+      case "merge_pull_request":
+        return this.executeMergePullRequest(args);
+      case "close_pull_request":
+        return this.executeClosePullRequest(args);
+      case "add_reviewer_to_pull_request":
+        return this.executeAddReviewerToPullRequest(args);
+      case "add_comment_to_pull_request":
+        return this.executeAddCommentToPullRequest(args);
+      case "get_organization":
+        return this.executeGetOrganization(args);
+      case "list_organization_members":
+        return this.executeListOrganizationMembers(args);
+      case "search_code":
+        return this.executeSearchCode(args);
+      case "search_issues_advanced":
+        return this.executeSearchIssuesAdvanced(args);
+      case "search_pull_requests_advanced":
+        return this.executeSearchPullRequestsAdvanced(args);
+      case "create_webhook":
+        return this.executeCreateWebhook(args);
+      case "list_webhooks":
+        return this.executeListWebhooks(args);
+      case "update_webhook":
+        return this.executeUpdateWebhook(args);
+      case "delete_webhook":
+        return this.executeDeleteWebhook(args);
       default:
         return {
           success: false,
-          error: `Unknown action: ${args.action}. Available actions: get_authenticated_user, create_repository, update_repository, create_file, update_file, delete_file, search_repositories, get_repository, get_contents, get_file, get_issues, get_pull_requests, get_commits, get_releases, get_user, search_users`
+          error: `Unknown action: ${args.action}. Available actions: get_authenticated_user, create_repository, update_repository, create_file, update_file, delete_file, search_repositories, get_repository, get_contents, get_file, get_issues, get_pull_requests, get_commits, get_releases, get_user, search_users, create_issue, update_issue, close_issue, add_comment_to_issue, create_pull_request, merge_pull_request, close_pull_request, add_reviewer_to_pull_request, add_comment_to_pull_request, get_organization, list_organization_members, search_code, search_issues_advanced, search_pull_requests_advanced, create_webhook, list_webhooks, update_webhook, delete_webhook`
         };
     }
   }
@@ -1458,5 +1512,764 @@ export class GitHubTool {
 
   async searchUsers(query: string, options: any = {}): Promise<any> {
     return this.execute({ action: "search_users", query, ...options });
+  }
+
+  private async executeCreateIssue(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo || !args.title || !args.body) {
+        return { success: false, error: "Owner, repo, title, and body parameters are required for create_issue action" };
+      }
+
+      console.log(`🐛 Creating issue: ${args.owner}/${args.repo}`);
+
+      const createParams: any = {
+        owner: args.owner,
+        repo: args.repo,
+        title: args.title,
+        body: args.body
+      };
+
+      if (args.assignees) {
+        createParams.assignees = args.assignees.split(',');
+      }
+
+      if (args.labels) {
+        createParams.labels = args.labels.split(',');
+      }
+
+      const response = await this.octokit.rest.issues.create(createParams);
+
+      return {
+        success: true,
+        action: "create_issue",
+        owner: args.owner,
+        repo: args.repo,
+        issueNumber: response.data.number,
+        url: response.data.html_url,
+        createdAt: new Date().toISOString()
+      };
+    } catch (error: unknown) {
+      console.error("❌ Create issue failed:", error);
+      return {
+        success: false,
+        action: "create_issue",
+        error: `Create issue failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo
+      };
+    }
+  }
+
+  private async executeUpdateIssue(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo || !args.issueNumber) {
+        return { success: false, error: "Owner, repo, and issueNumber parameters are required for update_issue action" };
+      }
+
+      console.log(`🐛 Updating issue: ${args.owner}/${args.repo}/${args.issueNumber}`);
+
+      const updateParams: any = {
+        owner: args.owner,
+        repo: args.repo,
+        issue_number: args.issueNumber
+      };
+
+      if (args.title) {
+        updateParams.title = args.title;
+      }
+
+      if (args.body) {
+        updateParams.body = args.body;
+      }
+
+      if (args.assignees) {
+        updateParams.assignees = args.assignees.split(',');
+      }
+
+      if (args.issueState) {
+        updateParams.state = args.issueState;
+      }
+
+      if (args.issueLabels) {
+        updateParams.labels = args.issueLabels.split(',');
+      }
+
+      const response = await this.octokit.rest.issues.update(updateParams);
+
+      return {
+        success: true,
+        action: "update_issue",
+        owner: args.owner,
+        repo: args.repo,
+        issueNumber: response.data.number,
+        url: response.data.html_url,
+        updatedAt: new Date().toISOString()
+      };
+    } catch (error: unknown) {
+      console.error("❌ Update issue failed:", error);
+      return {
+        success: false,
+        action: "update_issue",
+        error: `Update issue failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo,
+        issueNumber: args.issueNumber
+      };
+    }
+  }
+
+  private async executeCloseIssue(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo || !args.issueNumber) {
+        return { success: false, error: "Owner, repo, and issueNumber parameters are required for close_issue action" };
+      }
+
+      console.log(`🐛 Closing issue: ${args.owner}/${args.repo}/${args.issueNumber}`);
+
+      const updateParams: any = {
+        owner: args.owner,
+        repo: args.repo,
+        issue_number: args.issueNumber,
+        state: 'closed'
+      };
+
+      const response = await this.octokit.rest.issues.update(updateParams);
+
+      return {
+        success: true,
+        action: "close_issue",
+        owner: args.owner,
+        repo: args.repo,
+        issueNumber: response.data.number,
+        url: response.data.html_url,
+        closedAt: new Date().toISOString()
+      };
+    } catch (error: unknown) {
+      console.error("❌ Close issue failed:", error);
+      return {
+        success: false,
+        action: "close_issue",
+        error: `Close issue failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo,
+        issueNumber: args.issueNumber
+      };
+    }
+  }
+
+  private async executeAddCommentToIssue(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo || !args.issueNumber || !args.commentBody) {
+        return { success: false, error: "Owner, repo, issueNumber, and commentBody parameters are required for add_comment_to_issue action" };
+      }
+
+      console.log(`🐛 Adding comment to issue: ${args.owner}/${args.repo}/${args.issueNumber}`);
+
+      const createParams: any = {
+        owner: args.owner,
+        repo: args.repo,
+        issue_number: args.issueNumber,
+        body: args.commentBody
+      };
+
+      const response = await this.octokit.rest.issues.createComment(createParams);
+
+      return {
+        success: true,
+        action: "add_comment_to_issue",
+        owner: args.owner,
+        repo: args.repo,
+        issueNumber: args.issueNumber,
+        commentId: response.data.id,
+        url: response.data.html_url,
+        createdAt: new Date().toISOString()
+      };
+    } catch (error: unknown) {
+      console.error("❌ Add comment to issue failed:", error);
+      return {
+        success: false,
+        action: "add_comment_to_issue",
+        error: `Add comment to issue failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo,
+        issueNumber: args.issueNumber
+      };
+    }
+  }
+
+  private async executeCreatePullRequest(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo || !args.title || !args.head || !args.base) {
+        return { success: false, error: "Owner, repo, title, head, and base parameters are required for create_pull_request action" };
+      }
+
+      console.log(`🔀 Creating pull request: ${args.owner}/${args.repo}`);
+
+      const createParams: any = {
+        owner: args.owner,
+        repo: args.repo,
+        title: args.title,
+        head: args.head,
+        base: args.base
+      };
+
+      if (args.body) {
+        createParams.body = args.body;
+      }
+
+      const response = await this.octokit.rest.pulls.create(createParams);
+
+      return {
+        success: true,
+        action: "create_pull_request",
+        owner: args.owner,
+        repo: args.repo,
+        pullRequestNumber: response.data.number,
+        url: response.data.html_url,
+        createdAt: new Date().toISOString()
+      };
+    } catch (error: unknown) {
+      console.error("❌ Create pull request failed:", error);
+      return {
+        success: false,
+        action: "create_pull_request",
+        error: `Create pull request failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo
+      };
+    }
+  }
+
+  private async executeMergePullRequest(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo || !args.pullRequestNumber) {
+        return { success: false, error: "Owner, repo, and pullRequestNumber parameters are required for merge_pull_request action" };
+      }
+
+      console.log(`🔀 Merging pull request: ${args.owner}/${args.repo}/${args.pullRequestNumber}`);
+
+      const mergeParams: any = {
+        owner: args.owner,
+        repo: args.repo,
+        pull_number: args.pullRequestNumber
+      };
+
+      if (args.commitTitle) {
+        mergeParams.commit_title = args.commitTitle;
+      }
+
+      if (args.commitMessage) {
+        mergeParams.commit_message = args.commitMessage;
+      }
+
+      const response = await this.octokit.rest.pulls.merge(mergeParams);
+
+      return {
+        success: true,
+        action: "merge_pull_request",
+        owner: args.owner,
+        repo: args.repo,
+        pullRequestNumber: args.pullRequestNumber,
+        merged: response.data?.merged,
+        sha: response.data?.sha,
+        message: response.data?.message,
+        mergedAt: new Date().toISOString()
+      };
+    } catch (error: unknown) {
+      console.error("❌ Merge pull request failed:", error);
+      return {
+        success: false,
+        action: "merge_pull_request",
+        error: `Merge pull request failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo,
+        pullRequestNumber: args.pullRequestNumber
+      };
+    }
+  }
+
+  private async executeClosePullRequest(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo || !args.pullRequestNumber) {
+        return { success: false, error: "Owner, repo, and pullRequestNumber parameters are required for close_pull_request action" };
+      }
+
+      console.log(`🔀 Closing pull request: ${args.owner}/${args.repo}/${args.pullRequestNumber}`);
+
+      const updateParams: any = {
+        owner: args.owner,
+        repo: args.repo,
+        pull_number: args.pullRequestNumber,
+        state: 'closed'
+      };
+
+      const response = await this.octokit.rest.pulls.update(updateParams);
+
+      return {
+        success: true,
+        action: "close_pull_request",
+        owner: args.owner,
+        repo: args.repo,
+        pullRequestNumber: response.data.number,
+        url: response.data.html_url,
+        closedAt: new Date().toISOString()
+      };
+    } catch (error: unknown) {
+      console.error("❌ Close pull request failed:", error);
+      return {
+        success: false,
+        action: "close_pull_request",
+        error: `Close pull request failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo,
+        pullRequestNumber: args.pullRequestNumber
+      };
+    }
+  }
+
+  private async executeAddReviewerToPullRequest(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo || !args.pullRequestNumber || !args.reviewers) {
+        return { success: false, error: "Owner, repo, pullRequestNumber, and reviewers parameters are required for add_reviewer_to_pull_request action" };
+      }
+
+      console.log(`🔀 Adding reviewer to pull request: ${args.owner}/${args.repo}/${args.pullRequestNumber}`);
+
+      const createParams: any = {
+        owner: args.owner,
+        repo: args.repo,
+        pull_number: args.pullRequestNumber,
+        reviewers: args.reviewers.split(',')
+      };
+
+      const response = await this.octokit.rest.pulls.requestReviewers(createParams);
+
+      return {
+        success: true,
+        action: "add_reviewer_to_pull_request",
+        owner: args.owner,
+        repo: args.repo,
+        pullRequestNumber: args.pullRequestNumber,
+        reviewers: response.data.requested_reviewers?.map((r: any) => r.login) || [],
+        createdAt: new Date().toISOString()
+      };
+    } catch (error: unknown) {
+      console.error("❌ Add reviewer to pull request failed:", error);
+      return {
+        success: false,
+        action: "add_reviewer_to_pull_request",
+        error: `Add reviewer to pull request failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo,
+        pullRequestNumber: args.pullRequestNumber
+      };
+    }
+  }
+
+  private async executeAddCommentToPullRequest(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo || !args.pullRequestNumber || !args.commentBody) {
+        return { success: false, error: "Owner, repo, pullRequestNumber, and commentBody parameters are required for add_comment_to_pull_request action" };
+      }
+
+      console.log(`🔀 Adding comment to pull request: ${args.owner}/${args.repo}/${args.pullRequestNumber}`);
+
+      const createParams: any = {
+        owner: args.owner,
+        repo: args.repo,
+        pull_number: args.pullRequestNumber,
+        body: args.commentBody
+      };
+
+      const response = await this.octokit.rest.issues.createComment(createParams);
+
+      return {
+        success: true,
+        action: "add_comment_to_pull_request",
+        owner: args.owner,
+        repo: args.repo,
+        pullRequestNumber: args.pullRequestNumber,
+        commentId: response.data.id,
+        url: response.data.html_url,
+        createdAt: new Date().toISOString()
+      };
+    } catch (error: unknown) {
+      console.error("❌ Add comment to pull request failed:", error);
+      return {
+        success: false,
+        action: "add_comment_to_pull_request",
+        error: `Add comment to pull request failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo,
+        pullRequestNumber: args.pullRequestNumber
+      };
+    }
+  }
+
+  private async executeGetOrganization(args: any): Promise<any> {
+    try {
+      if (!args.organization) {
+        return { success: false, error: "Organization parameter is required for get_organization action" };
+      }
+
+      console.log(`🏢 Getting organization: ${args.organization}`);
+
+      const response = await this.octokit.rest.orgs.get({
+        org: args.organization
+      });
+
+      const organization = response.data;
+
+      return {
+        success: true,
+        action: "get_organization",
+        login: organization.login,
+        name: organization.name,
+        description: organization.description,
+        url: organization.html_url,
+        avatarUrl: organization.avatar_url,
+        location: organization.location,
+        email: organization.email,
+        blog: organization.blog,
+        publicRepos: organization.public_repos,
+        privateRepos: organization.total_private_repos || 0,
+        totalMembers: organization.total_private_repos || 0,
+        createdAt: organization.created_at,
+        updatedAt: organization.updated_at
+      };
+    } catch (error: unknown) {
+      console.error("❌ Get organization failed:", error);
+      return {
+        success: false,
+        action: "get_organization",
+        error: `Get organization failed: ${error instanceof Error ? error.message : String(error)}`,
+        organization: args.organization
+      };
+    }
+  }
+
+  private async executeListOrganizationMembers(args: any): Promise<any> {
+    try {
+      if (!args.organization) {
+        return { success: false, error: "Organization parameter is required for list_organization_members action" };
+      }
+
+      console.log(`🏢 Listing organization members: ${args.organization}`);
+
+      const params: any = {
+        org: args.organization,
+        per_page: Math.min(args.perPage || 30, 100)
+      };
+
+      const response = await this.octokit.rest.orgs.listMembers(params);
+
+      const members = response.data.map((member: any) => ({
+        login: member.login,
+        avatarUrl: member.avatar_url,
+        url: member.html_url
+      }));
+
+      return {
+        success: true,
+        action: "list_organization_members",
+        organization: args.organization,
+        members: members,
+        totalCount: members.length
+      };
+    } catch (error: unknown) {
+      console.error("❌ List organization members failed:", error);
+      return {
+        success: false,
+        action: "list_organization_members",
+        error: `List organization members failed: ${error instanceof Error ? error.message : String(error)}`,
+        organization: args.organization
+      };
+    }
+  }
+
+  private async executeSearchCode(args: any): Promise<any> {
+    try {
+      if (!args.query) {
+        return { success: false, error: "Query parameter is required for search_code action" };
+      }
+
+      console.log(`🔍 Searching code: ${args.query}`);
+
+      const searchParams: any = {
+        q: args.query,
+        per_page: Math.min(args.perPage || 30, 100)
+      };
+
+      const response = await this.octokit.rest.search.code(searchParams);
+
+      const results = response.data.items.map((item: any) => ({
+        name: item.name,
+        path: item.path,
+        url: item.html_url,
+        repository: item.repository.full_name
+      }));
+
+      return {
+        success: true,
+        action: "search_code",
+        query: args.query,
+        results: results,
+        totalCount: response.data.total_count
+      };
+    } catch (error: unknown) {
+      console.error("❌ Search code failed:", error);
+      return {
+        success: false,
+        action: "search_code",
+        error: `Search code failed: ${error instanceof Error ? error.message : String(error)}`,
+        query: args.query
+      };
+    }
+  }
+
+  private async executeSearchIssuesAdvanced(args: any): Promise<any> {
+    try {
+      if (!args.query) {
+        return { success: false, error: "Query parameter is required for search_issues_advanced action" };
+      }
+
+      console.log(`🔍 Searching issues (advanced): ${args.query}`);
+
+      const searchParams: any = {
+        q: args.query,
+        per_page: Math.min(args.perPage || 30, 100)
+      };
+
+      const response = await this.octokit.rest.search.issuesAndPullRequests(searchParams);
+
+      const results = response.data.items.map((item: any) => ({
+        number: item.number,
+        title: item.title,
+        body: item.body,
+        url: item.html_url,
+        repository: item.repository.full_name
+      }));
+
+      return {
+        success: true,
+        action: "search_issues_advanced",
+        query: args.query,
+        results: results,
+        totalCount: response.data.total_count
+      };
+    } catch (error: unknown) {
+      console.error("❌ Search issues (advanced) failed:", error);
+      return {
+        success: false,
+        action: "search_issues_advanced",
+        error: `Search issues (advanced) failed: ${error instanceof Error ? error.message : String(error)}`,
+        query: args.query
+      };
+    }
+  }
+
+  private async executeSearchPullRequestsAdvanced(args: any): Promise<any> {
+    try {
+      if (!args.query) {
+        return { success: false, error: "Query parameter is required for search_pull_requests_advanced action" };
+      }
+
+      console.log(`🔍 Searching pull requests (advanced): ${args.query}`);
+
+      const searchParams: any = {
+        q: args.query,
+        per_page: Math.min(args.perPage || 30, 100)
+      };
+
+      const response = await this.octokit.rest.search.issuesAndPullRequests(searchParams);
+
+      const results = response.data.items.map((item: any) => ({
+        number: item.number,
+        title: item.title,
+        body: item.body,
+        url: item.html_url,
+        repository: item.repository.full_name
+      }));
+
+      return {
+        success: true,
+        action: "search_pull_requests_advanced",
+        query: args.query,
+        results: results,
+        totalCount: response.data.total_count
+      };
+    } catch (error: unknown) {
+      console.error("❌ Search pull requests (advanced) failed:", error);
+      return {
+        success: false,
+        action: "search_pull_requests_advanced",
+        error: `Search pull requests (advanced) failed: ${error instanceof Error ? error.message : String(error)}`,
+        query: args.query
+      };
+    }
+  }
+
+  private async executeCreateWebhook(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo || !args.webhookUrl || !args.webhookEvents || !args.webhookSecret) {
+        return { success: false, error: "Owner, repo, webhookUrl, webhookEvents, and webhookSecret parameters are required for create_webhook action" };
+      }
+
+      console.log(`📡 Creating webhook: ${args.owner}/${args.repo}`);
+
+      const createParams: any = {
+        owner: args.owner,
+        repo: args.repo,
+        name: 'web',
+        config: {
+          url: args.webhookUrl,
+          content_type: 'json',
+          secret: args.webhookSecret
+        },
+        events: args.webhookEvents.split(','),
+        active: true
+      };
+
+      const response = await this.octokit.rest.repos.createWebhook(createParams);
+
+      return {
+        success: true,
+        action: "create_webhook",
+        owner: args.owner,
+        repo: args.repo,
+        webhookId: response.data.id,
+        url: response.data.url
+      };
+    } catch (error: unknown) {
+      console.error("❌ Create webhook failed:", error);
+      return {
+        success: false,
+        action: "create_webhook",
+        error: `Create webhook failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo
+      };
+    }
+  }
+
+  private async executeListWebhooks(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo) {
+        return { success: false, error: "Owner and repo parameters are required for list_webhooks action" };
+      }
+
+      console.log(`📡 Listing webhooks: ${args.owner}/${args.repo}`);
+
+      const params: any = {
+        owner: args.owner,
+        repo: args.repo,
+        per_page: Math.min(args.perPage || 30, 100)
+      };
+
+      const response = await this.octokit.rest.repos.listWebhooks(params);
+
+      const webhooks = response.data.map((webhook: any) => ({
+        id: webhook.id,
+        name: webhook.name,
+        url: webhook.config.url,
+        events: webhook.events
+      }));
+
+      return {
+        success: true,
+        action: "list_webhooks",
+        owner: args.owner,
+        repo: args.repo,
+        webhooks: webhooks,
+        totalCount: webhooks.length
+      };
+    } catch (error: unknown) {
+      console.error("❌ List webhooks failed:", error);
+      return {
+        success: false,
+        action: "list_webhooks",
+        error: `List webhooks failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo
+      };
+    }
+  }
+
+  private async executeUpdateWebhook(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo || !args.webhookId || !args.webhookUrl || !args.webhookEvents || !args.webhookSecret) {
+        return { success: false, error: "Owner, repo, webhookId, webhookUrl, webhookEvents, and webhookSecret parameters are required for update_webhook action" };
+      }
+
+      console.log(`📡 Updating webhook: ${args.owner}/${args.repo}/${args.webhookId}`);
+
+      const updateParams: any = {
+        owner: args.owner,
+        repo: args.repo,
+        hook_id: args.webhookId,
+        config: {
+          url: args.webhookUrl,
+          content_type: 'json',
+          secret: args.webhookSecret
+        },
+        events: args.webhookEvents.split(','),
+        active: true
+      };
+
+      const response = await this.octokit.rest.repos.updateWebhook(updateParams);
+
+      return {
+        success: true,
+        action: "update_webhook",
+        owner: args.owner,
+        repo: args.repo,
+        webhookId: response.data.id,
+        url: response.data.url
+      };
+    } catch (error: unknown) {
+      console.error("❌ Update webhook failed:", error);
+      return {
+        success: false,
+        action: "update_webhook",
+        error: `Update webhook failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo
+      };
+    }
+  }
+
+  private async executeDeleteWebhook(args: any): Promise<any> {
+    try {
+      if (!args.owner || !args.repo || !args.webhookId) {
+        return { success: false, error: "Owner, repo, and webhookId parameters are required for delete_webhook action" };
+      }
+
+      console.log(`📡 Deleting webhook: ${args.owner}/${args.repo}/${args.webhookId}`);
+
+      const deleteParams: any = {
+        owner: args.owner,
+        repo: args.repo,
+        hook_id: args.webhookId
+      };
+
+      await this.octokit.rest.repos.deleteWebhook(deleteParams);
+
+      return {
+        success: true,
+        action: "delete_webhook",
+        owner: args.owner,
+        repo: args.repo,
+        webhookId: args.webhookId
+      };
+    } catch (error: unknown) {
+      console.error("❌ Delete webhook failed:", error);
+      return {
+        success: false,
+        action: "delete_webhook",
+        error: `Delete webhook failed: ${error instanceof Error ? error.message : String(error)}`,
+        owner: args.owner,
+        repo: args.repo
+      };
+    }
   }
 }

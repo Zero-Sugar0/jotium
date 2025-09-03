@@ -180,18 +180,19 @@ export const Message = ({
                 prose-blockquote:border-l-primary
                 prose-blockquote:text-foreground/80
                 
-                /* Mobile: normal size, Tablet/Desktop: slightly larger */
-                prose-p:text-sm md:prose-p:text-[8px] lg:prose-p:text-[8px]
-                prose-li:text-sm md:prose-li:text-[8px] lg:prose-li:text-[8px]
-                prose-headings:text-base md:prose-headings:text-[9px] lg:prose-headings:text-[8px]
-                prose-code:text-xs md:prose-code:text-[8px] lg:prose-code:text-[8px]
+/* Mobile: normal size, Tablet/Desktop: slightly larger */
+                prose-p:text-sm lg:prose-p:text-xs
+                prose-li:text-sm lg:prose-li:text-xs
+                prose-headings:text-base lg:prose-headings:text-sm
+                prose-code:text-xs
                 
-                /* Tighter inline code styling */
+/* Tighter inline code styling */
                 prose-code:bg-muted/60
-                prose-code:px-1
-                prose-code:py-0.5
-                prose-code:rounded-md
-                prose-code:border-0
+                prose-code:px-0.25
+                prose-code:py-0.1
+                prose-code:rounded-sm
+                prose-code:border
+                prose-code:border-border
                 prose-code:font-mono
                 prose-code:font-medium
                 
