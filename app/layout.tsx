@@ -2,11 +2,18 @@
 import { Metadata, Viewport } from "next";
 // import { Inter } from "next/font/google";
 // import { Quicksand } from "next/font/google";
-import { Poppins } from "next/font/google";
+import { Lato } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
+// import { Poppins } from "next/font/google";
 import { Toaster } from "sonner";
 
 import { auth } from "@/app/(auth)/auth";
+const lato = Lato({
+  subsets: ["latin"],
+  variable: "--font-lato",
+  display: "swap",
+  weight: ["100", "300", "400", "700", "900"],
+});
 import { Navbar } from "@/components/custom/navbar";
 import { ThemeProvider } from "@/components/custom/theme-provider";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -25,12 +32,12 @@ import "./globals.css";
 //   display: "swap",
 // });
 
-const poppins = Poppins({
-  subsets: ["latin"],
-  variable: "--font-poppins",
-  display: "swap",
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
-});
+// const poppins = Poppins({
+//   subsets: ["latin"],
+//   variable: "--font-poppins",
+//   display: "swap",
+//   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+// });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://jotium.vercel.app"),
@@ -56,11 +63,11 @@ export default async function RootLayout({
 }>) {
   const session = await auth();
 
-  return (
+return (
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${poppins.variable}`}
+      className={`${lato.variable}`}
     >
       <head>
         <meta name="format-detection" content="telephone=no" />

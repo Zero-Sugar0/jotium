@@ -1,14 +1,13 @@
-//optimized-jotium.ts
-//ENHANCED VERSION WITH TOOL CACHING AND CHANGE DETECTION
-import { GoogleGenAI, FunctionDeclaration, mcpToTool } from "@google/genai";
+//jotium.ts
+//YOU MUST USE THIS SAME CODE PLEASE
+//DO NOT CHANGE ANYTHING IN THIS FILE
+// Jotium AI Agent
+import { GoogleGenAI, FunctionDeclaration } from "@google/genai";
 import * as fs from "fs/promises";
 import dotenv from 'dotenv';
 import { getDecryptedApiKey, getDecryptedOAuthAccessToken } from "@/db/queries";
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import crypto from 'crypto';
 
-// Import all tools (same as before)
+// Import all tools
 import { WebSearchTool } from './tools/web-search-tool';
 import { FileManagerTool } from './tools/file-manager-tool';
 import { GitHubTool } from './tools/github-tool';
@@ -26,8 +25,10 @@ import { generateUUID } from "@/lib/utils";
 import { ImageGenerationTool } from './tools/image-gen';
 import { WeatherTool } from "./tools/WeatherTool";
 import { NotionTool } from './tools/notion-tool';
+import { StripeManagementTool } from './tools/stripe-tool';
 import { AlphaVantageTool } from './tools/alphavantage-tool';
 import { AirtableTool } from './tools/airtable-tool';
+import { SupabaseTool } from './tools/supabase-tool';
 import { TrelloTool } from './tools/trello';
 import { LinearManagementTool } from './tools/linear-tool';
 import { DataVisualizationTool } from './tools/dataviz-tool';
@@ -37,6 +38,7 @@ import { LangSearchTool } from './tools/LangSearchTool';
 import { N8NTool } from './tools/N8NTool';
 import { ZapierTool } from './tools/ZapierTool';
 import { SerpstackTool } from './tools/SerpstackTool';
+// Google OAuth Tools
 import { GmailTool } from './tools/GmailTool';
 import { GoogleCalendarTool } from './tools/GoogleCalendarTool';
 import { GoogleDriveTool } from './tools/GoogleDriveTool';
@@ -44,119 +46,13 @@ import { GoogleSheetsTool } from './tools/GoogleSheetsTool';
 import { StockTool } from './tools/StockTool';
 import { PDFTool } from './tools/PDFTool';
 import { FireWebScrapeTool } from './tools/FireWebScrapeTool';
+import { JinaTool } from './tools/JinaTool';
+import { Context7Tool } from './tools/Context7Tool';
+
+// Import Enhanced Agentic Engine
 import { EnhancedAgenticEngine, EnhancedActionIntent } from './actions';
 
 dotenv.config();
-
-// Tool cache configuration interface
-interface ToolCacheConfig {
-  lastUpdated: number;
-  mcpConfigHash: string;
-  envKeysHash: string;
-  userApiKeysHash: string;
-  oauthTokensHash: string;
-}
-
-// Global tool cache to persist across instances
-class GlobalToolCache {
-  private static instance: GlobalToolCache;
-  private tools: Map<string, Tool> = new Map();
-  private mcpClients: Map<string, McpClientInfo> = new Map();
-  private cacheConfig: ToolCacheConfig | null = null;
-  private cacheFilePath = "./tool_cache_config.json";
-
-  static getInstance(): GlobalToolCache {
-    if (!GlobalToolCache.instance) {
-      GlobalToolCache.instance = new GlobalToolCache();
-    }
-    return GlobalToolCache.instance;
-  }
-
-  async loadCacheConfig(): Promise<ToolCacheConfig | null> {
-    try {
-      const data = await fs.readFile(this.cacheFilePath, "utf-8");
-      return JSON.parse(data);
-    } catch (error) {
-      console.log("No existing tool cache config found");
-      return null;
-    }
-  }
-
-  async saveCacheConfig(config: ToolCacheConfig): Promise<void> {
-    try {
-      await fs.writeFile(this.cacheFilePath, JSON.stringify(config, null, 2));
-    } catch (error) {
-      console.error("Failed to save tool cache config:", error);
-    }
-  }
-
-  getTools(): Map<string, Tool> {
-    return new Map(this.tools);
-  }
-
-  getMcpClients(): Map<string, McpClientInfo> {
-    return new Map(this.mcpClients);
-  }
-
-  setTools(tools: Map<string, Tool>): void {
-    this.tools = new Map(tools);
-  }
-
-  setMcpClients(clients: Map<string, McpClientInfo>): void {
-    this.mcpClients = new Map(clients);
-  }
-
-  setCacheConfig(config: ToolCacheConfig): void {
-    this.cacheConfig = config;
-  }
-
-  getCacheConfig(): ToolCacheConfig | null {
-    return this.cacheConfig;
-  }
-
-  async clearCache(): Promise<void> {
-    this.tools.clear();
-    // Close MCP connections properly
-    for (const [serverName, clientInfo] of this.mcpClients) {
-      try {
-        await clientInfo.client.close();
-        console.log(`Closed cached MCP connection: ${serverName}`);
-      } catch (error) {
-        console.error(`Error closing cached MCP connection ${serverName}:`, error);
-      }
-    }
-    this.mcpClients.clear();
-    this.cacheConfig = null;
-    
-    try {
-      await fs.unlink(this.cacheFilePath);
-    } catch (error) {
-      // File might not exist, which is fine
-    }
-  }
-}
-
-// MCP Client interface
-interface McpClientInfo {
-  client: Client;
-  callableTool: any;
-  serverName: string;
-}
-
-// Extended Part interface for MCP
-interface McpPart {
-  text?: string;
-  toolResponse?: { response: any; };
-  functionResponse?: { response: any; };
-  [key: string]: any;
-}
-
-interface McpServerConfig {
-  name: string;
-  command: string;
-  args: string[];
-  env?: { [key: string]: string };
-}
 
 export class AIAgent {
   private ai: GoogleGenAI;
@@ -168,9 +64,6 @@ export class AIAgent {
   private agenticEngine!: EnhancedAgenticEngine;
   private context: { currentDate: Date; userTimezone: string; domainExpertise: string[] };
   private language: string;
-  private mcpClients: Map<string, McpClientInfo> = new Map();
-  private globalCache: GlobalToolCache;
-  private userId?: string;
 
   constructor(
     geminiApiKey: string,
@@ -184,8 +77,6 @@ export class AIAgent {
     this.memory = { messages: [], lastUpdated: Date.now() };
     this.model = model;
     this.language = language;
-    this.userId = userId;
-    this.globalCache = GlobalToolCache.getInstance();
     this.context = {
       currentDate: new Date(),
       userTimezone:
@@ -193,180 +84,14 @@ export class AIAgent {
       domainExpertise: []
     };
     this.updateTemporalContext();
+    // initializeTools is now async, so must be awaited by the caller
+    // this.initializeTools();
+    // this.loadMemory();
   }
 
-  // Generate hash for configuration to detect changes
-  private generateHash(data: string): string {
-    return crypto.createHash('sha256').update(data).digest('hex');
-  }
-
-
-  // Get environment variables hash for API keys
-  private getEnvKeysHash(): string {
-    const envKeys = [
-      'TAVILY_API_KEY', 'ALPHAVANTAGE_API_KEY', 'GEMINI_API_KEY', 'DUFFEL_API_KEY',
-      'LANGSEARCH_API_KEY', 'SERPSTACK_API_KEY', 'SERPER_API_KEY', 'AIRTABLE_API_KEY',
-      'AYRSHARE_API_KEY', 'CALCOM_API_KEY', 'GITHUB_TOKEN', 'NOTION_API_KEY',
-      'CLICKUP_API_TOKEN', 'SLACK_BOT_TOKEN', 'SUPABASE_URL', 'SUPABASE_KEY',
-      'ASANA_API_KEY', 'TRELLO_API_KEY', 'TRELLO_TOKEN', 'LINEAR_API_KEY',
-      'N8N_BASE_URL', 'N8N_API_KEY', 'ZAPIER_API_KEY', 'ZAPIER_WEBHOOK_URL'
-    ];
-    
-    const envData = envKeys
-      .map(key => `${key}:${process.env[key] || ''}`)
-      .join('|');
-    
-    return this.generateHash(envData);
-  }
-
-  // Get user API keys hash
-  private async getUserApiKeysHash(): Promise<string> {
-    if (!this.userId) return '';
-    
-    const services = [
-      'Airtable', 'Ayrshare', 'Cal.com', 'GitHub', 'Notion', 'Stripe',
-      'ClickUp', 'Slack', 'Supabase URL', 'Supabase Key', 'Asana',
-      'Trello', 'Trello Token', 'Linear', 'n8n Base URL', 'n8n API Key',
-      'Zapier API Key', 'Zapier Webhook URL'
-    ];
-
-    const userKeysData: string[] = [];
-    for (const service of services) {
-      try {
-        const key = await getDecryptedApiKey({ userId: this.userId, service });
-        userKeysData.push(`${service}:${key || ''}`);
-      } catch (error) {
-        userKeysData.push(`${service}:`);
-      }
-    }
-
-    return this.generateHash(userKeysData.join('|'));
-  }
-
-  // Get OAuth tokens hash
-  private async getOAuthTokensHash(): Promise<string> {
-    if (!this.userId) return '';
-    
-    const oauthServices = ['gmail'];
-    const oauthData: string[] = [];
-    
-    for (const service of oauthServices) {
-      try {
-        const token = await getDecryptedOAuthAccessToken({ 
-          userId: this.userId, 
-          service 
-        });
-        oauthData.push(`${service}:${token || ''}`);
-      } catch (error) {
-        oauthData.push(`${service}:`);
-      }
-    }
-
-    return this.generateHash(oauthData.join('|'));
-  }
-
-  // Check if tools need to be reinitialized
-  private async shouldReinitializeTools(): Promise<boolean> {
-    const cachedConfig = await this.globalCache.loadCacheConfig();
-    
-    if (!cachedConfig) {
-      console.log("🔄 No cached tool configuration found, initializing tools...");
-      return true;
-    }
-
-    // Check if configuration has changed
-    const currentEnvHash = this.getEnvKeysHash();
-    const currentUserKeysHash = await this.getUserApiKeysHash();
-    const currentOAuthHash = await this.getOAuthTokensHash();
-
-    const hasChanges = 
-      cachedConfig.envKeysHash !== currentEnvHash ||
-      cachedConfig.userApiKeysHash !== currentUserKeysHash ||
-      cachedConfig.oauthTokensHash !== currentOAuthHash;
-
-    if (hasChanges) {
-      console.log("🔄 Configuration changes detected, reinitializing tools...");
-      console.log(`  Env Keys Changed: ${cachedConfig.envKeysHash !== currentEnvHash}`);
-      console.log(`  User Keys Changed: ${cachedConfig.userApiKeysHash !== currentUserKeysHash}`);
-      console.log(`  OAuth Changed: ${cachedConfig.oauthTokensHash !== currentOAuthHash}`);
-      return true;
-    }
-
-    // Check cache age (reinitialize after 1 hour to ensure freshness)
-    const cacheAge = Date.now() - cachedConfig.lastUpdated;
-    const maxCacheAge = 60 * 60 * 1000; // 1 hour
-    
-    if (cacheAge > maxCacheAge) {
-      console.log("🔄 Tool cache expired, reinitializing tools...");
-      return true;
-    }
-
-    console.log("✅ Using cached tools (no configuration changes detected)");
-    return false;
-  }
-
-  // Async initialization for tools with caching
+  // Async initialization for tools, must be called after constructing the agent
   public async initializeTools(userId?: string): Promise<void> {
-    this.userId = userId;
-
-    // Check if we need to reinitialize
-    const shouldReinitialize = await this.shouldReinitializeTools();
-    
-    if (!shouldReinitialize) {
-      // Use cached tools
-      this.tools = this.globalCache.getTools();
-      this.mcpClients = this.globalCache.getMcpClients();
-      
-      if (this.tools.size > 0) {
-        console.log(`✅ Loaded ${this.tools.size} cached tools`);
-        this.agenticEngine = new EnhancedAgenticEngine(this.tools);
-        return;
-      }
-    }
-
-    // Clear existing cache if reinitializing
-    if (shouldReinitialize) {
-      await this.globalCache.clearCache();
-    }
-
-    // Initialize tools from scratch
-    console.log("🚀 Initializing tools from scratch...");
-    
-    await this.initializeMcpServers();
-    await this.initializeRegularTools();
-
-    // Cache the initialized tools
-    this.globalCache.setTools(this.tools);
-    this.globalCache.setMcpClients(this.mcpClients);
-
-    // Save cache configuration
-    const cacheConfig: ToolCacheConfig = {
-      lastUpdated: Date.now(),
-      mcpConfigHash: "", // No longer used
-      envKeysHash: this.getEnvKeysHash(),
-      userApiKeysHash: await this.getUserApiKeysHash(),
-      oauthTokensHash: await this.getOAuthTokensHash()
-    };
-
-    this.globalCache.setCacheConfig(cacheConfig);
-    await this.globalCache.saveCacheConfig(cacheConfig);
-
-    console.log(`✅ Initialized and cached ${this.tools.size} tools`);
-    this.agenticEngine = new EnhancedAgenticEngine(this.tools);
-  }
-
-  // Initialize regular (non-MCP) tools
-  private async initializeRegularTools(): Promise<void> {
-    // Helper function to get API keys
-    const getKey = async (serviceName: string, envVar: string): Promise<string> => {
-      if (this.userId) {
-        const userKey = await getDecryptedApiKey({ userId: this.userId, service: serviceName });
-        if (userKey) return userKey;
-      }
-      return process.env[envVar] || "";
-    };
-
-    // Group 1: Environment-only tools
+    // --- Group 1: Excluded Tools (initialized from .env only) ---
     if (process.env.TAVILY_API_KEY) {
       const webSearchTool = new WebSearchTool(process.env.TAVILY_API_KEY);
       this.tools.set("web_search", {
@@ -382,67 +107,99 @@ export class AIAgent {
         execute: (args: any) => webSearchTool.executeCrawl(args),
       } as Tool);
     }
-
+    // if (process.env.FIRECRAWL_API_KEY) {
+    //   this.tools.set("fire_web_scrape", new FireWebScrapeTool(process.env.FIRECRAWL_API_KEY));
+    // }
     if (process.env.ALPHAVANTAGE_API_KEY) {
       const tool = new AlphaVantageTool(process.env.ALPHAVANTAGE_API_KEY);
       this.tools.set("alphavantage_tool", tool);
     }
-
     if (process.env.GEMINI_API_KEY) {
       this.tools.set("generate_image", new ImageGenerationTool(process.env.GEMINI_API_KEY));
     }
-
     if (process.env.DUFFEL_API_KEY) {
       this.tools.set("flight_booking", new DuffelFlightTool({ apiKey: process.env.DUFFEL_API_KEY }));
     }
-
     if (process.env.LANGSEARCH_API_KEY) {
       this.tools.set("langsearch_search", new LangSearchTool(process.env.LANGSEARCH_API_KEY));
     }
-
     if (process.env.SERPSTACK_API_KEY) {
       this.tools.set("serpstack_search", new SerpstackTool(process.env.SERPSTACK_API_KEY));
     }
-
-    // Group 2: Tools without API keys
+    if (process.env.JINA_API_KEY) {
+      this.tools.set("jina_ai_service", new JinaTool(process.env.JINA_API_KEY));
+    }
+    if (process.env.CONTEXT7_API_KEY) { // Assuming Context7 also uses an API key for initialization
+      this.tools.set("context7_docs", new Context7Tool());
+    }
+    
+    // --- Group 2: Tools without API Keys ---
+    // this.tools.set("file_manager", new FileManagerTool());
     this.tools.set("api_tool", new ApiTool());
     this.tools.set("get_weather", new WeatherTool());
+    // this.tools.set("code_execution", new CodeExecutionTool());
     this.tools.set("datetime_tool", new DateTimeTool());
     this.tools.set("data_visualization", new DataVisualizationTool());
     this.tools.set("duckduckgo_search", new DuckDuckGoSearchTool());
+    // Stocks & Maps (no API keys required for basic data)
     this.tools.set("get_stock_data", new StockTool());
-
+    // this.tools.set("pdf_generator", new PDFTool());
     const serperApiKey = process.env.SERPER_API_KEY;
     if (serperApiKey) {
       const tool = new SerperSearchTool(serperApiKey);
       this.tools.set("serper_search", tool);
     }
 
-    // Group 3: User-configurable tools
+    // --- Group 3: User-Configurable Tools (user key OR .env fallback) ---
+    const getKey = async (serviceName: string, envVar: string): Promise<string> => {
+      if (userId) {
+        const userKey = await getDecryptedApiKey({ userId, service: serviceName });
+        if (userKey) return userKey;
+      }
+      return process.env[envVar] || "";
+    };
+
+
+    // Airtable
     const airtableKey = await getKey("Airtable", "AIRTABLE_API_KEY");
     if (airtableKey) this.tools.set("airtable_tool", new AirtableTool(airtableKey));
 
+    // Ayrshare
     const ayrshareKey = await getKey("Ayrshare", "AYRSHARE_API_KEY");
     if (ayrshareKey) this.tools.set("social_media", new AyrshareSocialTool(ayrshareKey));
 
+    // Cal.com
     const calcomKey = await getKey("Cal.com", "CALCOM_API_KEY");
     if (calcomKey) this.tools.set("calcom_scheduler", new CalComTool(calcomKey));
 
+    // GitHub
     const githubKey = await getKey("GitHub", "GITHUB_TOKEN");
     if (githubKey) {
       const tool = new GitHubTool(githubKey);
       this.tools.set("github_tool", tool);
     }
 
+    // Notion
     const notionKey = await getKey("Notion", "NOTION_API_KEY");
     if (notionKey) {
       const tool = new NotionTool(notionKey);
       this.tools.set("notion_tool", tool);
     }
 
+    // Stripe
+    if (userId) {
+        const stripeKey = await getDecryptedApiKey({ userId, service: "Stripe" });
+        if (stripeKey) {
+            const tool = new StripeManagementTool(stripeKey);
+            this.tools.set("stripe_tool", tool);
+        }
+    }
+
+    // ClickUp
     const clickupKey = await getKey("ClickUp", "CLICKUP_API_TOKEN");
     if (clickupKey) this.tools.set("clickup_tool", new ClickUpTool({ apiKey: clickupKey }));
 
+    // Slack
     const slackKey = await getKey("Slack", "SLACK_BOT_TOKEN");
     if (slackKey) {
       const tool = new SlackTool({ botToken: slackKey });
@@ -452,9 +209,18 @@ export class AIAgent {
       }
     }
 
+    // Supabase
+    const supabaseUrl = await getKey("Supabase URL", "SUPABASE_URL");
+    const supabaseKey = await getKey("Supabase Key", "SUPABASE_KEY");
+    if (supabaseUrl && supabaseKey) {
+      this.tools.set("supabase_database", new SupabaseTool(supabaseUrl, supabaseKey));
+    }
+
+    // Asana
     const asanaKey = await getKey("Asana", "ASANA_API_KEY");
     if (asanaKey) this.tools.set("asana_tool", new AsanaTool(asanaKey));
 
+    // Trello
     const trelloApiKey = await getKey("Trello", "TRELLO_API_KEY");
     const trelloToken = await getKey("Trello Token", "TRELLO_TOKEN");
     if (trelloApiKey && trelloToken) {
@@ -462,296 +228,97 @@ export class AIAgent {
       this.tools.set("trello_tool", trelloTool);
     }
 
+    // Linear
     const linearKey = await getKey("Linear", "LINEAR_API_KEY");
     if (linearKey) {
       const linearTool = new LinearManagementTool(linearKey);
       this.tools.set("linear_management", linearTool);
     }
 
+    // n8n Tool
     const n8nBaseUrl = await getKey("n8n Base URL", "N8N_BASE_URL");
     const n8nApiKey = await getKey("n8n API Key", "N8N_API_KEY");
     if (n8nBaseUrl && n8nApiKey) {
       this.tools.set("n8n_automation", new N8NTool(n8nBaseUrl, n8nApiKey));
     }
 
+    // Zapier Tool
     const zapierApiKey = await getKey("Zapier API Key", "ZAPIER_API_KEY");
     const zapierWebhookUrl = await getKey("Zapier Webhook URL", "ZAPIER_WEBHOOK_URL");
     if (zapierApiKey || zapierWebhookUrl) {
       this.tools.set("zapier_webhook", new ZapierTool(zapierApiKey, zapierWebhookUrl));
     }
 
-    // OAuth tools
-    if (this.userId) {
+    // --- Group 4: OAuth Tools (require OAuth connection) ---
+    if (userId) {
+      // Check if user has Google OAuth connection (Gmail service)
       const googleAccessToken = await getDecryptedOAuthAccessToken({ 
-        userId: this.userId, 
+        userId, 
         service: "gmail" 
       });
       
       if (googleAccessToken) {
-        const gmailTool = new GmailTool(this.userId);
+        // Gmail Tool
+        const gmailTool = new GmailTool(userId);
         const gmailToolName = gmailTool.getDefinition().name;
         if (gmailToolName) {
           this.tools.set(gmailToolName, gmailTool);
         }
 
-        const calendarTool = new GoogleCalendarTool(this.userId);
+        // Google Calendar Tool
+        const calendarTool = new GoogleCalendarTool(userId);
         const calendarToolName = calendarTool.getDefinition().name;
         if (calendarToolName) {
           this.tools.set(calendarToolName, calendarTool);
         }
 
-        const driveTool = new GoogleDriveTool(this.userId);
+        // Google Drive Tool
+        const driveTool = new GoogleDriveTool(userId);
         const driveToolName = driveTool.getDefinition().name;
         if (driveToolName) {
           this.tools.set(driveToolName, driveTool);
         }
         
-        const sheetsTool = new GoogleSheetsTool(this.userId);
+        // Google Sheets Tool (uses same Gmail OAuth connection)
+        const sheetsTool = new GoogleSheetsTool(userId);
         const sheetsToolName = sheetsTool.getDefinition().name;
         if (sheetsToolName) {
           this.tools.set(sheetsToolName, sheetsTool);
         }
       }
+
+      // GitHub OAuth (if you want to add GitHub OAuth later)
+      // const githubAccessToken = await getDecryptedOAuthAccessToken({ 
+      //   userId, 
+      //   service: "github" 
+      // });
+      // if (githubAccessToken) {
+      //   // Add GitHub OAuth tool here
+      // }
+
+      // Slack OAuth
+      // const slackAccessToken = await getDecryptedOAuthAccessToken({ 
+      //   userId, 
+      //   service: "slack" 
+      // });
+      // if (slackAccessToken) {
+      //   // Add Slack OAuth tool here
+      // }
     }
-  }
 
-  // Initialize MCP servers
-  private async initializeMcpServers(): Promise<void> {
-    const mcpServers: McpServerConfig[] = [
-      {
-        name: "supabase-mcp",
-        command: "npx",
-        args: ["-y", "@supabase/mcp-server-supabase"],
-        env: {
-          SUPABASE_ACCESS_TOKEN: process.env.SUPABASE_ACCESS_TOKEN || ""
-        }
-      },
-      {
-        name: "context7-mcp",
-        command: "npx",
-        args: ["-y", "@upstash/context7-mcp"],
-        env: {
-          CONTEXT7_API_KEY: process.env.CONTEXT7_API_KEY || ""
-        }
-      },
-      {
-        name: "github-mcp",
-        command: "npx",
-        args: ["-y", "@modelcontextprotocol/server-github"],
-        env: {
-          GITHUB_PERSONAL_ACCESS_TOKEN: process.env.GITHUB_TOKEN || ""
-        }
-      },
-      {
-        name: "firecrawl-mcp",
-        command: "npx",
-        args: ["-y", "firecrawl-mcp"],
-        env: {
-          FIRECRAWL_API_KEY: process.env.FIRECRAWL_API_KEY || ""
-        }
-      },
-      {
-        name: "stripe",
-        command: "npx",
-        args: [
-          "-y",
-          "@stripe/mcp",
-          "--tools=all",
-          `--api-key=${process.env.STRIPE_SECRET_KEY || ''}`
-        ]
-      },
-      {
-        name: "sequential-thinking",
-        command: "npx",
-        args: [
-          "-y",
-          "@modelcontextprotocol/server-sequential-thinking"
-        ]
-      },
-      {
-        name: "perplexity-ask",
-        command: "npx",
-        args: [
-          "-y",
-          "server-perplexity-ask"
-        ],
-        env: {
-          PERPLEXITY_API_KEY: process.env.PERPLEXITY_API_KEY || ""
-        }
-      },
-      {
-        name: "linkup",
-        command: "npx",
-        args: ["-y", "linkup-mcp-server"],
-        env: {
-          LINKUP_API_KEY: process.env.LINKUP_API_KEY || ""
-        }
-      },
-      {
-        name: "puppeteer",
-        command: "npx",
-        args: ["-y", "@modelcontextprotocol/server-puppeteer"]
-      }
-    ];
-
-    for (const serverConfig of mcpServers) {
-      try {
-        console.log(`🔄 Initializing MCP server: ${serverConfig.name}`);
-        
-        const serverParams = new StdioClientTransport({
-          command: serverConfig.command,
-          args: serverConfig.args,
-          env: serverConfig.env || {}
-        });
-
-        const client = new Client({
-          name: "jotium-client",
-          version: "1.0.0",
-        });
-
-        const connectTimeout = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Connection timeout')), 20000)
-        );
-
-        await Promise.race([
-          client.connect(serverParams),
-          connectTimeout
-        ]);
-
-        console.log(`✅ Connected to MCP server: ${serverConfig.name}`);
-
-        const callableTool = mcpToTool(client);
-        
-        let googleTool;
-        try {
-          googleTool = await callableTool.tool();
-        } catch (toolError) {
-          console.error(`❌ Error getting tool definitions for ${serverConfig.name}:`, toolError);
-          await client.close().catch(() => {});
-          continue;
-        }
-
-        this.mcpClients.set(serverConfig.name, {
-          client,
-          callableTool,
-          serverName: serverConfig.name
-        });
-
-        if (googleTool.functionDeclarations && googleTool.functionDeclarations.length > 0) {
-          for (const funcDecl of googleTool.functionDeclarations) {
-            const toolName = funcDecl.name;
-            if (toolName) {
-              this.tools.set(toolName, {
-                getDefinition: () => funcDecl,
-                execute: async (args: any) => {
-                  try {
-                    console.log(`🔧 Executing MCP tool "${toolName}" with args:`, args);
-                    
-                    const functionCall = {
-                      name: toolName,
-                      args,
-                    };
-
-                    const parts = await callableTool.callTool([functionCall]);
-                    
-                    if (parts && parts.length > 0) {
-                      const part = parts[0] as McpPart;
-                      
-                      if (part.toolResponse) {
-                        console.log(`✅ MCP tool "${toolName}" response:`, part.toolResponse.response);
-                        return part.toolResponse.response;
-                      } else if (part.text) {
-                        console.log(`✅ MCP tool "${toolName}" text response:`, part.text);
-                        return { success: true, result: part.text };
-                      } else if (part.functionResponse) {
-                        console.log(`✅ MCP tool "${toolName}" function response:`, part.functionResponse.response);
-                        return part.functionResponse.response;
-                      } else {
-                        console.log(`✅ MCP tool "${toolName}" raw response:`, part);
-                        return part;
-                      }
-                    } else {
-                      console.warn(`⚠️ No response from MCP tool "${toolName}"`);
-                      return { success: false, error: "No response from MCP tool" };
-                    }
-                  } catch (error) {
-                    console.error(`❌ Error executing MCP tool "${toolName}":`, error);
-                    return { 
-                      success: false, 
-                      error: error instanceof Error ? error.message : String(error)
-                    };
-                  }
-                },
-              });
-              console.log(`✅ MCP Tool "${toolName}" from server "${serverConfig.name}" loaded.`);
-            }
-          }
-        } else {
-          console.warn(`⚠️ No function declarations found for MCP server "${serverConfig.name}"`);
-        }
-      } catch (error) {
-        console.error(`❌ Failed to load MCP server "${serverConfig.name}":`, error);
-        try {
-          const clientInfo = this.mcpClients.get(serverConfig.name);
-          if (clientInfo) {
-            await clientInfo.client.close();
-            this.mcpClients.delete(serverConfig.name);
-          }
-        } catch (closeError) {
-          console.error(`Error closing failed MCP client:`, closeError);
-        }
-      }
-    }
-  }
-
-  // Add method to manually force tool reinitialization
-  public async forceReinitializeTools(): Promise<void> {
-    console.log("🔄 Forcing tool reinitialization...");
-    await this.globalCache.clearCache();
-    await this.initializeTools(this.userId);
-  }
-
-  // Add method to check cache status
-  public async getCacheStatus(): Promise<{
-    isCached: boolean;
-    lastUpdated: Date | null;
-    toolCount: number;
-    mcpConnections: string[];
-  }> {
-    const cachedConfig = this.globalCache.getCacheConfig();
-    const tools = this.globalCache.getTools();
-    const mcpClients = this.globalCache.getMcpClients();
-    
-    return {
-      isCached: cachedConfig !== null && tools.size > 0,
-      lastUpdated: cachedConfig ? new Date(cachedConfig.lastUpdated) : null,
-      toolCount: tools.size,
-      mcpConnections: Array.from(mcpClients.keys())
-    };
-  }
-
-  // Clean up MCP connections
-  public async cleanup(): Promise<void> {
-    console.log('🧹 Cleaning up MCP connections...');
-    for (const [serverName, clientInfo] of this.mcpClients) {
-      try {
-        await clientInfo.client.close();
-        console.log(`✅ Closed MCP connection: ${serverName}`);
-      } catch (error) {
-        console.error(`❌ Error closing MCP connection ${serverName}:`, error);
-      }
-    }
-    this.mcpClients.clear();
+    console.log(`✅ Initialized ${this.tools.size} tools`);
+    // Initialize the Agentic Decision Engine
+    this.agenticEngine = new EnhancedAgenticEngine(this.tools);
   }
 
   // Memory Management
-  private async loadMemory(): Promise<void> {
+private async loadMemory(): Promise<void> {
     try {
       const data = await fs.readFile(this.memoryPath, "utf-8");
       this.memory = JSON.parse(data);
     } catch (error) {
       console.error("Error loading memory:", error);
-      console.log("ℹ️ No existing memory found, starting fresh");
+      console.log("ℹ️  No existing memory found, starting fresh");
       this.memory = { messages: [], lastUpdated: Date.now() };
     }
   }
@@ -804,7 +371,7 @@ export class AIAgent {
     };
   }
 
-  // Support methods for terminal interface
+  // Add these methods to your AIAgent class to support the new terminal interface
   public getToolsMap(): Map<string, Tool> {
     return this.tools;
   }
@@ -940,7 +507,7 @@ NEVER MENTION YOUR TOOLS NAME IN A CODE FORMAT TO THE USER EVERY AND NEVER SAY T
   }
 
   public listTools(): void {
-    console.log("\n🛠️ Available Tools:");
+    console.log("\n🛠️  Available Tools:");
     for (const [name, tool] of this.tools) {
       const def = tool.getDefinition();
       console.log(`  • ${name}: ${def.description}`);
@@ -1073,13 +640,13 @@ NEVER MENTION YOUR TOOLS NAME IN A CODE FORMAT TO THE USER EVERY AND NEVER SAY T
             console.log(`❌ Workflow failed: ${workflowResult.error}`);
           }
         } catch (workflowError) {
-          console.log(`⚠️ Workflow execution error: ${workflowError instanceof Error ? workflowError.message : String(workflowError)}`);
+          console.log(`⚠️  Workflow execution error: ${workflowError instanceof Error ? workflowError.message : String(workflowError)}`);
           // Continue with default flow
         }
       }
 
       // 3. DEFAULT FLOW - Use normal agent behavior for low-confidence intents or workflow failures
-      console.log(`🔍 Using default agent flow`);
+      console.log(`📝 Using default agent flow`);
       
       // Get conversation history
       const conversationHistory = this.getConversationHistory();
