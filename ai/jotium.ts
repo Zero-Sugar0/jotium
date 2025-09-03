@@ -8,30 +8,30 @@ import dotenv from 'dotenv';
 import { getDecryptedApiKey, getDecryptedOAuthAccessToken } from "@/db/queries";
 
 // Import all tools
-import { WebSearchTool } from './tools/web-search-tool';
-import { FileManagerTool } from './tools/file-manager-tool';
-import { GitHubTool } from './tools/github-tool';
-import { SlackTool } from './tools/slack-tool';
-import { ClickUpTool } from './tools/clickup-tool';
-import { ApiTool } from './tools/api-tool';
-import { DateTimeTool } from './tools/datetime-tool';
-import { AsanaTool } from './tools/asana-tool';
-import { DuffelFlightTool } from './tools/flight-booking-tool';
-import { AyrshareSocialTool } from './tools/ayrshare-tool';
-import { CalComTool } from './tools/calcom-tool';
-import { CodeExecutionTool } from './tools/code-tool';
+import { TavilyWebSearchTool } from './tools/TavilyWebSearchTool';
+import { FileManagerTool } from './tools/FileManagerTool';
+import { GitHubTool } from './tools/GitHubTool';
+import { SlackTool } from './tools/SlackTool';
+import { ClickUpTool } from './tools/ClickUpTool';
+import { ApiTool } from './tools/ApiTool';
+import { DateTimeTool } from './tools/DateTimeTool';
+import { AsanaTool } from './tools/AsanaTool';
+import { DuffelFlightTool } from './tools/DuffelFlightTool';
+import { AyrshareSocialTool } from './tools/AyrshareSocialTool';
+import { CalComTool } from './tools/CalComTool';
+import { CodeExecutionTool } from './tools/CodeExecutionTool';
 import { AgentMemory, Message, Tool, ToolCall, ToolResult } from "./types";
 import { generateUUID } from "@/lib/utils";
 import { ImageGenerationTool } from './tools/image-gen';
 import { WeatherTool } from "./tools/WeatherTool";
-import { NotionTool } from './tools/notion-tool';
-import { StripeManagementTool } from './tools/stripe-tool';
-import { AlphaVantageTool } from './tools/alphavantage-tool';
-import { AirtableTool } from './tools/airtable-tool';
-import { SupabaseTool } from './tools/supabase-tool';
-import { TrelloTool } from './tools/trello';
-import { LinearManagementTool } from './tools/linear-tool';
-import { DataVisualizationTool } from './tools/dataviz-tool';
+import { NotionTool } from './tools/NotionTool';
+import { StripeManagementTool } from './tools/StripeManagementTool';
+import { AlphaVantageTool } from './tools/AlphaVantageTool';
+import { AirtableTool } from './tools/AirtableTool';
+import { SupabaseTool } from './tools/SupabaseTool';
+import { TrelloTool } from './tools/TrelloTool';
+import { LinearManagementTool } from './tools/LinearManagementTool';
+import { DataVisualizationTool } from './tools/DataVisualizationTool';
 import { DuckDuckGoSearchTool } from './tools/DuckDuckGoSearchTool';
 import { SerperSearchTool } from './tools/SerperSearchTool';
 import { LangSearchTool } from './tools/LangSearchTool';
@@ -93,8 +93,8 @@ export class AIAgent {
   public async initializeTools(userId?: string): Promise<void> {
     // --- Group 1: Excluded Tools (initialized from .env only) ---
     if (process.env.TAVILY_API_KEY) {
-      const webSearchTool = new WebSearchTool(process.env.TAVILY_API_KEY);
-      this.tools.set("web_search", {
+      const webSearchTool = new TavilyWebSearchTool(process.env.TAVILY_API_KEY);
+      this.tools.set("tavily_web_search", {
         getDefinition: () => webSearchTool.getSearchDefinition(),
         execute: (args: any) => webSearchTool.executeSearch(args),
       } as Tool);
@@ -107,9 +107,9 @@ export class AIAgent {
         execute: (args: any) => webSearchTool.executeCrawl(args),
       } as Tool);
     }
-    // if (process.env.FIRECRAWL_API_KEY) {
-    //   this.tools.set("fire_web_scrape", new FireWebScrapeTool(process.env.FIRECRAWL_API_KEY));
-    // }
+    if (process.env.FIRECRAWL_API_KEY) {
+      this.tools.set("fire_web_scrape", new FireWebScrapeTool(process.env.FIRECRAWL_API_KEY));
+    }
     if (process.env.ALPHAVANTAGE_API_KEY) {
       const tool = new AlphaVantageTool(process.env.ALPHAVANTAGE_API_KEY);
       this.tools.set("alphavantage_tool", tool);
@@ -134,7 +134,7 @@ export class AIAgent {
     }
     
     // --- Group 2: Tools without API Keys ---
-    // this.tools.set("file_manager", new FileManagerTool());
+    this.tools.set("file_manager", new FileManagerTool());
     this.tools.set("api_tool", new ApiTool());
     this.tools.set("get_weather", new WeatherTool());
     // this.tools.set("code_execution", new CodeExecutionTool());
@@ -212,8 +212,9 @@ export class AIAgent {
     // Supabase
     const supabaseUrl = await getKey("Supabase URL", "SUPABASE_URL");
     const supabaseKey = await getKey("Supabase Key", "SUPABASE_KEY");
-    if (supabaseUrl && supabaseKey) {
-      this.tools.set("supabase_database", new SupabaseTool(supabaseUrl, supabaseKey));
+    const supabasePAT = await getKey("Supabase PAT", "SUPABASE_PAT");
+    if (supabaseUrl && supabaseKey && supabasePAT) {
+      this.tools.set("supabase_database", new SupabaseTool(supabaseUrl, supabaseKey, supabasePAT));
     }
 
     // Asana

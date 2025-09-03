@@ -39,7 +39,8 @@ export class AirtableTool implements Tool {
               "search_records", "filter_records", "sort_records",
               "get_attachment", "upload_attachment",
               "create_view", "get_view", "update_view", "delete_view",
-              "sync_table", "get_webhooks", "create_webhook", "delete_webhook"
+              "sync_table", "get_webhooks", "create_webhook", "delete_webhook",
+              "list_bases"
             ]
           },
           baseId: {
@@ -208,6 +209,10 @@ export class AirtableTool implements Tool {
           result = await this.deleteWebhook(args);
           break;
 
+        case 'list_bases':
+          result = await this.listBases();
+          break;
+
         default:
           return {
             success: false,
@@ -221,7 +226,8 @@ export class AirtableTool implements Tool {
               'search_records', 'filter_records', 'sort_records',
               'get_attachment', 'upload_attachment',
               'create_view', 'get_view', 'update_view', 'delete_view',
-              'sync_table', 'get_webhooks', 'create_webhook', 'delete_webhook'
+              'sync_table', 'get_webhooks', 'create_webhook', 'delete_webhook',
+              'list_bases'
             ]
           };
       }
@@ -663,12 +669,22 @@ export class AirtableTool implements Tool {
     const response = await this.apiClient.delete(`/bases/${baseId}/webhooks/${webhookId}`);
     return response.data;
   }
+
+  private async listBases(): Promise<any> {
+    const response = await this.apiClient.get('/meta/bases');
+    return response.data;
+  }
 }
 
 // Usage Examples:
 /*
 // Initialize the tool
 const airtable = new AirtableTool("your-airtable-api-key");
+
+// List all bases (projects)
+const basesResult = await airtable.execute({
+    action: "list_bases"
+});
 
 // Create a single record
 const createResult = await airtable.execute({

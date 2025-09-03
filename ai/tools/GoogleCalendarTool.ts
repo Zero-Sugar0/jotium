@@ -19,7 +19,13 @@ export class GoogleCalendarTool {
           action: {
             type: Type.STRING,
             description: "The action to perform",
-            enum: ["create_event", "list_events", "get_event", "update_event", "delete_event", "list_calendars", "create_calendar"]
+            enum: [
+              "create_event", "list_events", "get_event", "update_event", "delete_event", 
+              "list_calendars", "create_calendar", "update_calendar", "delete_calendar", "clear_calendar",
+              "share_calendar", "list_permissions", "remove_permission",
+              "check_availability",
+              "move_event"
+            ]
           },
           // Calendar ID (defaults to 'primary')
           calendarId: {
@@ -138,6 +144,41 @@ export class GoogleCalendarTool {
           calendarDescription: {
             type: Type.STRING,
             description: "Calendar description"
+          },
+          // Permissions
+          role: {
+            type: Type.STRING,
+            description: "The role to grant the user ('reader', 'writer', 'owner')",
+            enum: ["reader", "writer", "owner"]
+          },
+          scopeType: {
+            type: Type.STRING,
+            description: "The type of the scope ('user', 'group', 'domain', 'default')",
+            enum: ["user", "group", "domain", "default"]
+          },
+          scopeValue: {
+            type: Type.STRING,
+            description: "The email address, group address, or domain name for the scope"
+          },
+          ruleId: {
+            type: Type.STRING,
+            description: "The ID of the permission rule to remove"
+          },
+          // Availability
+          itemsToCheck: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: { type: Type.STRING }
+              }
+            },
+            description: "Array of calendar IDs to check for free/busy times"
+          },
+          // Move event
+          destinationCalendarId: {
+            type: Type.STRING,
+            description: "The ID of the calendar to move the event to"
           }
         },
         required: ["action"]
@@ -178,6 +219,22 @@ export class GoogleCalendarTool {
           return await this.listCalendars(headers);
         case "create_calendar":
           return await this.createCalendar(args, headers);
+        case "update_calendar":
+          return await this.updateCalendar(args, headers, calendarId);
+        case "delete_calendar":
+          return await this.deleteCalendar(args, headers, calendarId);
+        case "clear_calendar":
+          return await this.clearCalendar(args, headers, calendarId);
+        case "share_calendar":
+          return await this.shareCalendar(args, headers, calendarId);
+        case "list_permissions":
+          return await this.listPermissions(args, headers, calendarId);
+        case "remove_permission":
+          return await this.removePermission(args, headers, calendarId);
+        case "check_availability":
+          return await this.checkAvailability(args, headers);
+        case "move_event":
+          return await this.moveEvent(args, headers, calendarId);
         default:
           return {
             success: false,
@@ -384,6 +441,170 @@ export class GoogleCalendarTool {
         timeZone: result.timeZone
       }
     };
+  }
+
+  private async updateCalendar(args: any, headers: any, calendarId: string): Promise<any> {
+    const body: any = {};
+    if (args.calendarSummary) body.summary = args.calendarSummary;
+    if (args.calendarDescription) body.description = args.calendarDescription;
+    if (args.timeZone) body.timeZone = args.timeZone;
+
+    if (Object.keys(body).length === 0) {
+      return { success: false, error: "No fields provided to update the calendar." };
+    }
+
+    const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarId}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      return { success: false, error: `Failed to update calendar: ${error}` };
+    }
+
+    const result = await response.json();
+    return { success: true, calendar: result };
+  }
+
+  private async deleteCalendar(args: any, headers: any, calendarId: string): Promise<any> {
+    if (calendarId === 'primary') {
+      return { success: false, error: "Cannot delete the primary calendar. Use 'clear_calendar' instead." };
+    }
+
+    const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarId}`, {
+      method: 'DELETE',
+      headers
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      return { success: false, error: `Failed to delete calendar: ${error}` };
+    }
+
+    return { success: true, message: `Calendar ${calendarId} deleted successfully.` };
+  }
+
+  private async clearCalendar(args: any, headers: any, calendarId: string): Promise<any> {
+    const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarId}/clear`, {
+      method: 'POST',
+      headers
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      return { success: false, error: `Failed to clear calendar: ${error}` };
+    }
+
+    return { success: true, message: `Calendar ${calendarId} cleared successfully.` };
+  }
+
+  private async shareCalendar(args: any, headers: any, calendarId: string): Promise<any> {
+    if (!args.role || !args.scopeType || !args.scopeValue) {
+      return { success: false, error: "role, scopeType, and scopeValue are required to share a calendar." };
+    }
+
+    const body = {
+      role: args.role,
+      scope: {
+        type: args.scopeType,
+        value: args.scopeValue
+      }
+    };
+
+    const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarId}/acl`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      return { success: false, error: `Failed to share calendar: ${error}` };
+    }
+
+    const result = await response.json();
+    return { success: true, rule: result };
+  }
+
+  private async listPermissions(args: any, headers: any, calendarId: string): Promise<any> {
+    const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarId}/acl`, {
+      headers
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      return { success: false, error: `Failed to list permissions: ${error}` };
+    }
+
+    const result = await response.json();
+    return { success: true, permissions: result.items };
+  }
+
+  private async removePermission(args: any, headers: any, calendarId: string): Promise<any> {
+    if (!args.ruleId) {
+      return { success: false, error: "ruleId is required to remove a permission." };
+    }
+
+    const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarId}/acl/${args.ruleId}`, {
+      method: 'DELETE',
+      headers
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      return { success: false, error: `Failed to remove permission: ${error}` };
+    }
+
+    return { success: true, message: `Permission ${args.ruleId} removed successfully.` };
+  }
+
+  private async checkAvailability(args: any, headers: any): Promise<any> {
+    if (!args.timeMin || !args.timeMax || !args.itemsToCheck) {
+      return { success: false, error: "timeMin, timeMax, and itemsToCheck are required for availability checks." };
+    }
+
+    const body = {
+      timeMin: args.timeMin,
+      timeMax: args.timeMax,
+      items: args.itemsToCheck
+    };
+
+    const response = await fetch('https://www.googleapis.com/calendar/v3/freeBusy', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      return { success: false, error: `Failed to check availability: ${error}` };
+    }
+
+    const result = await response.json();
+    return { success: true, calendars: result.calendars };
+  }
+
+  private async moveEvent(args: any, headers: any, calendarId: string): Promise<any> {
+    if (!args.eventId || !args.destinationCalendarId) {
+      return { success: false, error: "eventId and destinationCalendarId are required to move an event." };
+    }
+
+    const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events/${args.eventId}/move?destination=${args.destinationCalendarId}`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      return { success: false, error: `Failed to move event: ${error}` };
+    }
+
+    const result = await response.json();
+    return { success: true, event: this.formatEvent(result) };
   }
 
   private buildEventObject(args: any): any {

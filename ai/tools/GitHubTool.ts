@@ -29,11 +29,11 @@ export class GitHubTool {
               "update_file",
               "delete_file",
               "search_repositories",
-              "get_repository", 
+              "get_repository",
               "get_contents",
               "get_file",
               "get_issues",
-              "get_pull_requests", 
+              "get_pull_requests",
               "get_commits",
               "get_releases",
               "get_user",
@@ -55,7 +55,15 @@ export class GitHubTool {
               "create_webhook",
               "list_webhooks",
               "update_webhook",
-              "delete_webhook"
+              "delete_webhook",
+              "create_gist",
+              "get_gist",
+              "update_gist",
+              "delete_gist",
+              "list_gists",
+              "star_gist",
+              "unstar_gist",
+              "fork_gist"
             ]
           },
           // Repository creation/update parameters
@@ -241,6 +249,44 @@ export class GitHubTool {
           repoType: {
             type: Type.STRING,
             description: "Repository type filter for get_user: 'all', 'owner', 'member' (default: owner)"
+          },
+           // Webhook parameters
+          webhookUrl: {
+            type: Type.STRING,
+            description: "The URL to which the payloads will be delivered (required for create_webhook)."
+          },
+          webhookEvents: {
+            type: Type.STRING,
+            description: "A comma-separated list of events to subscribe to (e.g., 'push,pull_request')."
+          },
+          webhookSecret: {
+            type: Type.STRING,
+            description: "A secret to secure the webhook."
+          },
+          webhookActive: {
+            type: Type.BOOLEAN,
+            description: "Whether the webhook is active (default: true)."
+          },
+          webhookId: {
+            type: Type.NUMBER,
+            description: "The ID of the webhook to update or delete."
+          },
+          // Gist parameters
+          gistId: {
+            type: Type.STRING,
+            description: "The ID of the gist to get, update, delete, star, unstar, or fork."
+          },
+          gistDescription: {
+            type: Type.STRING,
+            description: "The description for the gist."
+          },
+          gistFiles: {
+            type: Type.STRING,
+            description: "A JSON string representing the files in the gist, where keys are filenames and values are file content."
+          },
+          gistPublic: {
+            type: Type.BOOLEAN,
+            description: "Whether the gist is public (default: false)."
           }
         },
         required: ["action"]
@@ -318,10 +364,26 @@ export class GitHubTool {
         return this.executeUpdateWebhook(args);
       case "delete_webhook":
         return this.executeDeleteWebhook(args);
+      case "create_gist":
+        return this.executeCreateGist(args);
+      case "get_gist":
+        return this.executeGetGist(args);
+      case "update_gist":
+        return this.executeUpdateGist(args);
+      case "delete_gist":
+        return this.executeDeleteGist(args);
+      case "list_gists":
+        return this.executeListGists(args);
+      case "star_gist":
+        return this.executeStarGist(args);
+      case "unstar_gist":
+        return this.executeUnstarGist(args);
+      case "fork_gist":
+        return this.executeForkGist(args);
       default:
         return {
           success: false,
-          error: `Unknown action: ${args.action}. Available actions: get_authenticated_user, create_repository, update_repository, create_file, update_file, delete_file, search_repositories, get_repository, get_contents, get_file, get_issues, get_pull_requests, get_commits, get_releases, get_user, search_users, create_issue, update_issue, close_issue, add_comment_to_issue, create_pull_request, merge_pull_request, close_pull_request, add_reviewer_to_pull_request, add_comment_to_pull_request, get_organization, list_organization_members, search_code, search_issues_advanced, search_pull_requests_advanced, create_webhook, list_webhooks, update_webhook, delete_webhook`
+          error: `Unknown action: ${args.action}. Available actions: get_authenticated_user, create_repository, update_repository, create_file, update_file, delete_file, search_repositories, get_repository, get_contents, get_file, get_issues, get_pull_requests, get_commits, get_releases, get_user, search_users, create_issue, update_issue, close_issue, add_comment_to_issue, create_pull_request, merge_pull_request, close_pull_request, add_reviewer_to_pull_request, add_comment_to_pull_request, get_organization, list_organization_members, search_code, search_issues_advanced, search_pull_requests_advanced, create_webhook, list_webhooks, update_webhook, delete_webhook, create_gist, get_gist, update_gist, delete_gist, list_gists, star_gist, unstar_gist, fork_gist`
         };
     }
   }
@@ -1526,7 +1588,7 @@ export class GitHubTool {
         owner: args.owner,
         repo: args.repo,
         title: args.title,
-        body: args.body
+        body: args.body || ''
       };
 
       if (args.assignees) {
@@ -1710,12 +1772,9 @@ export class GitHubTool {
         repo: args.repo,
         title: args.title,
         head: args.head,
-        base: args.base
+        base: args.base,
+        body: args.body || ''
       };
-
-      if (args.body) {
-        createParams.body = args.body;
-      }
 
       const response = await this.octokit.rest.pulls.create(createParams);
 
@@ -1835,23 +1894,19 @@ export class GitHubTool {
 
       console.log(`🔀 Adding reviewer to pull request: ${args.owner}/${args.repo}/${args.pullRequestNumber}`);
 
-      const createParams: any = {
+      const requestParams = {
         owner: args.owner,
         repo: args.repo,
         pull_number: args.pullRequestNumber,
         reviewers: args.reviewers.split(',')
       };
 
-      const response = await this.octokit.rest.pulls.requestReviewers(createParams);
+      const response = await this.octokit.rest.pulls.requestReviewers(requestParams);
 
       return {
         success: true,
         action: "add_reviewer_to_pull_request",
-        owner: args.owner,
-        repo: args.repo,
-        pullRequestNumber: args.pullRequestNumber,
-        reviewers: response.data.requested_reviewers?.map((r: any) => r.login) || [],
-        createdAt: new Date().toISOString()
+        ...response.data
       };
     } catch (error: unknown) {
       console.error("❌ Add reviewer to pull request failed:", error);
@@ -1874,24 +1929,19 @@ export class GitHubTool {
 
       console.log(`🔀 Adding comment to pull request: ${args.owner}/${args.repo}/${args.pullRequestNumber}`);
 
-      const createParams: any = {
+      const commentParams = {
         owner: args.owner,
         repo: args.repo,
-        pull_number: args.pullRequestNumber,
-        body: args.commentBody
+        issue_number: args.pullRequestNumber,
+        body: args.commentBody,
       };
 
-      const response = await this.octokit.rest.issues.createComment(createParams);
+      const response = await this.octokit.rest.issues.createComment(commentParams);
 
       return {
         success: true,
         action: "add_comment_to_pull_request",
-        owner: args.owner,
-        repo: args.repo,
-        pullRequestNumber: args.pullRequestNumber,
-        commentId: response.data.id,
-        url: response.data.html_url,
-        createdAt: new Date().toISOString()
+        ...response.data
       };
     } catch (error: unknown) {
       console.error("❌ Add comment to pull request failed:", error);
@@ -1914,28 +1964,12 @@ export class GitHubTool {
 
       console.log(`🏢 Getting organization: ${args.organization}`);
 
-      const response = await this.octokit.rest.orgs.get({
-        org: args.organization
-      });
-
-      const organization = response.data;
+      const response = await this.octokit.rest.orgs.get({ org: args.organization });
 
       return {
         success: true,
         action: "get_organization",
-        login: organization.login,
-        name: organization.name,
-        description: organization.description,
-        url: organization.html_url,
-        avatarUrl: organization.avatar_url,
-        location: organization.location,
-        email: organization.email,
-        blog: organization.blog,
-        publicRepos: organization.public_repos,
-        privateRepos: organization.total_private_repos || 0,
-        totalMembers: organization.total_private_repos || 0,
-        createdAt: organization.created_at,
-        updatedAt: organization.updated_at
+        ...response.data
       };
     } catch (error: unknown) {
       console.error("❌ Get organization failed:", error);
@@ -1954,27 +1988,14 @@ export class GitHubTool {
         return { success: false, error: "Organization parameter is required for list_organization_members action" };
       }
 
-      console.log(`🏢 Listing organization members: ${args.organization}`);
+      console.log(`🏢 Listing members of: ${args.organization}`);
 
-      const params: any = {
-        org: args.organization,
-        per_page: Math.min(args.perPage || 30, 100)
-      };
-
-      const response = await this.octokit.rest.orgs.listMembers(params);
-
-      const members = response.data.map((member: any) => ({
-        login: member.login,
-        avatarUrl: member.avatar_url,
-        url: member.html_url
-      }));
+      const response = await this.octokit.rest.orgs.listMembers({ org: args.organization });
 
       return {
         success: true,
         action: "list_organization_members",
-        organization: args.organization,
-        members: members,
-        totalCount: members.length
+        members: response.data
       };
     } catch (error: unknown) {
       console.error("❌ List organization members failed:", error);
@@ -1993,31 +2014,17 @@ export class GitHubTool {
         return { success: false, error: "Query parameter is required for search_code action" };
       }
 
-      console.log(`🔍 Searching code: ${args.query}`);
+      console.log(`🔍 Searching code: "${args.query}"`);
 
-      const searchParams: any = {
-        q: args.query,
-        per_page: Math.min(args.perPage || 30, 100)
-      };
-
-      const response = await this.octokit.rest.search.code(searchParams);
-
-      const results = response.data.items.map((item: any) => ({
-        name: item.name,
-        path: item.path,
-        url: item.html_url,
-        repository: item.repository.full_name
-      }));
+      const response = await this.octokit.rest.search.code({ q: args.query });
 
       return {
         success: true,
         action: "search_code",
-        query: args.query,
-        results: results,
-        totalCount: response.data.total_count
+        ...response.data
       };
     } catch (error: unknown) {
-      console.error("❌ Search code failed:", error);
+      console.error("❌ Code search failed:", error);
       return {
         success: false,
         action: "search_code",
@@ -2033,32 +2040,17 @@ export class GitHubTool {
         return { success: false, error: "Query parameter is required for search_issues_advanced action" };
       }
 
-      console.log(`🔍 Searching issues (advanced): ${args.query}`);
+      console.log(`🔍 Advanced issue search: "${args.query}"`);
 
-      const searchParams: any = {
-        q: args.query,
-        per_page: Math.min(args.perPage || 30, 100)
-      };
-
-      const response = await this.octokit.rest.search.issuesAndPullRequests(searchParams);
-
-      const results = response.data.items.map((item: any) => ({
-        number: item.number,
-        title: item.title,
-        body: item.body,
-        url: item.html_url,
-        repository: item.repository.full_name
-      }));
+      const response = await this.octokit.rest.search.issuesAndPullRequests({ q: args.query });
 
       return {
         success: true,
         action: "search_issues_advanced",
-        query: args.query,
-        results: results,
-        totalCount: response.data.total_count
+        ...response.data
       };
     } catch (error: unknown) {
-      console.error("❌ Search issues (advanced) failed:", error);
+      console.error("❌ Advanced issue search failed:", error);
       return {
         success: false,
         action: "search_issues_advanced",
@@ -2074,32 +2066,17 @@ export class GitHubTool {
         return { success: false, error: "Query parameter is required for search_pull_requests_advanced action" };
       }
 
-      console.log(`🔍 Searching pull requests (advanced): ${args.query}`);
+      console.log(`🔍 Advanced PR search: "${args.query}"`);
 
-      const searchParams: any = {
-        q: args.query,
-        per_page: Math.min(args.perPage || 30, 100)
-      };
-
-      const response = await this.octokit.rest.search.issuesAndPullRequests(searchParams);
-
-      const results = response.data.items.map((item: any) => ({
-        number: item.number,
-        title: item.title,
-        body: item.body,
-        url: item.html_url,
-        repository: item.repository.full_name
-      }));
+      const response = await this.octokit.rest.search.issuesAndPullRequests({ q: `${args.query} is:pr` });
 
       return {
         success: true,
         action: "search_pull_requests_advanced",
-        query: args.query,
-        results: results,
-        totalCount: response.data.total_count
+        ...response.data
       };
     } catch (error: unknown) {
-      console.error("❌ Search pull requests (advanced) failed:", error);
+      console.error("❌ Advanced PR search failed:", error);
       return {
         success: false,
         action: "search_pull_requests_advanced",
@@ -2115,30 +2092,26 @@ export class GitHubTool {
         return { success: false, error: "Owner, repo, webhookUrl, webhookEvents, and webhookSecret parameters are required for create_webhook action" };
       }
 
-      console.log(`📡 Creating webhook: ${args.owner}/${args.repo}`);
+      console.log(`🎣 Creating webhook for: ${args.owner}/${args.repo}`);
 
-      const createParams: any = {
+      const webhookParams: any = {
         owner: args.owner,
         repo: args.repo,
-        name: 'web',
         config: {
           url: args.webhookUrl,
           content_type: 'json',
           secret: args.webhookSecret
         },
-        events: args.webhookEvents.split(','),
-        active: true
+        events: args.webhookEvents ? args.webhookEvents.split(',') : ['push'],
+        active: args.webhookActive !== false
       };
 
-      const response = await this.octokit.rest.repos.createWebhook(createParams);
+      const response = await this.octokit.rest.repos.createWebhook(webhookParams);
 
       return {
         success: true,
         action: "create_webhook",
-        owner: args.owner,
-        repo: args.repo,
-        webhookId: response.data.id,
-        url: response.data.url
+        ...response.data
       };
     } catch (error: unknown) {
       console.error("❌ Create webhook failed:", error);
@@ -2158,30 +2131,17 @@ export class GitHubTool {
         return { success: false, error: "Owner and repo parameters are required for list_webhooks action" };
       }
 
-      console.log(`📡 Listing webhooks: ${args.owner}/${args.repo}`);
+      console.log(`🎣 Listing webhooks for: ${args.owner}/${args.repo}`);
 
-      const params: any = {
+      const response = await this.octokit.rest.repos.listWebhooks({
         owner: args.owner,
         repo: args.repo,
-        per_page: Math.min(args.perPage || 30, 100)
-      };
-
-      const response = await this.octokit.rest.repos.listWebhooks(params);
-
-      const webhooks = response.data.map((webhook: any) => ({
-        id: webhook.id,
-        name: webhook.name,
-        url: webhook.config.url,
-        events: webhook.events
-      }));
+      });
 
       return {
         success: true,
         action: "list_webhooks",
-        owner: args.owner,
-        repo: args.repo,
-        webhooks: webhooks,
-        totalCount: webhooks.length
+        webhooks: response.data
       };
     } catch (error: unknown) {
       console.error("❌ List webhooks failed:", error);
@@ -2201,30 +2161,25 @@ export class GitHubTool {
         return { success: false, error: "Owner, repo, webhookId, webhookUrl, webhookEvents, and webhookSecret parameters are required for update_webhook action" };
       }
 
-      console.log(`📡 Updating webhook: ${args.owner}/${args.repo}/${args.webhookId}`);
+      console.log(`🎣 Updating webhook ${args.webhookId} for: ${args.owner}/${args.repo}`);
 
-      const updateParams: any = {
+      const webhookParams: any = {
         owner: args.owner,
         repo: args.repo,
         hook_id: args.webhookId,
-        config: {
-          url: args.webhookUrl,
-          content_type: 'json',
-          secret: args.webhookSecret
-        },
-        events: args.webhookEvents.split(','),
-        active: true
       };
 
-      const response = await this.octokit.rest.repos.updateWebhook(updateParams);
+      if (args.webhookUrl) webhookParams.config.url = args.webhookUrl;
+      if (args.webhookSecret) webhookParams.config.secret = args.webhookSecret;
+      if (args.webhookEvents) webhookParams.events = args.webhookEvents.split(',');
+      if (args.webhookActive !== undefined) webhookParams.active = args.webhookActive;
+
+      const response = await this.octokit.rest.repos.updateWebhook(webhookParams);
 
       return {
         success: true,
         action: "update_webhook",
-        owner: args.owner,
-        repo: args.repo,
-        webhookId: response.data.id,
-        url: response.data.url
+        ...response.data
       };
     } catch (error: unknown) {
       console.error("❌ Update webhook failed:", error);
@@ -2244,22 +2199,18 @@ export class GitHubTool {
         return { success: false, error: "Owner, repo, and webhookId parameters are required for delete_webhook action" };
       }
 
-      console.log(`📡 Deleting webhook: ${args.owner}/${args.repo}/${args.webhookId}`);
+      console.log(`🗑️ Deleting webhook ${args.webhookId} from: ${args.owner}/${args.repo}`);
 
-      const deleteParams: any = {
+      await this.octokit.rest.repos.deleteWebhook({
         owner: args.owner,
         repo: args.repo,
-        hook_id: args.webhookId
-      };
-
-      await this.octokit.rest.repos.deleteWebhook(deleteParams);
+        hook_id: args.webhookId,
+      });
 
       return {
         success: true,
         action: "delete_webhook",
-        owner: args.owner,
-        repo: args.repo,
-        webhookId: args.webhookId
+        message: `Webhook ${args.webhookId} deleted successfully.`
       };
     } catch (error: unknown) {
       console.error("❌ Delete webhook failed:", error);
@@ -2268,7 +2219,222 @@ export class GitHubTool {
         action: "delete_webhook",
         error: `Delete webhook failed: ${error instanceof Error ? error.message : String(error)}`,
         owner: args.owner,
-        repo: args.repo
+        repo: args.repo,
+        webhookId: args.webhookId
+      };
+    }
+  }
+
+  private async executeCreateGist(args: any): Promise<any> {
+    try {
+      if (!args.gistFiles) {
+        return { success: false, error: "gistFiles parameter is required for create_gist action" };
+      }
+
+      console.log(`📝 Creating a new gist`);
+
+      const files = JSON.parse(args.gistFiles);
+
+      const response = await this.octokit.rest.gists.create({
+        files,
+        description: args.gistDescription || '',
+        public: args.gistPublic || false,
+      });
+
+      return {
+        success: true,
+        action: "create_gist",
+        ...response.data
+      };
+    } catch (error: unknown) {
+      console.error("❌ Create gist failed:", error);
+      return {
+        success: false,
+        action: "create_gist",
+        error: `Create gist failed: ${error instanceof Error ? error.message : String(error)}`
+      };
+    }
+  }
+
+  private async executeGetGist(args: any): Promise<any> {
+    try {
+      if (!args.gistId) {
+        return { success: false, error: "gistId parameter is required for get_gist action" };
+      }
+
+      console.log(`📝 Getting gist: ${args.gistId}`);
+
+      const response = await this.octokit.rest.gists.get({ gist_id: args.gistId });
+
+      return {
+        success: true,
+        action: "get_gist",
+        ...response.data
+      };
+    } catch (error: unknown) {
+      console.error("❌ Get gist failed:", error);
+      return {
+        success: false,
+        action: "get_gist",
+        error: `Get gist failed: ${error instanceof Error ? error.message : String(error)}`,
+        gistId: args.gistId
+      };
+    }
+  }
+
+  private async executeUpdateGist(args: any): Promise<any> {
+    try {
+      if (!args.gistId || !args.gistFiles) {
+        return { success: false, error: "gistId and gistFiles parameters are required for update_gist action" };
+      }
+
+      console.log(`📝 Updating gist: ${args.gistId}`);
+
+      const files = JSON.parse(args.gistFiles);
+
+      const response = await this.octokit.rest.gists.update({
+        gist_id: args.gistId,
+        files,
+        description: args.gistDescription,
+      });
+
+      return {
+        success: true,
+        action: "update_gist",
+        ...response.data
+      };
+    } catch (error: unknown) {
+      console.error("❌ Update gist failed:", error);
+      return {
+        success: false,
+        action: "update_gist",
+        error: `Update gist failed: ${error instanceof Error ? error.message : String(error)}`,
+        gistId: args.gistId
+      };
+    }
+  }
+
+  private async executeDeleteGist(args: any): Promise<any> {
+    try {
+      if (!args.gistId) {
+        return { success: false, error: "gistId parameter is required for delete_gist action" };
+      }
+
+      console.log(`🗑️ Deleting gist: ${args.gistId}`);
+
+      await this.octokit.rest.gists.delete({ gist_id: args.gistId });
+
+      return {
+        success: true,
+        action: "delete_gist",
+        message: `Gist ${args.gistId} deleted successfully.`
+      };
+    } catch (error: unknown) {
+      console.error("❌ Delete gist failed:", error);
+      return {
+        success: false,
+        action: "delete_gist",
+        error: `Delete gist failed: ${error instanceof Error ? error.message : String(error)}`,
+        gistId: args.gistId
+      };
+    }
+  }
+
+  private async executeListGists(args: any): Promise<any> {
+    try {
+      console.log(`📝 Listing gists`);
+
+      const response = await this.octokit.rest.gists.list();
+
+      return {
+        success: true,
+        action: "list_gists",
+        gists: response.data
+      };
+    } catch (error: unknown) {
+      console.error("❌ List gists failed:", error);
+      return {
+        success: false,
+        action: "list_gists",
+        error: `List gists failed: ${error instanceof Error ? error.message : String(error)}`
+      };
+    }
+  }
+
+  private async executeStarGist(args: any): Promise<any> {
+    try {
+      if (!args.gistId) {
+        return { success: false, error: "gistId parameter is required for star_gist action" };
+      }
+
+      console.log(`⭐ Starring gist: ${args.gistId}`);
+
+      await this.octokit.rest.gists.star({ gist_id: args.gistId });
+
+      return {
+        success: true,
+        action: "star_gist",
+        message: `Gist ${args.gistId} starred successfully.`
+      };
+    } catch (error: unknown) {
+      console.error("❌ Star gist failed:", error);
+      return {
+        success: false,
+        action: "star_gist",
+        error: `Star gist failed: ${error instanceof Error ? error.message : String(error)}`,
+        gistId: args.gistId
+      };
+    }
+  }
+
+  private async executeUnstarGist(args: any): Promise<any> {
+    try {
+      if (!args.gistId) {
+        return { success: false, error: "gistId parameter is required for unstar_gist action" };
+      }
+
+      console.log(`🌟 Unstarring gist: ${args.gistId}`);
+
+      await this.octokit.rest.gists.unstar({ gist_id: args.gistId });
+
+      return {
+        success: true,
+        action: "unstar_gist",
+        message: `Gist ${args.gistId} unstarred successfully.`
+      };
+    } catch (error: unknown) {
+      console.error("❌ Unstar gist failed:", error);
+      return {
+        success: false,
+        action: "unstar_gist",
+        error: `Unstar gist failed: ${error instanceof Error ? error.message : String(error)}`,
+        gistId: args.gistId
+      };
+    }
+  }
+
+  private async executeForkGist(args: any): Promise<any> {
+    try {
+      if (!args.gistId) {
+        return { success: false, error: "gistId parameter is required for fork_gist action" };
+      }
+
+      console.log(`🍴 Forking gist: ${args.gistId}`);
+
+      const response = await this.octokit.rest.gists.fork({ gist_id: args.gistId });
+
+      return {
+        success: true,
+        action: "fork_gist",
+        ...response.data
+      };
+    } catch (error: unknown) {
+      console.error("❌ Fork gist failed:", error);
+      return {
+        success: false,
+        action: "fork_gist",
+        error: `Fork gist failed: ${error instanceof Error ? error.message : String(error)}`,
+        gistId: args.gistId
       };
     }
   }
