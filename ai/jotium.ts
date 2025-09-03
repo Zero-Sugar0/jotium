@@ -26,10 +26,8 @@ import { generateUUID } from "@/lib/utils";
 import { ImageGenerationTool } from './tools/image-gen';
 import { WeatherTool } from "./tools/WeatherTool";
 import { NotionTool } from './tools/notion-tool';
-import { StripeManagementTool } from './tools/stripe-tool';
 import { AlphaVantageTool } from './tools/alphavantage-tool';
 import { AirtableTool } from './tools/airtable-tool';
-import { SupabaseTool } from './tools/supabase-tool';
 import { TrelloTool } from './tools/trello';
 import { LinearManagementTool } from './tools/linear-tool';
 import { DataVisualizationTool } from './tools/dataviz-tool';
@@ -153,6 +151,13 @@ interface McpPart {
   [key: string]: any;
 }
 
+interface McpServerConfig {
+  name: string;
+  command: string;
+  args: string[];
+  env?: { [key: string]: string };
+}
+
 export class AIAgent {
   private ai: GoogleGenAI;
   private memory: AgentMemory;
@@ -195,16 +200,6 @@ export class AIAgent {
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
-  // Get MCP configuration hash
-  private async getMcpConfigHash(): Promise<string> {
-    try {
-      const mcpConfigPath = "./ai/mcp.json";
-      const data = await fs.readFile(mcpConfigPath, "utf-8");
-      return this.generateHash(data);
-    } catch (error) {
-      return '';
-    }
-  }
 
   // Get environment variables hash for API keys
   private getEnvKeysHash(): string {
@@ -280,20 +275,17 @@ export class AIAgent {
     }
 
     // Check if configuration has changed
-    const currentMcpHash = await this.getMcpConfigHash();
     const currentEnvHash = this.getEnvKeysHash();
     const currentUserKeysHash = await this.getUserApiKeysHash();
     const currentOAuthHash = await this.getOAuthTokensHash();
 
     const hasChanges = 
-      cachedConfig.mcpConfigHash !== currentMcpHash ||
       cachedConfig.envKeysHash !== currentEnvHash ||
       cachedConfig.userApiKeysHash !== currentUserKeysHash ||
       cachedConfig.oauthTokensHash !== currentOAuthHash;
 
     if (hasChanges) {
       console.log("🔄 Configuration changes detected, reinitializing tools...");
-      console.log(`  MCP Config Changed: ${cachedConfig.mcpConfigHash !== currentMcpHash}`);
       console.log(`  Env Keys Changed: ${cachedConfig.envKeysHash !== currentEnvHash}`);
       console.log(`  User Keys Changed: ${cachedConfig.userApiKeysHash !== currentUserKeysHash}`);
       console.log(`  OAuth Changed: ${cachedConfig.oauthTokensHash !== currentOAuthHash}`);
@@ -350,7 +342,7 @@ export class AIAgent {
     // Save cache configuration
     const cacheConfig: ToolCacheConfig = {
       lastUpdated: Date.now(),
-      mcpConfigHash: await this.getMcpConfigHash(),
+      mcpConfigHash: "", // No longer used
       envKeysHash: this.getEnvKeysHash(),
       userApiKeysHash: await this.getUserApiKeysHash(),
       oauthTokensHash: await this.getOAuthTokensHash()
@@ -448,14 +440,6 @@ export class AIAgent {
       this.tools.set("notion_tool", tool);
     }
 
-    if (this.userId) {
-      const stripeKey = await getDecryptedApiKey({ userId: this.userId, service: "Stripe" });
-      if (stripeKey) {
-        const tool = new StripeManagementTool(stripeKey);
-        this.tools.set("stripe_tool", tool);
-      }
-    }
-
     const clickupKey = await getKey("ClickUp", "CLICKUP_API_TOKEN");
     if (clickupKey) this.tools.set("clickup_tool", new ClickUpTool({ apiKey: clickupKey }));
 
@@ -466,12 +450,6 @@ export class AIAgent {
       if (toolName) {
         this.tools.set(toolName, tool);
       }
-    }
-
-    const supabaseUrl = await getKey("Supabase URL", "SUPABASE_URL");
-    const supabaseKey = await getKey("Supabase Key", "SUPABASE_KEY");
-    if (supabaseUrl && supabaseKey) {
-      this.tools.set("supabase_database", new SupabaseTool(supabaseUrl, supabaseKey));
     }
 
     const asanaKey = await getKey("Asana", "ASANA_API_KEY");
@@ -539,123 +517,190 @@ export class AIAgent {
 
   // Initialize MCP servers
   private async initializeMcpServers(): Promise<void> {
-    try {
-      const mcpConfigPath = "./ai/mcp.json";
-      const data = await fs.readFile(mcpConfigPath, "utf-8");
-      const mcpConfig = JSON.parse(data);
+    const mcpServers: McpServerConfig[] = [
+      {
+        name: "supabase-mcp",
+        command: "npx",
+        args: ["-y", "@supabase/mcp-server-supabase"],
+        env: {
+          SUPABASE_ACCESS_TOKEN: process.env.SUPABASE_ACCESS_TOKEN || ""
+        }
+      },
+      {
+        name: "context7-mcp",
+        command: "npx",
+        args: ["-y", "@upstash/context7-mcp"],
+        env: {
+          CONTEXT7_API_KEY: process.env.CONTEXT7_API_KEY || ""
+        }
+      },
+      {
+        name: "github-mcp",
+        command: "npx",
+        args: ["-y", "@modelcontextprotocol/server-github"],
+        env: {
+          GITHUB_PERSONAL_ACCESS_TOKEN: process.env.GITHUB_TOKEN || ""
+        }
+      },
+      {
+        name: "firecrawl-mcp",
+        command: "npx",
+        args: ["-y", "firecrawl-mcp"],
+        env: {
+          FIRECRAWL_API_KEY: process.env.FIRECRAWL_API_KEY || ""
+        }
+      },
+      {
+        name: "stripe",
+        command: "npx",
+        args: [
+          "-y",
+          "@stripe/mcp",
+          "--tools=all",
+          `--api-key=${process.env.STRIPE_SECRET_KEY || ''}`
+        ]
+      },
+      {
+        name: "sequential-thinking",
+        command: "npx",
+        args: [
+          "-y",
+          "@modelcontextprotocol/server-sequential-thinking"
+        ]
+      },
+      {
+        name: "perplexity-ask",
+        command: "npx",
+        args: [
+          "-y",
+          "server-perplexity-ask"
+        ],
+        env: {
+          PERPLEXITY_API_KEY: process.env.PERPLEXITY_API_KEY || ""
+        }
+      },
+      {
+        name: "linkup",
+        command: "npx",
+        args: ["-y", "linkup-mcp-server"],
+        env: {
+          LINKUP_API_KEY: process.env.LINKUP_API_KEY || ""
+        }
+      },
+      {
+        name: "puppeteer",
+        command: "npx",
+        args: ["-y", "@modelcontextprotocol/server-puppeteer"]
+      }
+    ];
 
-      if (mcpConfig && mcpConfig.servers) {
-        for (const serverConfig of mcpConfig.servers) {
-          try {
-            console.log(`🔄 Initializing MCP server: ${serverConfig.name}`);
-            
-            const serverParams = new StdioClientTransport({
-              command: serverConfig.command,
-              args: serverConfig.args,
-              env: serverConfig.env || {}
-            });
+    for (const serverConfig of mcpServers) {
+      try {
+        console.log(`🔄 Initializing MCP server: ${serverConfig.name}`);
+        
+        const serverParams = new StdioClientTransport({
+          command: serverConfig.command,
+          args: serverConfig.args,
+          env: serverConfig.env || {}
+        });
 
-            const client = new Client({
-              name: "jotium-client",
-              version: "1.0.0",
-            });
+        const client = new Client({
+          name: "jotium-client",
+          version: "1.0.0",
+        });
 
-            const connectTimeout = new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Connection timeout')), 20000)
-            );
+        const connectTimeout = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Connection timeout')), 20000)
+        );
 
-            await Promise.race([
-              client.connect(serverParams),
-              connectTimeout
-            ]);
+        await Promise.race([
+          client.connect(serverParams),
+          connectTimeout
+        ]);
 
-            console.log(`✅ Connected to MCP server: ${serverConfig.name}`);
+        console.log(`✅ Connected to MCP server: ${serverConfig.name}`);
 
-            const callableTool = mcpToTool(client);
-            
-            let googleTool;
-            try {
-              googleTool = await callableTool.tool();
-            } catch (toolError) {
-              console.error(`❌ Error getting tool definitions for ${serverConfig.name}:`, toolError);
-              await client.close().catch(() => {});
-              continue;
-            }
+        const callableTool = mcpToTool(client);
+        
+        let googleTool;
+        try {
+          googleTool = await callableTool.tool();
+        } catch (toolError) {
+          console.error(`❌ Error getting tool definitions for ${serverConfig.name}:`, toolError);
+          await client.close().catch(() => {});
+          continue;
+        }
 
-            this.mcpClients.set(serverConfig.name, {
-              client,
-              callableTool,
-              serverName: serverConfig.name
-            });
+        this.mcpClients.set(serverConfig.name, {
+          client,
+          callableTool,
+          serverName: serverConfig.name
+        });
 
-            if (googleTool.functionDeclarations && googleTool.functionDeclarations.length > 0) {
-              for (const funcDecl of googleTool.functionDeclarations) {
-                const toolName = funcDecl.name;
-                if (toolName) {
-                  this.tools.set(toolName, {
-                    getDefinition: () => funcDecl,
-                    execute: async (args: any) => {
-                      try {
-                        console.log(`🔧 Executing MCP tool "${toolName}" with args:`, args);
-                        
-                        const functionCall = {
-                          name: toolName,
-                          args,
-                        };
+        if (googleTool.functionDeclarations && googleTool.functionDeclarations.length > 0) {
+          for (const funcDecl of googleTool.functionDeclarations) {
+            const toolName = funcDecl.name;
+            if (toolName) {
+              this.tools.set(toolName, {
+                getDefinition: () => funcDecl,
+                execute: async (args: any) => {
+                  try {
+                    console.log(`🔧 Executing MCP tool "${toolName}" with args:`, args);
+                    
+                    const functionCall = {
+                      name: toolName,
+                      args,
+                    };
 
-                        const parts = await callableTool.callTool([functionCall]);
-                        
-                        if (parts && parts.length > 0) {
-                          const part = parts[0] as McpPart;
-                          
-                          if (part.toolResponse) {
-                            console.log(`✅ MCP tool "${toolName}" response:`, part.toolResponse.response);
-                            return part.toolResponse.response;
-                          } else if (part.text) {
-                            console.log(`✅ MCP tool "${toolName}" text response:`, part.text);
-                            return { success: true, result: part.text };
-                          } else if (part.functionResponse) {
-                            console.log(`✅ MCP tool "${toolName}" function response:`, part.functionResponse.response);
-                            return part.functionResponse.response;
-                          } else {
-                            console.log(`✅ MCP tool "${toolName}" raw response:`, part);
-                            return part;
-                          }
-                        } else {
-                          console.warn(`⚠️ No response from MCP tool "${toolName}"`);
-                          return { success: false, error: "No response from MCP tool" };
-                        }
-                      } catch (error) {
-                        console.error(`❌ Error executing MCP tool "${toolName}":`, error);
-                        return { 
-                          success: false, 
-                          error: error instanceof Error ? error.message : String(error)
-                        };
+                    const parts = await callableTool.callTool([functionCall]);
+                    
+                    if (parts && parts.length > 0) {
+                      const part = parts[0] as McpPart;
+                      
+                      if (part.toolResponse) {
+                        console.log(`✅ MCP tool "${toolName}" response:`, part.toolResponse.response);
+                        return part.toolResponse.response;
+                      } else if (part.text) {
+                        console.log(`✅ MCP tool "${toolName}" text response:`, part.text);
+                        return { success: true, result: part.text };
+                      } else if (part.functionResponse) {
+                        console.log(`✅ MCP tool "${toolName}" function response:`, part.functionResponse.response);
+                        return part.functionResponse.response;
+                      } else {
+                        console.log(`✅ MCP tool "${toolName}" raw response:`, part);
+                        return part;
                       }
-                    },
-                  });
-                  console.log(`✅ MCP Tool "${toolName}" from server "${serverConfig.name}" loaded.`);
-                }
-              }
-            } else {
-              console.warn(`⚠️ No function declarations found for MCP server "${serverConfig.name}"`);
-            }
-          } catch (error) {
-            console.error(`❌ Failed to load MCP server "${serverConfig.name}":`, error);
-            try {
-              const clientInfo = this.mcpClients.get(serverConfig.name);
-              if (clientInfo) {
-                await clientInfo.client.close();
-                this.mcpClients.delete(serverConfig.name);
-              }
-            } catch (closeError) {
-              console.error(`Error closing failed MCP client:`, closeError);
+                    } else {
+                      console.warn(`⚠️ No response from MCP tool "${toolName}"`);
+                      return { success: false, error: "No response from MCP tool" };
+                    }
+                  } catch (error) {
+                    console.error(`❌ Error executing MCP tool "${toolName}":`, error);
+                    return { 
+                      success: false, 
+                      error: error instanceof Error ? error.message : String(error)
+                    };
+                  }
+                },
+              });
+              console.log(`✅ MCP Tool "${toolName}" from server "${serverConfig.name}" loaded.`);
             }
           }
+        } else {
+          console.warn(`⚠️ No function declarations found for MCP server "${serverConfig.name}"`);
+        }
+      } catch (error) {
+        console.error(`❌ Failed to load MCP server "${serverConfig.name}":`, error);
+        try {
+          const clientInfo = this.mcpClients.get(serverConfig.name);
+          if (clientInfo) {
+            await clientInfo.client.close();
+            this.mcpClients.delete(serverConfig.name);
+          }
+        } catch (closeError) {
+          console.error(`Error closing failed MCP client:`, closeError);
         }
       }
-    } catch (error) {
-      console.log("ℹ️ No mcp.json file found or it's invalid. Skipping MCP server initialization.");
     }
   }
 
