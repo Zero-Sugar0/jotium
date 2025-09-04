@@ -5,7 +5,7 @@ export class CalComTool {
   private baseUrl: string;
   private apiVersion: string;
 
-  constructor(apiKey: string, baseUrl: string = "https://api.cal.com", apiVersion: string = "2024-08-13") {
+  constructor(apiKey: string, baseUrl: string = "https://api.cal.com", apiVersion: string = "2025-08-25") {
     this.apiKey = apiKey;
     this.baseUrl = baseUrl;
     this.apiVersion = apiVersion;
@@ -28,7 +28,8 @@ export class CalComTool {
       });
 
       if (!response.ok) {
-        throw new Error(`Cal.com API error: ${response.status} ${response.statusText}`);
+        const errorBody = await response.json().catch(() => ({ message: response.statusText }));
+        throw new Error(`Cal.com API error: ${response.status} ${errorBody.message || response.statusText}`);
       }
 
       return await response.json();
@@ -67,8 +68,10 @@ export class CalComTool {
               "update_profile",
               "get_teams",
               "create_team",
+              "update_team",
               "get_team_members",
               "add_team_member",
+              "remove_team_member",
               "get_webhooks",
               "create_webhook",
               "delete_webhook",
@@ -82,7 +85,7 @@ export class CalComTool {
           // Booking parameters
           eventTypeId: {
             type: Type.NUMBER,
-            description: "ID of the event type for booking operations"
+            description: "ID of the event type for booking operations. Required unless eventTypeSlug and username are provided."
           },
           bookingUid: {
             type: Type.STRING,
@@ -140,6 +143,10 @@ export class CalComTool {
               }
             }
           },
+          eventTypeTitle: {
+            type: Type.STRING,
+            description: "Title of the event type to search for. Used to find an event type ID automatically."
+          },
           // Schedule parameters
           scheduleId: {
             type: Type.NUMBER,
@@ -185,6 +192,10 @@ export class CalComTool {
           teamId: {
             type: Type.NUMBER,
             description: "Team ID for team operations"
+          },
+          memberId: {
+            type: Type.NUMBER,
+            description: "Member ID for team member operations"
           },
           status: {
             type: Type.STRING,
@@ -318,10 +329,14 @@ export class CalComTool {
           return await this.getTeams();
         case "create_team":
           return await this.createTeam(args.team);
+        case "update_team":
+          return await this.updateTeam(args.teamId, args.team);
         case "get_team_members":
           return await this.getTeamMembers(args.teamId);
         case "add_team_member":
           return await this.addTeamMember(args.teamId, args);
+        case "remove_team_member":
+            return await this.removeTeamMember(args.teamId, args.memberId);
 
         // Webhooks
         case "get_webhooks":
@@ -352,14 +367,44 @@ export class CalComTool {
 
   // Booking Methods
   private async createBooking(args: any): Promise<any> {
+    let eventTypeId = args.eventTypeId;
+
+    // If eventTypeId is not provided, but eventTypeTitle is, find the event type first.
+    if (!eventTypeId && args.eventTypeTitle) {
+        console.log(`Searching for event type with title: "${args.eventTypeTitle}"`);
+        const eventTypesResult = await this.getEventTypes({ eventTypeTitle: args.eventTypeTitle });
+        if (eventTypesResult.success && eventTypesResult.eventTypes.length > 0) {
+            // Find an exact match on the title
+            const matchingEventType = eventTypesResult.eventTypes.find((et: any) => et.title.toLowerCase() === args.eventTypeTitle.toLowerCase());
+            if (matchingEventType) {
+                eventTypeId = matchingEventType.id;
+                console.log(`Found event type ID: ${eventTypeId}`);
+            } else {
+                throw new Error(`No event type found with the exact title "${args.eventTypeTitle}".`);
+            }
+        } else {
+            throw new Error(`Could not find an event type with the title "${args.eventTypeTitle}".`);
+        }
+    }
+
+    if (!eventTypeId && !(args.eventTypeSlug && args.username)) {
+        throw new Error("Either eventTypeId, eventTypeTitle, or both eventTypeSlug and username must be provided to create a booking.");
+    }
+
     const bookingData: any = {
-      eventTypeId: args.eventTypeId,
       start: args.start,
       end: args.end,
       attendee: args.attendee,
       metadata: args.metadata || {},
       timeZone: args.timeZone || "UTC"
     };
+
+    if (eventTypeId) {
+        bookingData.eventTypeId = eventTypeId;
+    } else if (args.eventTypeSlug && args.username) {
+        bookingData.eventTypeSlug = args.eventTypeSlug;
+        bookingData.username = args.username;
+    }
 
     if (args.notes) bookingData.notes = args.notes;
     if (args.recurringCount) bookingData.recurringCount = args.recurringCount;
@@ -469,6 +514,7 @@ export class CalComTool {
     if (args.username) params.append("username", args.username);
     if (args.limit) params.append("limit", args.limit.toString());
     if (args.offset) params.append("offset", args.offset.toString());
+    if (args.eventTypeTitle) params.append("title", args.eventTypeTitle);
 
     const queryString = params.toString();
     if (queryString) endpoint += `?${queryString}`;
@@ -547,14 +593,28 @@ export class CalComTool {
     return { success: true, team: result, action: "create_team" };
   }
 
+  private async updateTeam(teamId: number, team: any): Promise<any> {
+    if (!teamId) throw new Error("teamId is required to update a team.");
+    const result = await this.makeRequest(`/v2/teams/${teamId}`, "PATCH", team);
+    return { success: true, team: result, action: "update_team" };
+  }
+
   private async getTeamMembers(teamId: number): Promise<any> {
     const result = await this.makeRequest(`/v2/teams/${teamId}/members`);
     return { success: true, members: result, action: "get_team_members" };
   }
 
   private async addTeamMember(teamId: number, memberData: any): Promise<any> {
-    const result = await this.makeRequest(`/v2/teams/${teamId}/members`, "POST", memberData);
+    const { email, username, role } = memberData;
+    const body = { email, username, role };
+    const result = await this.makeRequest(`/v2/teams/${teamId}/members`, "POST", body);
     return { success: true, member: result, action: "add_team_member" };
+  }
+
+  private async removeTeamMember(teamId: number, memberId: number): Promise<any> {
+    if (!teamId || !memberId) throw new Error("teamId and memberId are required to remove a team member.");
+    const result = await this.makeRequest(`/v2/teams/${teamId}/members/${memberId}`, "DELETE");
+    return { success: true, result, action: "remove_team_member" };
   }
 
   // Webhook Methods

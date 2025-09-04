@@ -134,14 +134,13 @@ export class AIAgent {
     }
     
     // --- Group 2: Tools without API Keys ---
-    this.tools.set("file_manager", new FileManagerTool());
+    // this.tools.set("file_manager", new FileManagerTool());
     this.tools.set("api_tool", new ApiTool());
     this.tools.set("get_weather", new WeatherTool());
     // this.tools.set("code_execution", new CodeExecutionTool());
     this.tools.set("datetime_tool", new DateTimeTool());
     this.tools.set("data_visualization", new DataVisualizationTool());
     this.tools.set("duckduckgo_search", new DuckDuckGoSearchTool());
-    // Stocks & Maps (no API keys required for basic data)
     this.tools.set("get_stock_data", new StockTool());
     // this.tools.set("pdf_generator", new PDFTool());
     const serperApiKey = process.env.SERPER_API_KEY;

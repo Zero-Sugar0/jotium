@@ -218,6 +218,13 @@ export function Chat({
                     ...prev,
                     [assistantMessage.id]: [...(prev[assistantMessage.id] || []), data.toolName]
                   }));
+                } else if (data.type === "image_generation_result") {
+                  // Ensure attachments array exists
+                  if (!assistantMessage.attachments) {
+                    assistantMessage.attachments = [];
+                  }
+                  // Add the new image attachment as it streams in
+                  assistantMessage.attachments.push(data.content);
                 }
                 if (data.attachments && Array.isArray(data.attachments)) {
                   pendingAttachments = data.attachments;
@@ -296,14 +303,24 @@ export function Chat({
                     toolInvocations={message.toolCalls as any}
                     duration={message.duration}
                     attachments={message.attachments}
-                    executingTools={
-                      // Show executing tools for current streaming message OR completed tools for finished messages
-                      index === messages.length - 1 && 
-                      message.role === "assistant" && 
-                      isLoading 
-                        ? executingTools 
-                        : messageToolsMap[message.id] || []
-                    }
+                    executingTools={(() => {
+                      const toolsForMessage = messageToolsMap[message.id] || [];
+                      const hasImageAttachment = message.attachments?.some(
+                        (att: any) => att.type === "image_generation_result"
+                      );
+                      
+                      let currentExecuting: string[] = [];
+                      if (index === messages.length - 1 && message.role === "assistant" && isLoading) {
+                        currentExecuting = executingTools;
+                      }
+
+                      // Combine tools from map, currently executing tools, and 'generate_image' if an image is present
+                      const combinedTools = new Set([...toolsForMessage, ...currentExecuting]);
+                      if (hasImageAttachment && !combinedTools.has("generate_image")) {
+                        combinedTools.add("generate_image");
+                      }
+                      return Array.from(combinedTools);
+                    })()}
                     isStreaming={
                       index === messages.length - 1 && 
                       message.role === "assistant" && 
@@ -388,6 +405,13 @@ export function Chat({
                                               ...prev,
                                               [assistantMessage.id]: [...(prev[assistantMessage.id] || []), data.toolName]
                                             }));
+                                          } else if (data.type === "image_generation_result") {
+                                            // Ensure attachments array exists
+                                            if (!assistantMessage.attachments) {
+                                              assistantMessage.attachments = [];
+                                            }
+                                            // Add the new image attachment as it streams in
+                                            assistantMessage.attachments.push(data.content);
                                           }
                                           if (data.attachments && Array.isArray(data.attachments)) {
                                             pendingAttachments = data.attachments;
