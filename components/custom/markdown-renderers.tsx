@@ -76,13 +76,12 @@ export const createMarkdownComponents = (isSmallScreen: boolean, showTypewriter:
         if (!parsed) return null;
         
         // Check if it's a PDF tool result
-        if (parsed.success && parsed.action && parsed.config && parsed.stats) {
+        if (parsed.success && parsed.pdfData && parsed.config && parsed.stats) {
           return (
             <PDFViewer
-              config={parsed.config}
+              pdfData={parsed.pdfData}
+              title={parsed.config.title}
               stats={parsed.stats}
-              previewId={parsed.previewId || `pdf_${Date.now()}`}
-              showTypewriter={showTypewriter}
             />
           );
         }

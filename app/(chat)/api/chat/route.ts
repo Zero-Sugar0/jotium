@@ -183,11 +183,19 @@ export async function POST(request: NextRequest) {
                         dataUrl = `data:${mimeType};base64,${imageResult.imageBase64}`;
                       }
                       if (dataUrl) {
-                        assistantAttachments.push({
+                        const attachment = {
                           url: dataUrl,
                           name: `generated-image-${Date.now()}.${outputFormat}`,
                           contentType: mimeType,
-                        });
+                        };
+                        
+                        // Stream the image data directly to the client for immediate display
+                        controller.enqueue(
+                          `data: ${JSON.stringify({ type: "image_generation_result", content: attachment })}\n\n`
+                        );
+
+                        // Also add to assistantAttachments to save in history
+                        assistantAttachments.push(attachment);
                       }
                     }
                     
@@ -205,7 +213,59 @@ export async function POST(request: NextRequest) {
                   }
                 }
                 
-                else if (toolName === 'get_weather' || toolName === 'get_stock_data' || toolName === 'get_map_data' || toolName === 'pdf_generator' || toolName === 'fire_web_scrape') {
+                else if (toolName === 'fire_web_scrape') {
+                  shouldContinueToAgent = false; // Don't send result back to the model
+                  const result = await agent.executeToolCall(toolCall);
+                  const payload = result.result || {};
+                  
+                  if (payload && payload.success) {
+                    // Stream the raw result with a special type
+                    controller.enqueue(
+                      `data: ${JSON.stringify({ type: "fire_web_scrape_result", content: payload })}\n\n`
+                    );
+                    // Provide a simple confirmation message
+                    const successMessage = `I have successfully scraped the content from the URL.`;
+                    controller.enqueue(
+                      `data: ${JSON.stringify({ type: "response", content: successMessage })}\n\n`
+                    );
+                    fullResponse = successMessage;
+                  } else {
+                    const errorMessage = `I encountered an error scraping the content: ${payload.error || 'Unknown error'}`;
+                    controller.enqueue(
+                      `data: ${JSON.stringify({ type: "response", content: errorMessage })}\n\n`
+                    );
+                    fullResponse = errorMessage;
+                  }
+                }
+                
+                else if (toolName === 'pdf_generator') {
+                  shouldContinueToAgent = false; // Don't send result back to the model
+                  const result = await agent.executeToolCall(toolCall);
+                  const payload = result.result || {};
+
+                  if (payload && payload.success) {
+                    // The markdown renderer expects the full payload to render the PDF viewer.
+                    const markdownBlock = `\n\n\`\`\`pdf\n${JSON.stringify(payload)}\n\`\`\`\n\n`;
+                    controller.enqueue(
+                      `data: ${JSON.stringify({ type: "response", content: markdownBlock })}\n\n`
+                    );
+                    
+                    // The final message should be simple, not the giant markdown block.
+                    const successMessage = `I have generated the PDF document: "${payload.config?.title || 'Untitled'}". You can view it and download it above.`;
+                    controller.enqueue(
+                      `data: ${JSON.stringify({ type: "response", content: successMessage })}\n\n`
+                    );
+                    fullResponse = successMessage;
+                  } else {
+                    const errorMessage = `I encountered an error generating the PDF: ${payload.error || 'Unknown error'}`;
+                    controller.enqueue(
+                      `data: ${JSON.stringify({ type: "response", content: errorMessage })}\n\n`
+                    );
+                    fullResponse = errorMessage;
+                  }
+                }
+                
+                else if (toolName === 'get_weather' || toolName === 'get_stock_data' || toolName === 'get_map_data') {
                   const result = await agent.executeToolCall(toolCall);
                   const payload = result.result || {};
                   let fenceLang;
@@ -215,10 +275,6 @@ export async function POST(request: NextRequest) {
                     fenceLang = 'stock';
                   } else if (toolName === 'get_map_data') {
                     fenceLang = 'map';
-                  } else if (toolName === 'pdf_generator') {
-                    fenceLang = 'pdf';
-                  } else if (toolName === 'fire_web_scrape') {
-                    fenceLang = 'scrape';
                   }
                   
                   if (payload && payload.success) {

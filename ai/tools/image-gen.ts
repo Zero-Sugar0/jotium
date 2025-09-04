@@ -165,11 +165,21 @@ export class ImageGenerationTool {
         error: null
       };
 
+      let hasImageData = false;
+      for (const part of response.candidates[0].content.parts) {
+        if (part.inlineData) {
+          hasImageData = true;
+          break;
+        }
+      }
+
       // Process the response
       for (const part of response.candidates[0].content.parts) {
         if (part.text) {
-          result.textResponse = part.text;
-          console.log("📝 Text response:", part.text);
+          if (!hasImageData) { // Only set textResponse if no image was generated
+            result.textResponse = part.text;
+            console.log("📝 Text response:", part.text);
+          }
         } else if (part.inlineData) {
           result.imageData = part.inlineData.data;
           result.imageBase64 = part.inlineData.data;
