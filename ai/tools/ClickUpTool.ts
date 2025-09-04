@@ -1,4 +1,5 @@
 import { FunctionDeclaration, Type } from "@google/genai";
+import { getValidOAuthAccessToken } from "@/lib/oauth-refresh";
 import axios, { AxiosInstance } from 'axios';
 
 export interface ClickUpConfig {
@@ -38,17 +39,21 @@ export interface Status {
   orderindex: number;
 }
 
+
 export class ClickUpTool {
   private client: AxiosInstance;
   private apiKey: string;
+  private oauthToken: string | null;
+  private userId: string;
 
-  constructor(config: ClickUpConfig) {
+  constructor(config: ClickUpConfig, userId: string, oauthToken: string | null = null) {
     this.apiKey = config.apiKey;
+    this.oauthToken = oauthToken;
+    this.userId = userId;
     this.client = axios.create({
       baseURL: config.baseUrl || 'https://api.clickup.com/api/v2',
       timeout: config.timeout || 30000,
       headers: {
-        'Authorization': this.apiKey,
         'Content-Type': 'application/json'
       }
     });
@@ -399,7 +404,25 @@ export class ClickUpTool {
   async execute(args: any): Promise<any> {
     try {
       console.log(`🎯 ClickUp Action: ${args.action}`);
+
+      let headers: any = {
+        'Content-Type': 'application/json'
+      };
+
+      // Check for OAuth token
+      let accessToken: string | null = this.oauthToken;
+      if (!accessToken) {
+        accessToken = await getValidOAuthAccessToken(this.userId, "clickup");
+      }
+
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      } else {
+        headers['Authorization'] = this.apiKey;
+      }
       
+      this.client.defaults.headers.common['Authorization'] = headers['Authorization'];
+
       switch (args.action) {
         case "create_task":
           return await this.createTask(args);
@@ -623,7 +646,7 @@ export class ClickUpTool {
     });
 
     const response = await this.client.post(`/list/${args.list_id}/task`, taskData);
-    
+
     return {
       success: true,
       action: "create_task",

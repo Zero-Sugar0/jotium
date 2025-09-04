@@ -147,6 +147,25 @@ export async function GET(
       authorizationUrl = `https://x.com/i/oauth2/authorize?${xParams.toString()}`;
       break;
 
+    case "clickup":
+      clientId = process.env.CLICKUP_CLIENT_ID;
+      scope = "read:tasks write:tasks read:goals write:goals read:comments write:comments read:teams write:teams read:spaces write:spaces read:folders write:folders read:lists write:lists read:views write:views read:time_tracking write:time_tracking read:webhooks write:webhooks";
+      if (!clientId) {
+        console.error("CLICKUP_CLIENT_ID environment variable is not set.");
+        return new Response("ClickUp OAuth configuration error", { status: 500 });
+      }
+
+      const clickupParams = new URLSearchParams({
+        client_id: clientId,
+        redirect_uri: redirectUri,
+        response_type: "code",
+        scope: scope,
+        state: state,
+      });
+
+      authorizationUrl = `https://app.clickup.com/api?${clickupParams.toString()}`;
+      break;
+
     default:
       return new Response("Unsupported OAuth service", { status: 400 });
   }
