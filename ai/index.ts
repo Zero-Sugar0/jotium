@@ -196,8 +196,16 @@ export class AIAgent {
     }
 
     // ClickUp
+    let clickupOauthToken: string | null = null;
+    const clickupConfig: any = {};
     const clickupKey = await getKey("ClickUp", "CLICKUP_API_TOKEN");
-    if (clickupKey) this.tools.set("clickup_tool", new ClickUpTool({ apiKey: clickupKey }));
+    if (clickupKey) {
+        clickupConfig.apiKey = clickupKey;
+    }
+    if (userId) {
+      clickupOauthToken = await getDecryptedOAuthAccessToken({ userId, service: "clickup" });
+    }
+    this.tools.set("clickup_tool", new ClickUpTool(clickupConfig, userId || "", clickupOauthToken ));
 
     // Slack
     const slackKey = await getKey("Slack", "SLACK_BOT_TOKEN");

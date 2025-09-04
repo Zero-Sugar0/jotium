@@ -195,8 +195,16 @@ export class AIAgent {
     }
 
     // ClickUp
+    let clickupOauthToken: string | null = null;
+    const clickupConfig: any = {};
     const clickupKey = await getKey("ClickUp", "CLICKUP_API_TOKEN");
-    if (clickupKey) this.tools.set("clickup_tool", new ClickUpTool({ apiKey: clickupKey }));
+    if (clickupKey) {
+        clickupConfig.apiKey = clickupKey;
+    }
+    if (userId) {
+      clickupOauthToken = await getDecryptedOAuthAccessToken({ userId, service: "clickup" });
+    }
+    this.tools.set("clickup_tool", new ClickUpTool(clickupConfig, userId || "", clickupOauthToken ));
 
     // Slack
     const slackKey = await getKey("Slack", "SLACK_BOT_TOKEN");
@@ -288,13 +296,13 @@ export class AIAgent {
       }
 
       // GitHub OAuth (if you want to add GitHub OAuth later)
-      // const githubAccessToken = await getDecryptedOAuthAccessToken({ 
-      //   userId, 
-      //   service: "github" 
-      // });
-      // if (githubAccessToken) {
-      //   // Add GitHub OAuth tool here
-      // }
+      const githubAccessToken = await getDecryptedOAuthAccessToken({ 
+        userId, 
+        service: "github" 
+      });
+      if (githubAccessToken) {
+        // Add GitHub OAuth tool here
+      }
 
       // Slack OAuth
       // const slackAccessToken = await getDecryptedOAuthAccessToken({ 

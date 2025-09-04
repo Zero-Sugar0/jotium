@@ -48,8 +48,9 @@ const apiTools = [
 const oauthProviders = [
   { name: "Google", service: "gmail", icon: "/logo/google.svg" },
   { name: "GitHub", service: "github", icon: "/logo/github.svg" },
-  // { name: "Slack", service: "slack", icon: "/logo/slack.svg" },
+  { name: "Slack", service: "slack", icon: "/logo/slack.svg" },
   // { name: "X", service: "x", icon: "/logo/x-twitter.svg" },
+  { name: "ClickUp", service: "clickup", icon: "/logo/clickup.svg" }, // Assuming a ClickUp logo exists at /logo/clickup.svg
 ];
 
 export default function AccountPage() {
@@ -654,9 +655,9 @@ export default function AccountPage() {
               <ul className="list-disc ml-6">
                 <li>Google: Profile, Email, Calendar</li>
                 <li>GitHub: Repos, Issues, Pull Requests</li>
-                {/* <li>Slack: Channels, Messages</li> */}
+                <li>Slack: Channels, Messages</li>
                 {/* <li>X: Post and engage with tweets, access profile information and settings</li> */}
-                <li>ClickUp: Tasks, Spaces</li>
+                <li>ClickUp: Tasks, Spaces, Goals, Comments, Teams, Folders, Lists, Views, Time Tracking, Webhooks</li>
                 <li>Cal.com: Bookings, Events</li>
                 {/* Add more as needed */}
               </ul>
@@ -704,17 +705,21 @@ export default function AccountPage() {
               <Separator className="my-6" />
               <h3 className="text-lg font-semibold mb-2 text-foreground">Language</h3>
               <p className="text-sm text-foreground/70 mb-4">Choose the language for the agent to respond in.</p>
-              <select
-                value={language}
-                onChange={(e) => handleLanguageChange(e.target.value)}
-                className="w-full max-w-md rounded-md border border-border bg-background p-2 text-sm"
-              >
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 max-w-md">
                 {languages.map((lang) => (
-                  <option key={lang.value} value={lang.value}>
+                  <button
+                    key={lang.value}
+                    type="button"
+                    onClick={() => handleLanguageChange(lang.value)}
+                    className={`flex items-center justify-center gap-1.5 sm:gap-2 rounded-md border p-2 sm:p-3 text-xs sm:text-sm transition ${
+                      language === lang.value ? "border-primary bg-muted" : "border-border hover:bg-muted/60"
+                    }`}
+                    aria-pressed={language === lang.value}
+                  >
                     {lang.label}
-                  </option>
+                  </button>
                 ))}
-              </select>
+              </div>
             </>
           )}
 

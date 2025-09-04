@@ -103,6 +103,19 @@ export async function GET(
       headers["Authorization"] = `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`;
       break;
 
+    case "clickup":
+      clientId = process.env.CLICKUP_CLIENT_ID;
+      clientSecret = process.env.CLICKUP_CLIENT_SECRET;
+      tokenUrl = "https://api.clickup.com/api/v2/oauth/token";
+      userInfoUrl = "https://api.clickup.com/api/v2/user"; // ClickUp user info endpoint
+      tokenRequestBody = new URLSearchParams({
+        client_id: clientId || "",
+        client_secret: clientSecret || "",
+        code: code,
+        redirect_uri: redirectUri,
+      });
+      break;
+
     default:
       return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/account?oauth_error=true`);
   }
@@ -214,6 +227,18 @@ export async function GET(
       if (!externalUserId && tokenData.team?.id) {
         externalUserId = tokenData.team.id;
         externalUserName = tokenData.team.name;
+      }
+    } else if (service === "clickup") {
+      const userRes = await fetch(userInfoUrl, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+        },
+      });
+      if (userRes.ok) {
+        const userData = await userRes.json();
+        externalUserId = userData.user.id.toString();
+        externalUserName = userData.user.username;
       }
     }
 

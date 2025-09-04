@@ -85,6 +85,18 @@ export async function refreshOAuthToken(userId: string, service: string): Promis
         headers["Authorization"] = `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`;
         break;
 
+      case "clickup":
+        clientId = process.env.CLICKUP_CLIENT_ID;
+        clientSecret = process.env.CLICKUP_CLIENT_SECRET;
+        tokenUrl = "https://api.clickup.com/api/v2/oauth/token";
+        tokenRequestBody = new URLSearchParams({
+          client_id: clientId || "",
+          client_secret: clientSecret || "",
+          refresh_token: refreshToken,
+          grant_type: "refresh_token",
+        });
+        break;
+
       default:
         console.error(`Unsupported service for token refresh: ${service}`);
         return null;
