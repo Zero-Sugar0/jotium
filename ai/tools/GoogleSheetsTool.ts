@@ -144,7 +144,7 @@ export class GoogleSheetsTool {
 
       switch (args.action) {
         case "create_spreadsheet":
-          return await this.createSpreadsheet(args.title, headers);
+          return await this.createSpreadsheet(args.title, headers, args.sheetTitle, args.values);
         case "get_spreadsheet":
           return await this.getSpreadsheet(args.spreadsheetId, Boolean(args.includeGridData), headers);
         case "get_spreadsheet_info":
@@ -629,16 +629,42 @@ export class GoogleSheetsTool {
   }
 
   // ============ Original operations (preserved) ============
-  private async createSpreadsheet(title: string, headers: HeadersLike): Promise<any> {
+  private async createSpreadsheet(title: string, headers: HeadersLike, sheetTitle?: string, values?: string[][]): Promise<any> {
     if (!title) return { success: false, error: "title is required" };
+
+    const spreadsheetBody: any = {
+      properties: { title },
+    };
+
+    // If initial data or a sheet title is provided, construct the sheet with data
+    if (sheetTitle || (values && values.length > 0)) {
+      const sheet: any = {
+        properties: { title: sheetTitle || 'Sheet1' },
+      };
+
+      if (values && values.length > 0) {
+        sheet.data = [{
+          rowData: values.map(row => ({
+            values: row.map(cell => ({
+              userEnteredValue: {
+                stringValue: cell,
+              },
+            })),
+          })),
+        }];
+      }
+      spreadsheetBody.sheets = [sheet];
+    }
+
     const res = await fetch("https://sheets.googleapis.com/v4/spreadsheets", {
       method: "POST",
       headers,
-      body: JSON.stringify({ properties: { title } }),
+      body: JSON.stringify(spreadsheetBody),
     });
+
     if (!res.ok) return { success: false, error: await res.text() };
     const data = await res.json();
-    return { success: true, spreadsheetId: data.spreadsheetId, data };
+    return { success: true, spreadsheetId: data.spreadsheetId, spreadsheetUrl: data.spreadsheetUrl, data };
   }
 
   private async getSpreadsheet(spreadsheetId: string, includeGridData: boolean, headers: HeadersLike): Promise<any> {

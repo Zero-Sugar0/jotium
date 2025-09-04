@@ -8,9 +8,11 @@ interface Tool {
 
 export class SupabaseTool implements Tool {
   private client: SupabaseClient;
+  private managementToken: string;
 
-  constructor(supabaseUrl: string, supabaseKey: string) {
+  constructor(supabaseUrl: string, supabaseKey: string, managementToken: string) {
     this.client = createClient(supabaseUrl, supabaseKey);
+    this.managementToken = managementToken;
   }
 
   getDefinition(): FunctionDeclaration {
@@ -33,6 +35,8 @@ export class SupabaseTool implements Tool {
               "reset_password", "verify_email", "refresh_token", "get_session",
               // User Management (Admin)
               "list_users",
+              // Projects
+              "list_projects",
               // Real-time
               "subscribe", "unsubscribe", "broadcast", "presence_track", "presence_untrack",
               // Storage Signed URLs
@@ -254,6 +258,11 @@ export class SupabaseTool implements Tool {
           break;
         case 'get_session':
           result = await this.getSession();
+          break;
+
+        // Projects
+        case 'list_projects':
+          result = await this.listProjects();
           break;
 
         // Storage
@@ -708,6 +717,27 @@ export class SupabaseTool implements Tool {
     const { data, error } = await this.client.auth.getSession();
     if (error) throw error;
     return data;
+  }
+
+  // Projects
+  private async listProjects(): Promise<any> {
+    if (!this.managementToken) {
+      throw new Error('Supabase management token is not provided.');
+    }
+
+    const response = await fetch('https://api.supabase.com/v1/projects', {
+      headers: {
+        'Authorization': `Bearer ${this.managementToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Failed to fetch projects: ${errorData.message}`);
+    }
+
+    return await response.json();
   }
 
   // Storage methods
@@ -1183,7 +1213,12 @@ export class SupabaseTool implements Tool {
 // Usage Examples:
 /*
 // Initialize the tool
-const supabase = new SupabaseTool("your-supabase-url", "your-supabase-anon-key");
+const supabase = new SupabaseTool("your-supabase-url", "your-supabase-anon-key", "your-supabase-management-token");
+
+// List projects
+const projectsResult = await supabase.execute({
+    action: "list_projects"
+});
 
 // Basic database operations
 const selectResult = await supabase.execute({
