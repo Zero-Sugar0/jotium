@@ -48,6 +48,9 @@ import { PDFTool } from './tools/PDFTool';
 import { FireWebScrapeTool } from './tools/FireWebScrapeTool';
 import { JinaTool } from './tools/JinaTool';
 import { Context7Tool } from './tools/Context7Tool';
+import { MongoDBTool } from './tools/MongoDBTool';
+import { TwilioTool } from './tools/TwilioTool';
+import { S3Tool } from './tools/AmazonS3Tool';
 
 // Import Enhanced Agentic Engine
 import { EnhancedAgenticEngine, EnhancedActionIntent } from './actions';
@@ -255,6 +258,84 @@ export class AIAgent {
     const zapierWebhookUrl = await getKey("Zapier Webhook URL", "ZAPIER_WEBHOOK_URL");
     if (zapierApiKey || zapierWebhookUrl) {
       this.tools.set("zapier_webhook", new ZapierTool(zapierApiKey, zapierWebhookUrl));
+    }
+
+    // MongoDB
+    const mongoConnectionString = await getKey("MongoDB", "MONGODB_CONNECTION_STRING");
+    if (mongoConnectionString) {
+      const mongoTool = new MongoDBTool(mongoConnectionString);
+      this.tools.set("mongodb_database_ops", {
+        getDefinition: () => mongoTool.getDatabaseOpsDefinition(),
+        execute: (args: any) => mongoTool.executeDatabaseOps(args),
+      } as Tool);
+      this.tools.set("mongodb_crud", {
+        getDefinition: () => mongoTool.getCRUDDefinition(),
+        execute: (args: any) => mongoTool.executeCRUD(args),
+      } as Tool);
+      this.tools.set("mongodb_aggregation", {
+        getDefinition: () => mongoTool.getAggregationDefinition(),
+        execute: (args: any) => mongoTool.executeAggregation(args),
+      } as Tool);
+      this.tools.set("mongodb_indexes", {
+        getDefinition: () => mongoTool.getIndexDefinition(),
+        execute: (args: any) => mongoTool.executeIndexOps(args),
+      } as Tool);
+    }
+
+    // Twilio
+    const twilioAccountSid = await getKey("Twilio SID", "TWILIO_ACCOUNT_SID");
+    const twilioAuthToken = await getKey("Twilio Token", "TWILIO_AUTH_TOKEN");
+    if (twilioAccountSid && twilioAuthToken) {
+      const twilioTool = new TwilioTool(twilioAccountSid, twilioAuthToken);
+      this.tools.set("send_sms", {
+        getDefinition: () => twilioTool.getSMSDefinition(),
+        execute: (args: any) => twilioTool.executeSMS(args),
+      } as Tool);
+      this.tools.set("send_whatsapp", {
+        getDefinition: () => twilioTool.getWhatsAppDefinition(),
+        execute: (args: any) => twilioTool.executeWhatsApp(args),
+      } as Tool);
+      this.tools.set("make_voice_call", {
+        getDefinition: () => twilioTool.getVoiceCallDefinition(),
+        execute: (args: any) => twilioTool.executeVoiceCall(args),
+      } as Tool);
+      this.tools.set("create_video_room", {
+        getDefinition: () => twilioTool.getVideoDefinition(),
+        execute: (args: any) => twilioTool.executeVideo(args),
+      } as Tool);
+      this.tools.set("manage_phone_numbers", {
+        getDefinition: () => twilioTool.getPhoneNumberDefinition(),
+        execute: (args: any) => twilioTool.executePhoneNumber(args),
+      } as Tool);
+      this.tools.set("manage_conversations", {
+        getDefinition: () => twilioTool.getConversationDefinition(),
+        execute: (args: any) => twilioTool.executeConversation(args),
+      } as Tool);
+      this.tools.set("send_fax", {
+        getDefinition: () => twilioTool.getFaxDefinition(),
+        execute: (args: any) => twilioTool.executeFax(args),
+      } as Tool);
+      this.tools.set("phone_lookup", {
+        getDefinition: () => twilioTool.getLookupDefinition(),
+        execute: (args: any) => twilioTool.executeLookup(args),
+      } as Tool);
+      this.tools.set("phone_verification", {
+        getDefinition: () => twilioTool.getVerifyDefinition(),
+        execute: (args: any) => twilioTool.executeVerify(args),
+      } as Tool);
+    }
+
+    // Amazon S3
+    const awsAccessKeyId = await getKey("AWS Access Key", "AWS_ACCESS_KEY_ID");
+    const awsSecretAccessKey = await getKey("AWS Secret Key", "AWS_SECRET_ACCESS_KEY");
+    const awsRegion = await getKey("AWS Region", "AWS_REGION");
+    if (awsAccessKeyId && awsSecretAccessKey && awsRegion) {
+      const s3Tool = new S3Tool({
+        accessKeyId: awsAccessKeyId,
+        secretAccessKey: awsSecretAccessKey,
+        region: awsRegion,
+      });
+      this.tools.set("s3_storage", s3Tool);
     }
 
     // --- Group 4: OAuth Tools (require OAuth connection) ---
