@@ -26,11 +26,17 @@ import { Separator } from "@/components/ui/separator";
 const apiTools = [
   { name: "Airtable", keyName: "airtableApiKey", placeholder: "key..." },
   { name: "Asana", keyName: "asanaApiKey", placeholder: "pat_..." },
+  { name: "AWS Access Key", keyName: "awsAccessKeyId", placeholder: "AKIA..." },
+  { name: "AWS Region", keyName: "awsRegion", placeholder: "us-east-1" },
+  { name: "AWS Secret Key", keyName: "awsSecretAccessKey", placeholder: "..." },
   { name: "Ayrshare", keyName: "ayrshareApiKey", placeholder: "ayr-..." },
   { name: "Cal.com", keyName: "calcomApiKey", placeholder: "cal-..." },
   { name: "ClickUp", keyName: "clickupApiToken", placeholder: "pk_..." },
   { name: "GitHub", keyName: "githubToken", placeholder: "ghp-..." },
   { name: "Linear", keyName: "linearApiKey", placeholder: "lin_api_..." },
+  { name: "MongoDB", keyName: "mongoConnectionString", placeholder: "mongodb+srv://..." },
+  { name: "n8n API Key", keyName: "n8nApiKey", placeholder: "n8n_..." },
+  { name: "n8n Base URL", keyName: "n8nBaseUrl", placeholder: "https://your-n8n-instance.com" },
   { name: "Notion", keyName: "notionApiKey", placeholder: "secret_..." },
   { name: "Slack", keyName: "slackBotToken", placeholder: "xoxb-..." },
   { name: "Stripe", keyName: "stripeSecretKey", placeholder: "sk_test_..." },
@@ -38,10 +44,10 @@ const apiTools = [
   { name: "Supabase URL", keyName: "supabaseUrl", placeholder: "https://<project-ref>.supabase.co" },
   { name: "Trello API Key", keyName: "trelloApiKey", placeholder: "key..." },
   { name: "Trello Token", keyName: "trelloToken", placeholder: "token..." },
+  { name: "Twilio SID", keyName: "twilioAccountSid", placeholder: "AC..." },
+  { name: "Twilio Token", keyName: "twilioAuthToken", placeholder: "..." },
   { name: "Zapier API Key", keyName: "zapierApiKey", placeholder: "sk_..." },
   { name: "Zapier Webhook URL", keyName: "zapierWebhookUrl", placeholder: "https://hooks.zapier.com/hooks/catch/..." },
-  { name: "n8n API Key", keyName: "n8nApiKey", placeholder: "n8n_..." },
-  { name: "n8n Base URL", keyName: "n8nBaseUrl", placeholder: "https://your-n8n-instance.com" },
 ];
 
 // List of OAuth providers
