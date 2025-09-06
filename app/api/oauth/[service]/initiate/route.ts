@@ -70,7 +70,50 @@ export async function GET(
     case "github":
       clientId = process.env.GITHUB_CLIENT_ID;
       // GitHub tokens don't expire by default
-      scope = "user:email repo"; // Added repo scope for more functionality
+      scope = [
+        "user:email",
+        "repo",
+        "repo:status",
+        "repo_deployment",
+        "public_repo",
+        "admin:repo_hook",
+        "admin:org",
+        "admin:org_hook",
+        "admin:public_key",
+        "admin:ssh_signing_key",
+        "admin:gpg_key",
+        "write:packages",
+        "read:packages",
+        "delete:packages",
+        "admin:packages",
+        "gist",
+        "notifications",
+        "user",
+        "write:org",
+        "read:org",
+        "admin:org",
+        "codespace",
+        "security_events",
+        "actions:read",
+        "actions:write",
+        "actions:admin",
+        "workflow",
+        "admin:enterprise",
+        "manage_runners:enterprise",
+        "manage_billing:enterprise",
+        "read:enterprise",
+        "write:enterprise",
+        "admin:enterprise",
+        "manage_runners:org",
+        "manage_billing:org",
+        "read:org",
+        "write:org",
+        "admin:org",
+        "manage_billing:user",
+        "read:user",
+        "write:user",
+        "admin:user"
+      ].join(" ");
       if (!clientId) {
         console.error("GITHUB_CLIENT_ID environment variable is not set.");
         return new Response("GitHub OAuth configuration error", { status: 500 });

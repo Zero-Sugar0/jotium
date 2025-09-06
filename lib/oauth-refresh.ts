@@ -187,6 +187,7 @@ export async function getValidOAuthAccessToken(userId: string, service: string):
     // If refresh failed, return the existing access token as a fallback.
     // It might be invalid, but we've logged the refresh failure.
     console.warn(`Failed to refresh token for ${service}. Returning existing token as fallback.`);
-    return await getDecryptedOAuthAccessToken({ userId, service });
+    const existingToken = await getDecryptedOAuthAccessToken({ userId, service });
+    return existingToken || "";
   }
 }

@@ -1,35 +1,38 @@
-# Jotium Agent
+# Jotium AI Agent: The Autonomous Intelligence Platform
 
 [![npm version](https://img.shields.io/npm/v/jotium-agent?style=flat-square)](https://www.npmjs.com/package/jotium-agent)
 [![npm downloads](https://img.shields.io/npm/dm/jotium-agent?style=flat-square)](https://www.npmjs.com/package/jotium-agent)
 
 ---
 
-## About
+## About Jotium
 
-**Jotium Agent** is a modern, extensible AI agent platform that brings the power of Google Gemini and 15+ production-grade tools to your workflow. Designed for developers, teams, and organizations, Jotium makes it easy to automate tasks, integrate with popular APIs, and build context-aware, multi-modal assistants for productivity, research, and automation.
+**Jotium AI Agent** is an elite, autonomous AI agent platform powered by Google Gemini, designed for sophisticated intelligence and proactive task execution. It integrates a cutting-edge **Enhanced Agentic Engine** with a vast array of production-grade tools, enabling developers, teams, and organizations to automate complex workflows, integrate seamlessly with popular APIs, and build highly context-aware, multi-modal assistants. Jotium goes beyond simple tool calling, offering deep reasoning, adaptive execution, and intelligent workflow orchestration for unparalleled productivity, research, and automation.
 
 ---
 
-## Why Use Jotium?
+## Why Choose Jotium?
 
-- **All-in-one AI agent:** Combines chat, code, web, scheduling, file, and more in a single platform.
-- **Production-ready:** Robust, secure, and built for real-world use.
-- **Extensible:** Add your own tools or connect to any API with minimal effort.
-- **Multi-modal:** Supports text, code, files, images, and structured data.
-- **Open and developer-friendly:** Easy to set up, customize, and contribute to.
+-   **Autonomous Intelligence:** Powered by an Enhanced Agentic Engine that performs multi-layered reasoning, strategic anticipation, and adaptive execution.
+-   **Comprehensive Toolset:** Access to 40+ production-ready tools for web search, file management, project management (Linear, Notion, ClickUp, Trello, Asana), communication (Gmail, Slack, Discord, Telegram, Twilio), data visualization, code execution, image generation, and more.
+-   **Proactive Workflows:** Automatically classifies user intent and executes intelligent, multi-step workflows to anticipate needs and deliver comprehensive solutions.
+-   **Multi-Modal Capabilities:** Seamlessly processes and generates content across text, code, files, images, and structured data.
+-   **Extensible & Developer-Friendly:** Easily integrate custom tools or connect to any API with a clear, open architecture.
+-   **Robust & Secure:** Built for real-world use with secure API key management and protected operations.
 
 ---
 
 ## Quick Start
 
+Get Jotium up and running in minutes:
+
 ```bash
 # 1. Install dependencies
 pnpm install
 
-# 2. Set up environment variables (see .env.example)
+# 2. Set up environment variables
+# Copy the example file and fill in your API keys for Gemini, Tavily, Slack, GitHub, etc.
 cp .env.example .env.local
-# Fill in your API keys for Gemini, Tavily, Slack, GitHub, etc.
 
 # 3. Run database migrations (if using Drizzle ORM)
 pnpm db:generate
@@ -38,139 +41,122 @@ pnpm db:migrate
 # 4. Start the development server
 pnpm dev
 
-# App runs at http://localhost:3000
+# Access the application at http://localhost:3000
 ```
 
 ---
 
-## Features
+## Key Features
 
-- **Notifications System:**
-  - Users receive notifications for important events (e.g., billing, account, and system updates).
-  - Notifications are fetched securely from `/api/notifications` and displayed in the UI.
-  - Unread notifications are highlighted and include timestamps.
-- **Authentication:**
-  - Secure login and registration using NextAuth.js.
-  - Session management and protected API routes.
-- **Billing & Pricing:**
-  - Stripe integration for subscriptions and payments.
-  - Webhooks for real-time updates and notifications.
-- **Modern UI:**
-  - Built with Tailwind CSS and Radix UI components.
-  - Responsive, accessible, and dark mode support.
-- **Extensible Tooling:**
-  - Easily add or customize tools in `ai/tools/`.
-  - Examples: web search, file management, GitHub, Slack, ClickUp, and more.
-- **Database:**
-  - Uses Drizzle ORM for migrations and queries.
-  - PostgreSQL recommended for production.
+-   **Enhanced Agentic Engine:**
+    -   **Deep Multi-Layer Reasoning:** Semantic analysis, intent decomposition, dynamic execution planning, risk assessment, and success criteria definition.
+    -   **Adaptive Execution:** Intelligent workflow orchestration, dependency checking, alternative tool finding, and intelligent failure recovery.
+    -   **Learning Patterns:** Adapts and improves intent classification and tool selection over time.
+-   **Advanced Research Workflows:** Conducts comprehensive multi-source research, synthesizes insights, and generates expert-level analysis with optional data visualizations.
+-   **Intelligent Data Visualization:** Creates professional, comprehensive visualizations from various data sources with automated insights and recommendations.
+-   **Email Management:** Analyzes email content, categorizes, extracts action items, and generates proactive next steps and reply suggestions.
+-   **Project Management Analysis:** Integrates with Linear, Notion, ClickUp, Trello, and Asana to provide comprehensive project overviews, task summaries, and actionable insights.
+-   **Notifications System:** Real-time updates for billing, account, and system events.
+-   **Secure Authentication:** NextAuth.js for robust login, registration, and session management.
+-   **Stripe Billing:** Seamless subscription and payment processing with webhook integration.
+-   **Modern UI:** Responsive, accessible, and dark mode support with Tailwind CSS and Radix UI.
+-   **Extensible Tooling:** Easily add or customize tools in `ai/tools/` to expand Jotium's capabilities.
+-   **Drizzle ORM:** PostgreSQL-ready database management for migrations and queries.
 
 ---
 
 ## Architecture
 
+### Jotium Agent Core ([`ai/jotium.ts`](./ai/jotium.ts))
 
-### Jotium Agent ([`ai/jotium.ts`](./ai/jotium.ts))
+-   **AIAgent Class:** The central orchestrator, wrapping Google Gemini, managing agent memory, and integrating the Enhanced Agentic Engine.
+-   **Tool Integration:** Dynamically registers and exposes a wide array of tools to Gemini as function declarations.
+-   **Memory Management:** Persists conversation history and tool results for contextual awareness.
+-   **Streaming Responses:** Delivers real-time output, including agent thoughts and tool execution details, via Server-Sent Events (SSE).
+-   **System Prompt:** Guides Jotium to operate as a human-like, proactive, and highly capable autonomous agent.
 
-- **Core:** `AIAgent` class wraps Google Gemini, manages memory, and orchestrates tool calls.
-- **Tool Integration:** Tools are registered in a map and exposed to Gemini as function declarations.
-- **Memory:** Recent messages and tool results are persisted to disk (configurable).
-- **Streaming:** All responses (including tool output and agent thoughts) are streamed to the client via SSE.
-- **System Prompt:** Jotium is instructed to act as a human-like, proactive, tool-empowered agent.
+### Enhanced Agentic Engine ([`ai/actions.ts`](./ai/actions.ts))
 
+-   **Core Intelligence:** Implements the multi-layered reasoning and adaptive execution logic.
+-   **Intent Classification:** Analyzes user messages to classify intent, required tools, and autonomy level.
+-   **Workflow Orchestration:** Dynamically generates and executes multi-step workflows, handling dependencies, fallbacks, and real-time adaptations.
+-   **Contextual Parameter Enhancement:** Enriches tool parameters with dynamic context for more precise operations.
 
 ### Tool System ([`ai/tools/`](./ai/tools/))
 
-Each tool implements a simple interface:
-- `getDefinition()`: Returns a function declaration for Gemini (OpenAI-style function calling)
-- `execute(args)`: Runs the tool logic and returns a result
+Each tool adheres to a simple interface:
+-   `getDefinition()`: Provides a function declaration for Gemini's tool calling.
+-   `execute(args)`: Contains the specific logic for the tool's operation.
 
+#### Highlighted Tools
 
-#### Major Tools
-
-- **WebSearchTool**: Real-time web search via Tavily (news, research, current data)
-- **FileManagerTool**: Local file operations (read, write, list, delete, copy, move, compress, search, etc.)
-- **GithubTool**: Full GitHub API (repos, files, issues, PRs, releases, webhooks, etc.)
-- **SlackTool**: Slack messaging, channel management, user ops, file uploads, and more
-- **ClickUpTool**: Project management, tasks, lists, spaces, comments, time tracking, and more
-- **ApiTool**: Universal HTTP client (REST, GraphQL, file upload, auth, retries, etc.)
-- **DateTimeTool**: Date/time formatting, parsing, timezone conversion, calculations
-- **DuffelFlightTool**: Flight search, booking, payment, order status, cancellation (Duffel API)
-- **CalComTool**: Scheduling, bookings, events, availability, teams (Cal.com API)
-- **AyrshareSocialTool**: Social media posting, scheduling, analytics, comments, messaging, ads
-- **WebScrapeTool**: Advanced web scraping, crawling, and search-based extraction (FireCrawl)
-- **CodeExecutionTool**: Run code, files, commands, manage processes, install packages, debug, test
-- **ImageGenerationTool**: Generate and edit images using Gemini's image generation
-- **CreateDocumentTool**: Create documents for writing/content creation, with streaming support
-- **UpdateDocumentTool**: Update existing documents with new content or edits
-- **GetWeatherTool**: Fetch current weather for any location (Open-Meteo API)
-- **RequestSuggestionsTool**: Request AI-powered suggestions for document edits
+-   **TavilyWebSearchTool**: Advanced real-time web search, extraction, and crawling.
+-   **FileManagerTool**: Comprehensive local file system operations.
+-   **GitHubTool**: Full GitHub API integration for repository and project management.
+-   **SlackTool & DiscordTool & TelegramTool & TwilioTool**: Multi-platform communication and messaging.
+-   **ClickUpTool, LinearManagementTool, NotionTool, TrelloTool, AsanaTool**: Integrated project and task management across various platforms.
+-   **ApiTool**: Universal HTTP client for interacting with any REST/GraphQL API.
+-   **DateTimeTool**: Advanced date/time manipulation and conversion.
+-   **DuffelFlightTool**: End-to-end flight search, booking, and management.
+-   **CalComTool**: Seamless scheduling and event management.
+-   **AyrshareSocialTool**: Social media posting, scheduling, and analytics.
+-   **CodeExecutionTool**: Secure execution of code, scripts, and commands.
+-   **ImageGenerationTool**: AI-powered image generation and editing.
+-   **DataVisualizationTool**: Generates various chart types from data for insights.
+-   **GmailTool, GoogleCalendarTool, GoogleDriveTool, GoogleSheetsTool**: Comprehensive Google Workspace integration.
+-   **MongoDBTool, SupabaseTool, AmazonS3Tool, FirebaseTool**: Database and cloud storage operations.
+-   **HubSpotTool**: CRM management.
+-   **AlphaVantageTool, StockTool**: Financial data and market analysis.
+-   **PDFTool**: PDF generation and manipulation.
+-   **JinaTool, Context7Tool, LangSearchTool, SerperSearchTool, SerpstackTool, DuckDuckGoSearchTool**: Diverse search and knowledge discovery tools.
+-   **N8NTool, ZapierTool**: Workflow automation and integration.
 
 ---
 
-
----
-
-## Tool Example: Web Search
+## Tool Example: Advanced Research
 
 ```js
-const result = await agent.tools.get('web_search').execute({
-  query: "latest AI research",
-  maxResults: 10,
-  searchDepth: "advanced"
-});
-console.log(result.answer, result.results);
+// The agent autonomously orchestrates multiple search tools and synthesizes results
+const researchResult = await agent.chat("Conduct a comprehensive market analysis report for the AI in healthcare sector, including recent trends and key players.");
+console.log(researchResult.summary, researchResult.findings, researchResult.visualizations);
 ```
 
-
-## Tool Example: File Management
+## Tool Example: Project Task Creation (ClickUp)
 
 ```js
-const result = await agent.tools.get('file_manager').execute({
-  action: "read",
-  filePath: "/path/to/file.txt"
-});
-console.log(result.content);
+// The agent intelligently creates tasks based on context
+const taskResult = await agent.chat("Create a new task in ClickUp for 'Develop new user authentication module' with high priority, due next Friday, assigned to John Doe.");
+console.log(taskResult.summary, taskResult.taskDetails);
 ```
-
----
-
 
 ---
 
 ## Adding a New Tool
 
-1. Create a new file in `ai/tools/` implementing the `Tool` interface:
-   - `getDefinition()`: Describe the tool and its parameters
-   - `execute(args)`: Implement the logic
-2. Register your tool in `ai/jotium.ts` in `initializeTools()`
-3. (Optional) Add environment variables for API keys/secrets
+1.  Create a new file in `ai/tools/` that implements the `Tool` interface:
+    -   `getDefinition()`: Define the tool's capabilities and parameters for Gemini.
+    -   `execute(args)`: Implement the core logic of your tool.
+2.  Register your new tool in `ai/jotium.ts` within the `initializeTools()` method.
+3.  (Optional) Add any required environment variables for API keys/secrets to your `.env.local` file.
 
 ---
 
+## Security Best Practices
 
----
-
-## Security
-
-- **Never commit `.env` files** or secrets to the repo.
-- All API keys and tokens are loaded from environment variables.
-- Sensitive operations (file, code, API) are protected by authentication and input validation.
-
----
-
+-   **Environment Variables:** Always load API keys and sensitive tokens from environment variables (`.env.local`). **Never commit `.env` files** to your repository.
+-   **Input Validation:** All sensitive operations (file system, code execution, API calls) are protected by robust authentication and input validation mechanisms.
+-   **Least Privilege:** Tools are designed to operate with the minimum necessary permissions.
 
 ---
 
 ## Contributing
 
-- Fork and clone the repo
-- Add new tools or improve existing ones
-- Write tests for new features
-- Open a PR with a clear description
+We welcome contributions to enhance Jotium's capabilities!
 
----
-
+-   Fork and clone the repository.
+-   Develop new tools or improve existing ones.
+-   Write comprehensive tests for all new features.
+-   Open a Pull Request with a clear and detailed description of your changes.
 
 ---
 
@@ -180,38 +166,32 @@ This project is licensed under the [MIT License](./LICENSE).
 
 ---
 
----
-
-
 ## Credits
 
-- Built with [Google Gemini](https://ai.google.dev/)
-- Web search powered by [Tavily](https://tavily.com/)
-- Web scraping by [FireCrawl](https://firecrawl.dev/)
-- Scheduling by [Cal.com](https://cal.com/)
-- Social media by [Ayrshare](https://ayrshare.com/)
-- Project management by [ClickUp](https://clickup.com/)
-- Flights by [Duffel](https://duffel.com/)
-- And many more...
-
----
-
+-   Built with 💖 and powered by [Google Gemini](https://ai.google.dev/)
+-   Web search by [Tavily](https://tavily.com/)
+-   Web scraping by [FireCrawl](https://firecrawl.dev/)
+-   Scheduling by [Cal.com](https://cal.com/)
+-   Social media by [Ayrshare](https://ayrshare.com/)
+-   Project management by [ClickUp](https://clickup.com/), [Linear](https://linear.app/), [Notion](https://www.notion.so/), [Trello](https://trello.com/), [Asana](https://asana.com/)
+-   Flights by [Duffel](https://duffel.com/)
+-   And many more incredible open-source and API services!
 
 ---
 
 ## Contact
 
-For support, feature requests, or questions, open an issue or contact the maintainer.
+For support, feature requests, or questions, please open an issue on GitHub or contact the maintainers directly.
 
 ---
 
 ## Project Structure
 
 ```
-app/                # Next.js app directory (routes, pages, API)
-ai/                 # AI agent core and tools
-components/         # UI components (custom, flights, ui)
-db/                 # Database schema, queries, migrations
-lib/                # Utilities and helpers
-public/             # Static assets (fonts, images, logos)
-```
+app/                # Next.js app directory (routes, pages, API endpoints)
+ai/                 # Core AI agent logic, Enhanced Agentic Engine, and tool definitions
+components/         # Reusable UI components (custom, flights, ui libraries)
+db/                 # Database schema, Drizzle ORM migrations, and query functions
+lib/                # Shared utilities, helpers, and core libraries
+public/             # Static assets (fonts, images, logos, favicons)
+types/              # TypeScript declaration files for custom types

@@ -1,12 +1,23 @@
 import { FunctionDeclaration, Type } from "@google/genai";
 import { Octokit } from "@octokit/rest";
+import { getValidOAuthAccessToken } from "@/lib/oauth-refresh";
+
+export interface GitHubConfig {
+  token: string;
+}
 
 export class GitHubTool {
   private octokit: Octokit;
+  private token: string;
+  private userId: string;
+  private oauthToken: string | null;
 
-  constructor(token: string) {
+  constructor(config: GitHubConfig, userId: string, oauthToken: string | null = null) {
+    this.token = config.token;
+    this.userId = userId;
+    this.oauthToken = oauthToken;
     this.octokit = new Octokit({
-      auth: token,
+      auth: this.token,
     });
   }
 
@@ -295,6 +306,14 @@ export class GitHubTool {
   }
 
   async execute(args: any): Promise<any> {
+    let accessToken: string | null = this.oauthToken;
+    if (!accessToken) {
+      accessToken = await getValidOAuthAccessToken(this.userId, "github");
+    }
+
+    const token = accessToken || this.token;
+    this.octokit = new Octokit({ auth: token });
+
     switch (args.action) {
       case "get_authenticated_user":
         return this.executeGetAuthenticatedUser(args);

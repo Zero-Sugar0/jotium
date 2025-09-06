@@ -41,6 +41,9 @@ importers:
       '@notionhq/notion-mcp-server':
         specifier: ^1.9.0
         version: 1.9.0(js-yaml@4.1.0)
+      '@octokit/auth-token':
+        specifier: ^6.0.0
+        version: 6.0.0
       '@octokit/rest':
         specifier: ^22.0.0
         version: 22.0.0
