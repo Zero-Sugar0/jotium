@@ -231,9 +231,17 @@ export class AIAgent {
     this.tools.set("clickup_tool", new ClickUpTool(clickupConfig, userId || "", clickupOauthToken ));
 
     // Slack
+    let slackOauthToken: string | null = null;
+    const slackConfig: any = {};
     const slackKey = await getKey("Slack", "SLACK_BOT_TOKEN");
     if (slackKey) {
-      const tool = new SlackTool({ botToken: slackKey });
+        slackConfig.botToken = slackKey;
+    }
+    if (userId) {
+      slackOauthToken = await getDecryptedOAuthAccessToken({ userId, service: "slack" });
+    }
+    if (slackKey || slackOauthToken) {
+      const tool = new SlackTool(slackConfig, userId || "", slackOauthToken);
       const toolName = tool.getDefinition().name;
       if (toolName) {
         this.tools.set(toolName, tool);
