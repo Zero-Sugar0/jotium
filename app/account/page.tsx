@@ -48,6 +48,12 @@ const apiTools = [
   { name: "Twilio Token", keyName: "twilioAuthToken", placeholder: "..." },
   { name: "Zapier API Key", keyName: "zapierApiKey", placeholder: "sk_..." },
   { name: "Zapier Webhook URL", keyName: "zapierWebhookUrl", placeholder: "https://hooks.zapier.com/hooks/catch/..." },
+  { name: "HubSpot Access Token", keyName: "hubspotAccessToken", placeholder: "pat-..." },
+  { name: "HubSpot Developer API Key", keyName: "hubspotDeveloperApiKey", placeholder: "hsapi..." },
+  { name: "Discord Bot Token", keyName: "discordBotToken", placeholder: "MTAx..." },
+  { name: "Discord Default Guild ID", keyName: "discordDefaultGuildId", placeholder: "1234567890..." },
+  { name: "Telegram Bot Token", keyName: "telegramBotToken", placeholder: "1234567890:..." },
+  { name: "Firebase Config", keyName: "firebaseConfig", placeholder: "{...}" },
 ];
 
 // List of OAuth providers
