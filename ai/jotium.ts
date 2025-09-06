@@ -51,6 +51,10 @@ import { Context7Tool } from './tools/Context7Tool';
 import { MongoDBTool } from './tools/MongoDBTool';
 import { TwilioTool } from './tools/TwilioTool';
 import { S3Tool } from './tools/AmazonS3Tool';
+import { HubSpotTool } from './tools/HubSpotTool';
+import { DiscordTool } from './tools/DiscordTool';
+import { TelegramTool } from './tools/TelegramTool';
+import { FirebaseTool } from './tools/FirebaseTool';
 
 // Import Enhanced Agentic Engine
 import { EnhancedAgenticEngine, EnhancedActionIntent } from './actions';
@@ -336,6 +340,51 @@ export class AIAgent {
         region: awsRegion,
       });
       this.tools.set("s3_storage", s3Tool);
+    }
+
+    // HubSpot
+    const hubspotAccessToken = await getKey("HubSpot Access Token", "HUBSPOT_ACCESS_TOKEN");
+    const hubspotDeveloperApiKey = await getKey("HubSpot Developer API Key", "HUBSPOT_DEVELOPER_API_KEY");
+    if (hubspotAccessToken || hubspotDeveloperApiKey) {
+      const hubspotTool = new HubSpotTool(hubspotAccessToken, hubspotDeveloperApiKey);
+      this.tools.set("hubspot_crm", hubspotTool);
+    }
+
+    // Discord
+    const discordBotToken = await getKey("Discord Bot Token", "DISCORD_BOT_TOKEN");
+    const discordDefaultGuildId = await getKey("Discord Default Guild ID", "DISCORD_DEFAULT_GUILD_ID");
+    if (discordBotToken) {
+      const discordTool = new DiscordTool(discordBotToken, discordDefaultGuildId);
+      this.tools.set("discord_bot", {
+        getDefinition: () => discordTool.getDefinition(),
+        execute: (args: any) => discordTool.execute(args),
+      } as Tool);
+    }
+
+    // Telegram
+    const telegramBotToken = await getKey("Telegram Bot Token", "TELEGRAM_BOT_TOKEN");
+    const telegramDefaultChatId = await getKey("Telegram Default Chat ID", "TELEGRAM_DEFAULT_CHAT_ID");
+    if (telegramBotToken) {
+      const telegramTool = new TelegramTool(telegramBotToken, telegramDefaultChatId);
+      this.tools.set("telegram_bot", {
+        getDefinition: () => telegramTool.getDefinition(),
+        execute: (args: any) => telegramTool.execute(args),
+      } as Tool);
+    }
+
+    // Firebase
+    const firebaseConfig = await getKey("Firebase Config", "FIREBASE_CONFIG");
+    if (firebaseConfig) {
+      try {
+        const config = JSON.parse(firebaseConfig);
+        const firebaseTool = new FirebaseTool(config);
+        this.tools.set("firebase_operation", {
+          getDefinition: () => firebaseTool.getDefinition(),
+          execute: (args: any) => firebaseTool.execute(args),
+        } as Tool);
+      } catch (e) {
+        console.error("Error parsing Firebase config:", e);
+      }
     }
 
     // --- Group 4: OAuth Tools (require OAuth connection) ---
