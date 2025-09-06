@@ -195,8 +195,7 @@ export class TwilioTool {
           statusCallbackEvent: {
             type: Type.ARRAY,
             items: { type: Type.STRING },
-            description: "Events that trigger status callbacks",
-            enum: ["initiated", "ringing", "answered", "completed"]
+            description: "Events that trigger status callbacks"
           },
           statusCallbackMethod: {
             type: Type.STRING,
@@ -315,8 +314,7 @@ export class TwilioTool {
           videoCodecs: {
             type: Type.ARRAY,
             items: { type: Type.STRING },
-            description: "Preferred video codecs",
-            enum: ["VP8", "H264"]
+            description: "Preferred video codecs"
           },
           mediaRegion: {
             type: Type.STRING,
@@ -717,8 +715,7 @@ export class TwilioTool {
           type: {
             type: Type.ARRAY,
             items: { type: Type.STRING },
-            description: "Types of information to retrieve",
-            enum: ["carrier", "caller-name", "sms-pumping-risk", "call-forwarding", "line-type-intelligence", "identity-match", "reassigned-number", "sim-swap"]
+            description: "Types of information to retrieve"
           },
           addOns: {
             type: Type.ARRAY,
