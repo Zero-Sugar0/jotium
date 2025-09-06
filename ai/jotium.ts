@@ -99,6 +99,17 @@ export class AIAgent {
   // Async initialization for tools, must be called after constructing the agent
   public async initializeTools(userId?: string): Promise<void> {
     // --- Group 1: Excluded Tools (initialized from .env only) ---
+    const geminiApiKey = process.env.GEMINI_API_KEY;
+    if (!geminiApiKey) {
+      throw new Error("GEMINI_API_KEY is required in .env to initialize the agent.");
+    }
+    
+    // Initialize GoogleGenAI
+    const ai = new GoogleGenAI({ apiKey: geminiApiKey });
+    
+    // Initialize EnhancedAgenticEngine
+    this.agenticEngine = new EnhancedAgenticEngine(this.tools, ai);
+
     if (process.env.TAVILY_API_KEY) {
       const webSearchTool = new TavilyWebSearchTool(process.env.TAVILY_API_KEY);
       this.tools.set("tavily_web_search", {
@@ -179,9 +190,17 @@ export class AIAgent {
     if (calcomKey) this.tools.set("calcom_scheduler", new CalComTool(calcomKey));
 
     // GitHub
+    let githubOauthToken: string | null = null;
+    const githubConfig: any = {};
     const githubKey = await getKey("GitHub", "GITHUB_TOKEN");
     if (githubKey) {
-      const tool = new GitHubTool(githubKey);
+        githubConfig.token = githubKey;
+    }
+    if (userId) {
+      githubOauthToken = await getDecryptedOAuthAccessToken({ userId, service: "github" });
+    }
+    if (githubKey || githubOauthToken) {
+      const tool = new GitHubTool(githubConfig, userId || "", githubOauthToken);
       this.tools.set("github_tool", tool);
     }
 
@@ -192,13 +211,11 @@ export class AIAgent {
       this.tools.set("notion_tool", tool);
     }
 
-    // Stripe
-    if (userId) {
-        const stripeKey = await getDecryptedApiKey({ userId, service: "Stripe" });
-        if (stripeKey) {
-            const tool = new StripeManagementTool(stripeKey);
-            this.tools.set("stripe_tool", tool);
-        }
+    //Stipe
+    const stripeKey = await getKey("Stripe", "STRIPE_API_KEY")
+    if (stripeKey) {
+      const tool = new StripeManagementTool(stripeKey);
+      this.tools.set("stripe_management", tool);
     }
 
     // ClickUp
@@ -445,10 +462,8 @@ export class AIAgent {
     }
 
     console.log(`✅ Initialized ${this.tools.size} tools`);
-    // Initialize the Agentic Decision Engine
-    this.agenticEngine = new EnhancedAgenticEngine(this.tools);
   }
-
+  
   // Memory Management
 private async loadMemory(): Promise<void> {
     try {
@@ -725,7 +740,7 @@ NEVER MENTION YOUR TOOLS NAME IN A CODE FORMAT TO THE USER EVERY AND NEVER SAY T
 
     try {
       // 1. AGENTIC DECISION ENGINE - Classify intent and check for proactive workflows
-      const intent: EnhancedActionIntent = this.agenticEngine.classifyIntent(userMessage);
+      const intent: EnhancedActionIntent = await this.agenticEngine.classifyIntent(userMessage);
       
       console.log(`🎯 Detected intent: ${intent.category} -> ${intent.action} (confidence: ${intent.confidence})`);
       

@@ -1,6 +1,12 @@
 //ai/actions.ts
 import { Tool, ToolCall, ToolResult } from "./types";
 import { generateUUID } from "@/lib/utils";
+import { GoogleGenAI } from "@google/genai"; // Import GoogleGenAI
+
+export interface GitHubAuthentication {
+  username: string;
+  token: string; // In reality, this would be more complex (e.g., OAuth tokens)
+}
 
 export interface ResearchWorkflow {
   queries: string[];
@@ -77,13 +83,15 @@ export class EnhancedAgenticEngine {
   private tools: Map<string, Tool>;
   private executionMemory: Map<string, ExecutionContext> = new Map();
   private learningPatterns: Map<string, number> = new Map();
+  private ai: GoogleGenAI; // Add GoogleGenAI instance
 
-  constructor(tools: Map<string, Tool>) {
+  constructor(tools: Map<string, Tool>, ai: GoogleGenAI) { // Accept GoogleGenAI in constructor
     this.tools = tools;
+    this.ai = ai; // Initialize AI
   }
 
-  public classifyIntent(userMessage: string): EnhancedActionIntent {
-    const reasoning = this.performDeepReasoning(userMessage);
+  public async classifyIntent(userMessage: string): Promise<EnhancedActionIntent> {
+    const reasoning = await this.performDeepReasoning(userMessage);
     const intent = this.synthesizeIntent(reasoning, userMessage);
     
     // Learn from pattern success rates
@@ -97,7 +105,7 @@ export class EnhancedAgenticEngine {
     userMessage: string,
     executeToolFn: (toolCall: ToolCall) => Promise<ToolResult>
   ): Promise<any> {
-    const reasoning = this.performDeepReasoning(userMessage);
+    const reasoning = await this.performDeepReasoning(userMessage);
     const context: ExecutionContext = {
       results: new Map(),
       insights: [],
@@ -115,16 +123,17 @@ export class EnhancedAgenticEngine {
   }
 
   // Deep Multi-Layer Reasoning Engine
-  private performDeepReasoning(message: string): ReasoningChain {
+  private async performDeepReasoning(message: string): Promise<ReasoningChain> {
     // Layer 1: Semantic Analysis
     const semantics = this.analyzeSemantics(message);
-    
+    semantics.context = { originalMessage: message }; // Add original message to semantics context
+
     // Layer 2: Intent Decomposition 
-    const userGoal = this.extractPrimaryGoal(semantics);
-    const subGoals = this.decomposeIntoSubGoals(userGoal, semantics);
+    const userGoal = await this.extractPrimaryGoal(semantics);
+    const subGoals = await this.decomposeIntoSubGoals(userGoal, semantics);
     
     // Layer 3: Tool Strategy Planning
-    const toolStrategy = this.planToolStrategy(subGoals, semantics);
+    const toolStrategy = await this.planToolStrategy(subGoals, semantics);
     
     // Layer 4: Dynamic Execution Planning
     const executionPlan = this.generateAdaptiveExecutionPlan(subGoals, toolStrategy);
@@ -153,34 +162,80 @@ export class EnhancedAgenticEngine {
     return { entities, actions, context, urgency, complexity };
   }
 
-  private extractPrimaryGoal(semantics: any): string {
-    const { actions, entities, context } = semantics;
+  private async extractPrimaryGoal(semantics: any): Promise<string> {
+    const { originalMessage } = semantics.context;
+    const prompt = `Given the following user message, identify the single most important primary goal. Respond with only the goal string, no other text.
     
-    // Multi-signal goal detection
+    User message: "${originalMessage}"
+    
+    Examples of primary goals:
+    - Execute intelligent flight booking with price optimization
+    - Conduct comprehensive multi-source research with expert analysis
+    - Establish complete project ecosystem with intelligent automation
+    - Provide intelligent email management with contextual understanding
+    - Execute comprehensive financial analysis with actionable insights
+    - Provide adaptive intelligent assistance
+    `;
+
+    try {
+      const result = await this.ai.models.generateContent({
+        model: "gemini-2.0-flash", // Use a fast model for internal reasoning
+        contents: [{ role: "user", parts: [{ text: prompt }] }]
+      });
+      const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim(); // Corrected access
+      if (responseText) {
+        return responseText;
+      }
+    } catch (error) {
+      console.error("Error extracting primary goal with LLM:", error);
+    }
+
+    // Fallback to heuristic-based detection if LLM fails or is not available
+    const { actions, entities, context } = semantics;
     if (this.detectPattern(['flight', 'book', 'travel'], entities, actions, context)) {
       return 'Execute intelligent flight booking with price optimization';
     }
-    
     if (this.detectPattern(['research', 'analyze', 'study'], entities, actions, context)) {
       return 'Conduct comprehensive multi-source research with expert analysis';
     }
-    
     if (this.detectPattern(['create', 'project', 'build'], entities, actions, context)) {
       return 'Establish complete project ecosystem with intelligent automation';
     }
-    
     if (this.detectPattern(['email', 'send', 'gmail'], entities, actions, context)) {
       return 'Provide intelligent email management with contextual understanding';
     }
-    
     if (this.detectPattern(['stock', 'financial', 'market'], entities, actions, context)) {
       return 'Execute comprehensive financial analysis with actionable insights';
     }
-    
     return 'Provide adaptive intelligent assistance';
   }
 
-  private decomposeIntoSubGoals(primaryGoal: string, semantics: any): string[] {
+  private async decomposeIntoSubGoals(primaryGoal: string, semantics: any): Promise<string[]> {
+    const { originalMessage } = semantics.context;
+    const prompt = `Given the primary goal "${primaryGoal}" and the original user message, decompose it into a list of concise sub-goals. Respond with a comma-separated list of sub-goals, no other text.
+    
+    User message: "${originalMessage}"
+    Primary Goal: "${primaryGoal}"
+    
+    Example:
+    Primary Goal: "Conduct comprehensive multi-source research with expert analysis"
+    Sub-goals: Execute multi-engine search across sources, Discover relevant educational videos, Synthesize insights from multiple perspectives, Generate expert-level analysis and recommendations, Create structured research report with next steps
+    `;
+
+    try {
+      const result = await this.ai.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: [{ role: "user", parts: [{ text: prompt }] }]
+      });
+      const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim(); // Corrected access
+      if (responseText) {
+        return responseText.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+      }
+    } catch (error) {
+      console.error("Error decomposing sub-goals with LLM:", error);
+    }
+
+    // Fallback to heuristic-based decomposition
     const goalDecomposition: Record<string, string[]> = {
       'Execute intelligent flight booking with price optimization': [
         'Parse travel requirements with intelligent defaults',
@@ -217,38 +272,55 @@ export class EnhancedAgenticEngine {
         'Create monitoring and alert systems'
       ]
     };
-    
     return goalDecomposition[primaryGoal] || ['Provide contextual assistance', 'Generate actionable insights'];
   }
 
-  private planToolStrategy(subGoals: string[], semantics: any): string[] {
-    const strategy: string[] = [];
+  private async planToolStrategy(subGoals: string[], semantics: any): Promise<string[]> {
     const availableTools = Array.from(this.tools.keys());
+    const prompt = `Given the following sub-goals and available tools, plan a strategy for which tools to use for each sub-goal. Respond with a comma-separated list of tool strategies, where each strategy is a brief description of tool usage for a sub-goal. If no specific tool is ideal, suggest 'Use available tools adaptively'.
     
-    // Intelligent tool selection based on goals and availability
+    Sub-goals: ${subGoals.join(', ')}
+    Available Tools: ${availableTools.join(', ')}
+    
+    Example:
+    Sub-goals: Execute multi-engine search across sources, Generate expert-level analysis
+    Available Tools: serper_search, web_search, data_visualization
+    Tool Strategies: Primary: serper_search, Fallback: web_search, Use data_visualization for analysis
+    `;
+
+    try {
+      const result = await this.ai.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: [{ role: "user", parts: [{ text: prompt }] }]
+      });
+      const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim(); // Corrected access
+      if (responseText) {
+        return responseText.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+      }
+    } catch (error) {
+      console.error("Error planning tool strategy with LLM:", error);
+    }
+
+    // Fallback to heuristic-based strategy planning
+    const strategy: string[] = [];
     for (const goal of subGoals) {
       if (goal.includes('search') || goal.includes('research')) {
         const searchTools = this.rankSearchTools();
         strategy.push(`Primary: ${searchTools[0]}, Fallback: ${searchTools[1]}`);
       }
-      
       if (goal.includes('project') && this.tools.has('asana_tool')) {
         strategy.push('Use Asana for project management with intelligent task generation');
       }
-      
       if (goal.includes('flight') && this.tools.has('flight_booking')) {
         strategy.push('Use flight booking with intelligent parameter optimization');
       }
-      
       if (goal.includes('financial') && this.tools.has('alphavantage_tool')) {
         strategy.push('Use AlphaVantage with web search for comprehensive analysis');
       }
-      
       if (goal.includes('email') && this.tools.has('gmail_operations')) {
         strategy.push('Use Gmail operations with intelligent context processing');
       }
     }
-    
     return strategy.length > 0 ? strategy : ['Use available tools adaptively'];
   }
 
@@ -289,7 +361,7 @@ export class EnhancedAgenticEngine {
         tool: 'flight_booking',
         params: { action: 'intelligent_search' },
         dependencies: [],
-        fallbackTools: ['web_search'],
+        fallbackTools: ['serper_search'],
         priority: 'critical',
         adaptable: true
       };
@@ -457,7 +529,7 @@ export class EnhancedAgenticEngine {
 
   // Utility methods for intelligent operations
   private rankSearchTools(): string[] {
-    const tools = ['serper_search', 'web_search', 'duckduckgo_search'];
+    const tools = ['serper_search', 'tavily_web_search', 'jina_ai_service', 'duckduckgo_search', 'langsearch_search'];
     return tools.filter(tool => this.tools.has(tool)).sort((a, b) => {
       // Rank based on learning patterns and capabilities
       const aScore = this.learningPatterns.get(a) || 0.5;
@@ -467,11 +539,11 @@ export class EnhancedAgenticEngine {
   }
 
   private selectOptimalSearchTool(): string {
-    return this.rankSearchTools()[0] || 'web_search';
+    return this.rankSearchTools()[0] || 'serper_search';
   }
 
   private selectOptimalProjectTool(): string {
-    const tools = ['asana_tool', 'linear_management', 'notion_tool'];
+    const tools = ['asana_tool', 'clickup_tool', 'linear_management', 'notion_tool'];
     return tools.find(tool => this.tools.has(tool)) || 'notion_tool';
   }
 
@@ -582,33 +654,241 @@ export class EnhancedAgenticEngine {
   }
 
   // Placeholder implementations for remaining methods
-  private assessExecutionRisks(plan: ExecutionStep[]): string[] { return []; }
-  private defineSuccessCriteria(goal: string, subGoals: string[]): string[] { return []; }
-  private areDependenciesSatisfied(deps: string[], context: ExecutionContext): boolean { return true; }
-  private shouldAdapt(result: any, step: ExecutionStep): boolean { return false; }
-  private async adaptExecution(step: ExecutionStep, result: any, plan: ExecutionStep[], executeToolFn: any): Promise<any> { return null; }
-  private async attemptIntelligentRecovery(step: ExecutionStep, error: any, executeToolFn: any): Promise<any> { return null; }
-  private enhanceParametersWithContext(params: any, context: ExecutionContext): any { return params; }
-  private generateIntelligentSummary(reasoning: ReasoningChain, context: ExecutionContext, rate: number): string { return 'Intelligent execution completed'; }
-  private extractActionableInsights(results: Map<string, any>, reasoning: ReasoningChain): string[] { return []; }
-  private generateProactiveNextSteps(reasoning: ReasoningChain, context: ExecutionContext, intent: EnhancedActionIntent): string[] { return []; }
-  private identifyNewOpportunities(results: Map<string, any>, reasoning: ReasoningChain): string[] { return []; }
-  private generateActionsSummary(context: ExecutionContext): string[] { return []; }
-  private extractRequiredTools(reasoning: ReasoningChain): string[] { return []; }
-  private extractOptionalTools(reasoning: ReasoningChain): string[] { return []; }
-  private identifyProactiveOpportunities(reasoning: ReasoningChain): string[] { return []; }
-  private async handleIntelligentFailure(error: any, reasoning: ReasoningChain, context: ExecutionContext, executeToolFn: any): Promise<any> { 
-    return { success: false, error: error.message, useDefaultFlow: true }; 
+  private assessExecutionRisks(plan: ExecutionStep[]): string[] {
+    const risks: string[] = [];
+    for (const step of plan) {
+      if (!this.tools.has(step.tool) && step.tool !== 'internal') {
+        risks.push(`Tool '${step.tool}' for step '${step.action}' is not available.`);
+      }
+      if (step.dependencies.length > 0 && !this.areDependenciesSatisfied(step.dependencies, { results: new Map(), insights: [], adaptations: [], nextOpportunities: [], failureRecovery: [] })) { // Simplified check for planning phase
+        risks.push(`Potential dependency issue for step '${step.action}'.`);
+      }
+      if (step.priority === 'critical' && step.fallbackTools.length === 0) {
+        risks.push(`Critical step '${step.action}' has no fallback tools.`);
+      }
+    }
+    return risks;
   }
 
-// Enhanced Research Workflow
-private async executeAdvancedResearch(
-  query: string,
-  context: ExecutionContext,
-  executeToolFn: (toolCall: ToolCall) => Promise<ToolResult>
-): Promise<any> {
-  const researchPlan = this.createResearchPlan(query);
-  const searchResults: any[] = [];
+  private defineSuccessCriteria(goal: string, subGoals: string[]): string[] {
+    const criteria: string[] = [];
+    criteria.push(`Primary goal "${goal}" is successfully achieved.`);
+    subGoals.forEach(subGoal => criteria.push(`Sub-goal "${subGoal}" is completed.`));
+    criteria.push('All required tools executed successfully.');
+    criteria.push('Actionable insights and next steps are provided.');
+    return criteria;
+  }
+
+  private areDependenciesSatisfied(deps: string[], context: ExecutionContext): boolean {
+    return deps.every(depId => context.results.has(depId) && context.results.get(depId)?.result?.success !== false);
+  }
+
+  private shouldAdapt(result: any, step: ExecutionStep): boolean {
+    // Simple adaptation logic: if a tool call failed or returned an empty/unsuccessful result
+    return step.adaptable && (result?.result?.success === false || !result?.result);
+  }
+
+  private async adaptExecution(
+    step: ExecutionStep,
+    result: any,
+    plan: ExecutionStep[],
+    executeToolFn: (toolCall: ToolCall) => Promise<ToolResult>
+  ): Promise<any> {
+    console.log(`🔄 Adapting execution for step: ${step.action}`);
+    // Try fallback tools first
+    for (const fallbackTool of step.fallbackTools) {
+      if (this.tools.has(fallbackTool)) {
+        try {
+          const alternativeStep = { ...step, tool: fallbackTool, id: generateUUID() }; // New ID for adapted step
+          const newResult = await this.executeIntelligentStep(alternativeStep, { results: new Map(), insights: [], adaptations: [], nextOpportunities: [], failureRecovery: [] }, executeToolFn);
+          return { success: true, result: newResult, adapted: true, originalStepId: step.id };
+        } catch (error) {
+          console.log(`Fallback tool ${fallbackTool} also failed: ${error}`);
+        }
+      }
+    }
+    // If no fallback, try to re-evaluate the step with modified parameters (e.g., simpler query)
+    if (step.params.depth === 'comprehensive') {
+      try {
+        const simplerStep = { ...step, params: { ...step.params, depth: 'standard' }, id: generateUUID() };
+        const newResult = await this.executeIntelligentStep(simplerStep, { results: new Map(), insights: [], adaptations: [], nextOpportunities: [], failureRecovery: [] }, executeToolFn);
+        return { success: true, result: newResult, adapted: true, originalStepId: step.id, reason: 'Simplified parameters' };
+      } catch (error) {
+        console.log(`Simplified execution also failed: ${error}`);
+      }
+    }
+    return null; // Adaptation failed
+  }
+
+  private async attemptIntelligentRecovery(
+    step: ExecutionStep,
+    error: any,
+    executeToolFn: (toolCall: ToolCall) => Promise<ToolResult>
+  ): Promise<any> {
+    console.log(`🩹 Attempting recovery for step: ${step.action} due to error: ${error}`);
+    // Recovery strategy 1: Retry with a different tool if available (similar to adaptation)
+    if (step.fallbackTools.length > 0) {
+      const adaptedResult = await this.adaptExecution(step, { result: { success: false, error: String(error) } }, [], executeToolFn);
+      if (adaptedResult) {
+        return adaptedResult;
+      }
+    }
+    // Recovery strategy 2: Log error and continue if not critical
+    if (step.priority !== 'critical') {
+      console.log(`Non-critical step '${step.action}' failed, continuing without recovery.`);
+      return { success: false, error: String(error), recovered: false };
+    }
+    return null; // Recovery failed for critical step
+  }
+
+  private enhanceParametersWithContext(params: Record<string, any>, context: ExecutionContext): Record<string, any> {
+    const enhancedParams = { ...params };
+    // Example: Inject previous results or insights into subsequent tool calls
+    if (params.query && context.insights.length > 0) {
+      enhancedParams.query = `${params.query} (context: ${context.insights[0]})`;
+    }
+    // Add more sophisticated context injection logic here
+    return enhancedParams;
+  }
+
+  private generateIntelligentSummary(reasoning: ReasoningChain, context: ExecutionContext, rate: number): string {
+    let summary = `Intelligent execution completed for goal: "${reasoning.userGoal}". `;
+    if (rate === 1) {
+      summary += "All steps were successfully executed.";
+    } else if (rate > 0.5) {
+      summary += `Most steps completed successfully (${Math.round(rate * 100)}% success rate).`;
+    } else {
+      summary += `Execution encountered challenges, with a ${Math.round(rate * 100)}% success rate.`;
+    }
+    if (context.adaptations.length > 0) {
+      summary += ` Adaptations were made during execution to ensure progress.`;
+    }
+    if (context.failureRecovery.length > 0) {
+      summary += ` Recovered from ${context.failureRecovery.length} failures.`;
+    }
+    return summary;
+  }
+
+  private extractActionableInsights(results: Map<string, any>, reasoning: ReasoningChain): string[] {
+    const insights: string[] = [];
+    results.forEach((res, stepId) => {
+      if (res?.result?.insights && Array.isArray(res.result.insights)) {
+        insights.push(...res.result.insights);
+      } else if (res?.result?.summary) {
+        insights.push(`Summary from step ${stepId}: ${res.result.summary}`);
+      }
+    });
+    if (insights.length === 0) {
+      insights.push('No specific actionable insights were extracted, but the task was processed.');
+    }
+    return insights.slice(0, 5); // Limit to top 5 insights
+  }
+
+  private generateProactiveNextSteps(reasoning: ReasoningChain, context: ExecutionContext, intent: EnhancedActionIntent): string[] {
+    const nextSteps: string[] = [];
+    if (intent.action.includes('research')) {
+      nextSteps.push('Consider a deeper dive into specific findings from the research report.');
+      nextSteps.push('Schedule a follow-up to discuss the implications of the research.');
+    }
+    if (intent.action.includes('project')) {
+      nextSteps.push('Review the project analysis and prioritize critical tasks.');
+      nextSteps.push('Set up automated reminders for upcoming deadlines.');
+    }
+    if (context.nextOpportunities.length > 0) {
+      nextSteps.push(...context.nextOpportunities);
+    }
+    if (nextSteps.length === 0) {
+      nextSteps.push('No specific proactive next steps identified, but the primary goal is complete.');
+    }
+    return nextSteps.slice(0, 5); // Limit to top 5 next steps
+  }
+
+  private identifyNewOpportunities(results: Map<string, any>, reasoning: ReasoningChain): string[] {
+    const opportunities: string[] = [];
+    results.forEach((res, stepId) => {
+      if (res?.result?.opportunities && Array.isArray(res.result.opportunities)) {
+        opportunities.push(...res.result.opportunities);
+      }
+    });
+    if (opportunities.length === 0 && reasoning.userGoal.includes('analysis')) {
+      opportunities.push('Opportunity to set up continuous monitoring for relevant data points.');
+    }
+    return opportunities.slice(0, 3); // Limit to top 3 opportunities
+  }
+
+  private generateActionsSummary(context: ExecutionContext): string[] {
+    const actions: string[] = [];
+    context.results.forEach((res, stepId) => {
+      if (res?.result?.summary) {
+        actions.push(`Executed step ${stepId}: ${res.result.summary}`);
+      } else if (res?.result?.success) {
+        actions.push(`Executed step ${stepId} successfully.`);
+      } else if (res?.result?.error) {
+        actions.push(`Attempted step ${stepId}, but encountered an error: ${res.result.error}`);
+      }
+    });
+    return actions;
+  }
+
+  private extractRequiredTools(reasoning: ReasoningChain): string[] {
+    const required = new Set<string>();
+    reasoning.executionPlan.forEach(step => {
+      if (step.tool !== 'internal') {
+        required.add(step.tool);
+      }
+    });
+    return Array.from(required);
+  }
+
+  private extractOptionalTools(reasoning: ReasoningChain): string[] {
+    const optional = new Set<string>();
+    reasoning.executionPlan.forEach(step => {
+      step.fallbackTools.forEach(tool => optional.add(tool));
+    });
+    return Array.from(optional).filter(tool => !this.extractRequiredTools(reasoning).includes(tool));
+  }
+
+  private identifyProactiveOpportunities(reasoning: ReasoningChain): string[] {
+    const opportunities: string[] = [];
+    if (reasoning.userGoal.includes('research')) {
+      opportunities.push('Proactively set up a knowledge base for future reference.');
+    }
+    if (reasoning.userGoal.includes('project')) {
+      opportunities.push('Proactively suggest automation for recurring project tasks.');
+    }
+    return opportunities;
+  }
+
+  private async handleIntelligentFailure(
+    error: any,
+    reasoning: ReasoningChain,
+    context: ExecutionContext,
+    executeToolFn: (toolCall: ToolCall) => Promise<ToolResult>
+  ): Promise<any> {
+    console.error(`🚨 Critical workflow failure: ${error instanceof Error ? error.message : String(error)}`);
+    context.failureRecovery.push(`Critical failure: ${error instanceof Error ? error.message : String(error)}`);
+
+    // Attempt to identify the failing step and apply recovery
+    const failingStep = reasoning.executionPlan.find(step => !context.results.has(step.id) || context.results.get(step.id)?.result?.success === false);
+    if (failingStep) {
+      const recoveredResult = await this.attemptIntelligentRecovery(failingStep, error, executeToolFn);
+      if (recoveredResult) {
+        context.results.set(failingStep.id, recoveredResult);
+        return { success: true, summary: `Recovered from critical failure during ${failingStep.action}.`, useDefaultFlow: false };
+      }
+    }
+
+    // If recovery fails, log and defer to default flow
+    return { success: false, error: error.message, useDefaultFlow: true };
+  }
+  // Enhanced Research Workflow
+  private async executeAdvancedResearch(
+    query: string,
+    context: ExecutionContext,
+    executeToolFn: (toolCall: ToolCall) => Promise<ToolResult>
+  ): Promise<any> {
+    const researchPlan = this.createResearchPlan(query);
+    const searchResults: any[] = [];
   
   console.log(`🔬 Executing advanced research: ${researchPlan.queries.length} queries across multiple sources`);
   
@@ -676,13 +956,13 @@ private createResearchPlan(query: string): ResearchWorkflow {
   
   // Add complementary research angles
   if (baseQuery.includes('market') || baseQuery.includes('industry')) {
-    queries.push(`${query} market trends 2024 2025`);
+    queries.push(`${query} market trends of 2025`);
     queries.push(`${query} industry analysis statistics`);
     queries.push(`${query} competitive landscape research`);
   }
   
   if (baseQuery.includes('technology') || baseQuery.includes('tech')) {
-    queries.push(`${query} latest developments 2024`);
+    queries.push(`${query} latest developments in 2025`);
     queries.push(`${query} implementation guide best practices`);
     queries.push(`${query} case studies success stories`);
   }
@@ -709,7 +989,7 @@ private createResearchPlan(query: string): ResearchWorkflow {
 }
 
 private getAvailableSearchTools(): string[] {
-  const searchTools = ['serper_search', 'web_search', 'duckduckgo_search'];
+  const searchTools = ['serper_search', 'tavily_web_search', 'langsearch_search', 'duckduckgo_search'];
   return searchTools.filter(tool => this.tools.has(tool));
 }
 
@@ -878,7 +1158,7 @@ private extractDataPoints(groupedResults: any): any[] {
       name: 'data_visualization',
       args: {
         data: analysis.dataPoints,
-        chartTypes: ['bar', 'line', 'pie'],
+        chartTypes: ['bar', 'line', 'pie', 'scatter'],
         title: 'Research Analysis Visualization',
         colorScheme: 'professional'
       },
@@ -973,7 +1253,7 @@ private async createComprehensiveVisualizations(
     },
     {
       type: 'trend_analysis',
-      chartTypes: ['line', 'area'],
+      chartTypes: ['line', 'area', 'pie'],
       colorScheme: colorSchemes.modern,
       options: {
         smoothCurves: true,
@@ -1210,7 +1490,7 @@ private async analyzeLinearProjects(executeToolFn: (toolCall: ToolCall) => Promi
       const issuesCall: ToolCall = {
         name: 'linear_management',
         args: {
-          action: 'get_issues',
+          action: 'get_issues', 
           teamId: team.id,
           limit: 10
         },
