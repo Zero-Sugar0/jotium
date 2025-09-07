@@ -116,6 +116,20 @@ export async function GET(
       });
       break;
 
+    case "hubspot":
+      clientId = process.env.HUBSPOT_CLIENT_ID;
+      clientSecret = process.env.HUBSPOT_CLIENT_SECRET;
+      tokenUrl = "https://api.hubapi.com/oauth/v1/token";
+      userInfoUrl = "https://api.hubapi.com/oauth/v1/me";
+      tokenRequestBody = new URLSearchParams({
+        code: code,
+        client_id: clientId || "",
+        client_secret: clientSecret || "",
+        redirect_uri: redirectUri,
+        grant_type: "authorization_code",
+      });
+      break;
+
     default:
       return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/account?oauth_error=true`);
   }
@@ -239,6 +253,18 @@ export async function GET(
         const userData = await userRes.json();
         externalUserId = userData.user.id.toString();
         externalUserName = userData.user.username;
+      }
+    } else if (service === "hubspot") {
+      const userRes = await fetch(userInfoUrl, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+        },
+      });
+      if (userRes.ok) {
+        const userData = await userRes.json();
+        externalUserId = userData.user_id;
+        externalUserName = userData.email;
       }
     }
 
