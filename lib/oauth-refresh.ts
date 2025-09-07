@@ -97,6 +97,18 @@ export async function refreshOAuthToken(userId: string, service: string): Promis
         });
         break;
 
+      case "hubspot":
+        clientId = process.env.HUBSPOT_CLIENT_ID;
+        clientSecret = process.env.HUBSPOT_CLIENT_SECRET;
+        tokenUrl = "https://api.hubapi.com/oauth/v1/token";
+        tokenRequestBody = new URLSearchParams({
+          client_id: clientId || "",
+          client_secret: clientSecret || "",
+          refresh_token: refreshToken,
+          grant_type: "refresh_token",
+        });
+        break;
+
       default:
         console.error(`Unsupported service for token refresh: ${service}`);
         return null;

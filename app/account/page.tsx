@@ -61,6 +61,7 @@ const oauthProviders = [
   { name: "Google", service: "gmail", icon: "/logo/google.svg" },
   { name: "GitHub", service: "github", icon: "/logo/github.svg" },
   { name: "Slack", service: "slack", icon: "/logo/slack.svg" },
+  { name: "HubSpot", service: "hubspot", icon: "/logo/hubspot.svg" },
   // { name: "X", service: "x", icon: "/logo/x-twitter.svg" },
   { name: "ClickUp", service: "clickup", icon: "/logo/clickup.svg" }, // Assuming a ClickUp logo exists at /logo/clickup.svg
 ];
