@@ -266,7 +266,7 @@ export class HackerNewsTool {
           result = await this.getUserProfile(args);
           break;
         case "get_user_submissions":
-          result = await this.getUserProfile(args); // Use getUserProfile instead
+          result = await this.getUserProfile({ ...args, includeSubmissions: true });
           break;
         case "get_comments":
           result = await this.getComments(args);
@@ -347,10 +347,10 @@ export class HackerNewsTool {
       return result;
 
     } catch (error: unknown) {
-      console.error("❌ HackerNews operation failed:", error);
+      console.error(`❌ HackerNews operation '${args.action}' failed:`, error);
       return {
         success: false,
-        error: `HackerNews operation failed: ${error instanceof Error ? error.message : String(error)}`
+        error: `HackerNews operation '${args.action}' failed: ${error instanceof Error ? error.message : String(error)}`
       };
     }
   }
@@ -573,7 +573,13 @@ export class HackerNewsTool {
     const results = await Promise.allSettled(promises);
     
     return results
-      .filter(result => result.status === 'fulfilled' && result.value !== null)
+      .filter(result => {
+        if (result.status === 'rejected') {
+          console.warn(`⚠️ Failed to fetch item: ${result.reason}`);
+          return false;
+        }
+        return result.value !== null;
+      })
       .map(result => (result as PromiseFulfilledResult<any>).value);
   }
 

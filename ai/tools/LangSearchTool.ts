@@ -21,7 +21,7 @@ export class LangSearchTool {
           },
           freshness: {
             type: Type.STRING,
-            description: "Freshness filter for results: 'noLimit' (default), 'pastYear', 'pastMonth', 'pastWeek', 'pastDay'"
+            description: "Freshness filter for results: 'noLimit' (default), 'oneYear', 'oneMonth', 'oneWeek', 'oneDay'"
           },
           summary: {
             type: Type.BOOLEAN,
@@ -29,7 +29,7 @@ export class LangSearchTool {
           },
           count: {
             type: Type.NUMBER,
-            description: "Maximum number of search results to return (default: 10, max: 100)"
+            description: "Maximum number of search results to return (default: 10, max: 10 based on API docs)"
           },
           includeImages: {
             type: Type.BOOLEAN,
@@ -53,7 +53,7 @@ export class LangSearchTool {
           },
           topN: {
             type: Type.NUMBER,
-            description: "Number of top results to semantically rerank (default: 10)"
+            description: "Number of top results to semantically rerank (default: 10, max: 50)"
           }
         },
         required: ["query"]
@@ -102,7 +102,7 @@ export class LangSearchTool {
       query: args.query,
       freshness: args.freshness || "noLimit",
       summary: args.summary !== false,
-      count: Math.min(args.count || 10, 100),
+      count: Math.min(args.count || 10, 10), // API max is 10, not 100
       includeImages: args.includeImages || false,
       includeVideos: args.includeVideos || false,
       ...(args.region && { region: args.region }),
@@ -126,24 +126,33 @@ export class LangSearchTool {
 
     const result = await response.json();
 
+    // Handle the correct response structure from API docs
+    if (result.code !== 200) {
+      throw new Error(`API Error ${result.code}: ${result.msg || 'Unknown error'}`);
+    }
+
+    const data = result.data;
+
     return {
-      summary: result.summary || null,
-      webResults: result.web?.map((item: any, index: number) => ({
-        title: item.title,
+      summary: data.summary || null,
+      webResults: data.webPages?.value?.map((item: any, index: number) => ({
+        title: item.name,
         url: item.url,
         snippet: item.snippet,
-        publishedDate: item.published_date,
+        summary: item.summary,
+        publishedDate: item.datePublished,
+        lastCrawled: item.dateLastCrawled,
         position: index + 1,
         score: item.score || null
       })) || [],
-      imageResults: result.images?.map((item: any, index: number) => ({
+      imageResults: data.images?.map((item: any, index: number) => ({
         title: item.title,
         url: item.url,
         imageUrl: item.image_url,
         source: item.source,
         position: index + 1
       })) || [],
-      videoResults: result.videos?.map((item: any, index: number) => ({
+      videoResults: data.videos?.map((item: any, index: number) => ({
         title: item.title,
         url: item.url,
         thumbnailUrl: item.thumbnail_url,
@@ -151,9 +160,9 @@ export class LangSearchTool {
         source: item.source,
         position: index + 1
       })) || [],
-      relatedQueries: result.related_queries || [],
-      resultsCount: result.web?.length || 0,
-      totalEstimated: result.total_estimated || null
+      relatedQueries: data.related_queries || [],
+      resultsCount: data.webPages?.value?.length || 0,
+      totalEstimated: data.webPages?.totalEstimatedMatches || null
     };
   }
 
@@ -161,7 +170,7 @@ export class LangSearchTool {
     try {
       // Extract text content from web results for reranking
       const documents = searchResults.webResults?.map((result: any) => 
-        `${result.title}\n${result.snippet}`
+        `${result.title}\n${result.snippet || ''}`
       ) || [];
 
       if (documents.length === 0) {
@@ -171,9 +180,9 @@ export class LangSearchTool {
       const rerankRequestBody = {
         model: "langsearch-reranker-v1",
         query: args.query,
-        top_n: Math.min(args.topN || 10, documents.length),
+        top_n: Math.min(args.topN || 10, Math.min(documents.length, 50)), // Max 50 documents
         return_documents: true,
-        documents: documents
+        documents: documents.slice(0, 50) // Ensure we don't exceed 50 documents
       };
 
       const response = await fetch(`${this.baseUrl}/rerank`, {
@@ -192,6 +201,12 @@ export class LangSearchTool {
       }
 
       const rerankResult = await response.json();
+
+      // Handle API response structure
+      if (rerankResult.code !== 200) {
+        console.warn("Semantic reranking API error:", rerankResult.msg);
+        return searchResults;
+      }
 
       // Map reranked results back to original search results
       const rerankedWebResults = rerankResult.results?.map((item: any) => {
@@ -235,7 +250,7 @@ export class LangSearchTool {
         query: query,
         top_n: options?.topN || Math.min(10, documents.length),
         return_documents: options?.returnDocuments !== false,
-        documents: documents
+        documents: documents.slice(0, 50) // Ensure max 50 documents
       };
 
       const response = await fetch(`${this.baseUrl}/rerank`, {
@@ -254,6 +269,11 @@ export class LangSearchTool {
       }
 
       const result = await response.json();
+
+      // Handle API response structure
+      if (result.code !== 200) {
+        throw new Error(`API Error ${result.code}: ${result.msg || 'Unknown error'}`);
+      }
 
       return {
         success: true,
