@@ -34,7 +34,7 @@ export class GoogleSheetsTool {
     return {
       name: "google_sheets_operations",
       description:
-        "Work with Google Sheets using the same Gmail OAuth connection (unified Google service). Supports creating spreadsheets, adding sheets, reading/appending/clearing values, batch updating values, getting sheet metadata, formatting cells, and managing spreadsheet properties.",
+        "Google Sheet tool to help you do lots of stuff on google sheet. Supports creating spreadsheets, adding sheets, reading/appending/clearing values, batch updating values, getting sheet metadata, formatting cells, and managing spreadsheet properties.",
       parameters: {
         type: Type.OBJECT,
         properties: {
@@ -632,39 +632,57 @@ export class GoogleSheetsTool {
   private async createSpreadsheet(title: string, headers: HeadersLike, sheetTitle?: string, values?: string[][]): Promise<any> {
     if (!title) return { success: false, error: "title is required" };
 
+    // First create the basic spreadsheet
     const spreadsheetBody: any = {
       properties: { title },
     };
 
-    // If initial data or a sheet title is provided, construct the sheet with data
-    if (sheetTitle || (values && values.length > 0)) {
-      const sheet: any = {
-        properties: { title: sheetTitle || 'Sheet1' },
-      };
-
-      if (values && values.length > 0) {
-        sheet.data = [{
-          rowData: values.map(row => ({
-            values: row.map(cell => ({
-              userEnteredValue: {
-                stringValue: cell,
-              },
-            })),
-          })),
-        }];
-      }
-      spreadsheetBody.sheets = [sheet];
-    }
-
-    const res = await fetch("https://sheets.googleapis.com/v4/spreadsheets", {
+    // Create the spreadsheet with basic structure
+    const createRes = await fetch("https://sheets.googleapis.com/v4/spreadsheets", {
       method: "POST",
       headers,
       body: JSON.stringify(spreadsheetBody),
     });
 
-    if (!res.ok) return { success: false, error: await res.text() };
-    const data = await res.json();
-    return { success: true, spreadsheetId: data.spreadsheetId, spreadsheetUrl: data.spreadsheetUrl, data };
+    if (!createRes.ok) return { success: false, error: await createRes.text() };
+    const spreadsheetData = await createRes.json();
+    const spreadsheetId = spreadsheetData.spreadsheetId;
+
+    // If we have data to populate, update the spreadsheet with the data
+    if (values && values.length > 0) {
+      const sheetName = sheetTitle || 'Sheet1';
+      const range = `${sheetName}!A1`;
+      
+      // Update the spreadsheet with the provided data
+      const updateResult = await this.updateValues(
+        spreadsheetId,
+        range,
+        values,
+        "USER_ENTERED",
+        headers
+      );
+
+      if (!updateResult.success) {
+        // Return the created spreadsheet even if data update failed
+        console.warn("Failed to populate spreadsheet with data:", updateResult.error);
+      }
+    }
+
+    // If a custom sheet title is provided, rename the default sheet
+    if (sheetTitle && sheetTitle !== 'Sheet1') {
+      const sheetId = 0; // Default sheet ID is 0
+      const renameResult = await this.renameSheet(spreadsheetId, sheetId, sheetTitle, headers);
+      if (!renameResult.success) {
+        console.warn("Failed to rename sheet:", renameResult.error);
+      }
+    }
+
+    return { 
+      success: true, 
+      spreadsheetId: spreadsheetData.spreadsheetId, 
+      spreadsheetUrl: spreadsheetData.spreadsheetUrl, 
+      data: spreadsheetData 
+    };
   }
 
   private async getSpreadsheet(spreadsheetId: string, includeGridData: boolean, headers: HeadersLike): Promise<any> {

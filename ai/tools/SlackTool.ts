@@ -47,7 +47,14 @@ export class SlackTool {
     this.userId = userId;
     this.oauthToken = oauthToken;
 
-    // WebClient will be initialized in execute based on token availability
+    // Initialize WebClient with available token
+    const token = oauthToken || config.botToken;
+    if (token) {
+      this.webClient = new WebClient(token, {
+        retryConfig: config.retryConfig || { retries: 3, factor: 2 }
+      });
+    }
+
     if (config.socketMode && config.appToken) {
       this.rtmClient = new RTMClient(config.appToken);
     }
