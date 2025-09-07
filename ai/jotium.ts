@@ -38,11 +38,16 @@ import { LangSearchTool } from './tools/LangSearchTool';
 import { N8NTool } from './tools/N8NTool';
 import { ZapierTool } from './tools/ZapierTool';
 import { SerpstackTool } from './tools/SerpstackTool';
+import { HackerNewsTool } from './tools/HackerNewsTool';
+import { YouTubeTool } from "./tools/YouTubeTool";
+import { SentryTool } from "./tools/SentryTool";
+import { CalendlyTool } from "./tools/CalendlyTool";
 // Google OAuth Tools
 import { GmailTool } from './tools/GmailTool';
 import { GoogleCalendarTool } from './tools/GoogleCalendarTool';
 import { GoogleDriveTool } from './tools/GoogleDriveTool';
 import { GoogleSheetsTool } from './tools/GoogleSheetsTool';
+import { GoogleDocTool } from './tools/GoogleDocTool';
 import { StockTool } from './tools/StockTool';
 import { PDFTool } from './tools/PDFTool';
 import { FireWebScrapeTool } from './tools/FireWebScrapeTool';
@@ -132,6 +137,10 @@ export class AIAgent {
       const tool = new AlphaVantageTool(process.env.ALPHAVANTAGE_API_KEY);
       this.tools.set("alphavantage_tool", tool);
     }
+    if (process.env.SERPER_API_KEY) {
+      const tool = new SerperSearchTool(process.env.SERPER_API_KEY);
+      this.tools.set("serper_search", tool);
+    }
     if (process.env.GEMINI_API_KEY) {
       this.tools.set("generate_image", new ImageGenerationTool(process.env.GEMINI_API_KEY));
     }
@@ -161,11 +170,9 @@ export class AIAgent {
     this.tools.set("duckduckgo_search", new DuckDuckGoSearchTool());
     this.tools.set("get_stock_data", new StockTool());
     // this.tools.set("pdf_generator", new PDFTool());
-    const serperApiKey = process.env.SERPER_API_KEY;
-    if (serperApiKey) {
-      const tool = new SerperSearchTool(serperApiKey);
-      this.tools.set("serper_search", tool);
-    }
+    this.tools.set("youtube_operations", new YouTubeTool());
+    this.tools.set("hackernews_operations", new HackerNewsTool());
+    
 
     // --- Group 3: User-Configurable Tools (user key OR .env fallback) ---
     const getKey = async (serviceName: string, envVar: string): Promise<string> => {
@@ -188,6 +195,17 @@ export class AIAgent {
     // Cal.com
     const calcomKey = await getKey("Cal.com", "CALCOM_API_KEY");
     if (calcomKey) this.tools.set("calcom_scheduler", new CalComTool(calcomKey));
+
+    // Calendly
+    const calendlyKey = await getKey("Calendly", "CALENDLY_API_KEY");
+    let calendlyOauthToken: string | null = null;
+    if (userId) {
+      calendlyOauthToken = await getDecryptedOAuthAccessToken({ userId, service: "calendly" });
+    }
+    if (calendlyKey || calendlyOauthToken) {
+      const calendlyTool = new CalendlyTool({ apiKey: calendlyKey }, userId || "", calendlyOauthToken);
+      this.tools.set("calendly_tool", calendlyTool);
+    }
 
     // GitHub
     let githubOauthToken: string | null = null;
@@ -257,8 +275,19 @@ export class AIAgent {
     }
 
     // Asana
+    let asanaOauthToken: string | null = null;
+    const asanaConfig: any = {};
     const asanaKey = await getKey("Asana", "ASANA_API_KEY");
-    if (asanaKey) this.tools.set("asana_tool", new AsanaTool(asanaKey));
+    if (asanaKey) {
+        asanaConfig.accessToken = asanaKey;
+    }
+    if (userId) {
+      asanaOauthToken = await getDecryptedOAuthAccessToken({ userId, service: "asana" });
+    }
+    if (asanaKey || asanaOauthToken) {
+      const asanaTool = new AsanaTool(asanaConfig.accessToken || "", userId || "", asanaOauthToken);
+      this.tools.set("asana_tool", asanaTool);
+    }
 
     // Trello
     const trelloApiKey = await getKey("Trello", "TRELLO_API_KEY");
@@ -370,8 +399,16 @@ export class AIAgent {
     // HubSpot
     const hubspotAccessToken = await getKey("HubSpot Access Token", "HUBSPOT_ACCESS_TOKEN");
     const hubspotDeveloperApiKey = await getKey("HubSpot Developer API Key", "HUBSPOT_DEVELOPER_API_KEY");
-    if (hubspotAccessToken || hubspotDeveloperApiKey) {
-      const hubspotTool = new HubSpotTool(hubspotAccessToken, hubspotDeveloperApiKey);
+    let hubspotOauthToken: string | null = null;
+    if (userId) {
+      hubspotOauthToken = await getDecryptedOAuthAccessToken({ userId, service: "hubspot" });
+    }
+    if (hubspotAccessToken || hubspotDeveloperApiKey || hubspotOauthToken) {
+      const hubspotTool = new HubSpotTool(
+        { apiKey: hubspotDeveloperApiKey }, 
+        userId || "", 
+        hubspotOauthToken
+      );
       this.tools.set("hubspot_crm", hubspotTool);
     }
 
@@ -412,6 +449,14 @@ export class AIAgent {
       }
     }
 
+    // Sentry
+    const sentryDsn = await getKey("Sentry DSN", "SENTRY_DSN");
+    const sentryApiToken = await getKey("Sentry API Token", "SENTRY_API_TOKEN");
+    if (sentryDsn) {
+      const sentryTool = new SentryTool({ dsn: sentryDsn }, sentryApiToken);
+      this.tools.set("sentry_operation", sentryTool);
+    }
+
     // --- Group 4: OAuth Tools (require OAuth connection) ---
     if (userId) {
       // Check if user has Google OAuth connection (Gmail service)
@@ -447,6 +492,13 @@ export class AIAgent {
         const sheetsToolName = sheetsTool.getDefinition().name;
         if (sheetsToolName) {
           this.tools.set(sheetsToolName, sheetsTool);
+        }
+
+        // Google Docs Tool
+        const docsTool = new GoogleDocTool(userId);
+        const docsToolName = docsTool.getDefinition().name;
+        if (docsToolName) {
+          this.tools.set(docsToolName, docsTool);
         }
       }
 

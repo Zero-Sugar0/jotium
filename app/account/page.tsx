@@ -31,6 +31,7 @@ const apiTools = [
   { name: "AWS Secret Key", keyName: "awsSecretAccessKey", placeholder: "..." },
   { name: "Ayrshare", keyName: "ayrshareApiKey", placeholder: "ayr-..." },
   { name: "Cal.com", keyName: "calcomApiKey", placeholder: "cal-..." },
+  { name: "Calendly", keyName: "calendlyApiKey", placeholder: "calendly_..." },
   { name: "ClickUp", keyName: "clickupApiToken", placeholder: "pk_..." },
   { name: "GitHub", keyName: "githubToken", placeholder: "ghp-..." },
   { name: "Linear", keyName: "linearApiKey", placeholder: "lin_api_..." },
@@ -38,6 +39,7 @@ const apiTools = [
   { name: "n8n API Key", keyName: "n8nApiKey", placeholder: "n8n_..." },
   { name: "n8n Base URL", keyName: "n8nBaseUrl", placeholder: "https://your-n8n-instance.com" },
   { name: "Notion", keyName: "notionApiKey", placeholder: "secret_..." },
+  { name: "Sentry", keyName: "sentryApiToken", placeholder: "sntrys_..." },
   { name: "Slack", keyName: "slackBotToken", placeholder: "xoxb-..." },
   { name: "Stripe", keyName: "stripeSecretKey", placeholder: "sk_test_..." },
   { name: "Supabase Key", keyName: "supabaseKey", placeholder: "ey..." },
@@ -62,6 +64,8 @@ const oauthProviders = [
   { name: "GitHub", service: "github", icon: "/logo/github.svg" },
   { name: "Slack", service: "slack", icon: "/logo/slack.svg" },
   { name: "HubSpot", service: "hubspot", icon: "/logo/hubspot.svg" },
+  { name: "Calendly", service: "calendly", icon: "/logo/calendly.svg" },
+  { name: "Asana", service: "asana", icon: "/logo/asana.svg" },
   // { name: "X", service: "x", icon: "/logo/x-twitter.svg" },
   { name: "ClickUp", service: "clickup", icon: "/logo/clickup.svg" }, // Assuming a ClickUp logo exists at /logo/clickup.svg
 ];
@@ -668,10 +672,11 @@ export default function AccountPage() {
               <ul className="list-disc ml-6">
                 <li>Google: Profile, Email, Calendar</li>
                 <li>GitHub: Repos, Issues, Pull Requests</li>
-                <li>Slack: Channels, Messages</li>
+                <li>Slack: Comprehensive workspace management including channels, messaging, file sharing, user management, reactions, search, analytics, workflows, and admin functions</li>
                 {/* <li>X: Post and engage with tweets, access profile information and settings</li> */}
                 <li>ClickUp: Tasks, Spaces, Goals, Comments, Teams, Folders, Lists, Views, Time Tracking, Webhooks</li>
                 <li>Cal.com: Bookings, Events</li>
+                <li>Asana: Tasks, Projects, Workspaces, Teams, Users, Attachments, Tags, Webhooks, Portfolios</li>
                 {/* Add more as needed */}
               </ul>
             </div>

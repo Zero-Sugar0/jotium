@@ -1,15 +1,34 @@
 import { FunctionDeclaration, Type } from "@google/genai";
+import { getValidOAuthAccessToken } from "@/lib/oauth-refresh";
+import axios, { AxiosInstance } from 'axios';
+
+export interface HubSpotConfig {
+  apiKey?: string;
+  baseUrl?: string;
+  timeout?: number;
+}
 
 export class HubSpotTool {
+  private client: AxiosInstance;
+  private apiKey: string | null;
+  private oauthToken: string | null;
+  private userId: string;
   private baseUrl: string = "https://api.hubapi.com";
   private userAgent: string = "HubSpotTool/1.0";
-  private accessToken: string | null = null;
-  private developerApiKey: string | null = null;
   private rateLimiter: RateLimiter;
 
-  constructor(accessToken?: string, developerApiKey?: string) {
-    this.accessToken = accessToken || null;
-    this.developerApiKey = developerApiKey || null;
+  constructor(config: HubSpotConfig, userId: string, oauthToken: string | null = null) {
+    this.apiKey = config.apiKey || null;
+    this.oauthToken = oauthToken;
+    this.userId = userId;
+    this.client = axios.create({
+      baseURL: config.baseUrl || 'https://api.hubapi.com',
+      timeout: config.timeout || 30000,
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': this.userAgent
+      }
+    });
     this.rateLimiter = new RateLimiter();
   }
 
@@ -269,9 +288,28 @@ export class HubSpotTool {
 
   async execute(args: any): Promise<any> {
     try {
-      if (!this.accessToken && !this.developerApiKey) {
-        throw new Error("Access token or developer API key is required. Set up a Private App in HubSpot to get an access token.");
+      // Setup authentication headers
+      let headers: any = {
+        'Content-Type': 'application/json',
+        'User-Agent': this.userAgent
+      };
+
+      // Check for OAuth token first, then fallback to API key
+      let accessToken: string | null = this.oauthToken;
+      if (!accessToken) {
+        accessToken = await getValidOAuthAccessToken(this.userId, "hubspot");
       }
+
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      } else if (this.apiKey) {
+        // For API key authentication, we'll add it to the URL in makeRequest
+        headers['hapikey'] = this.apiKey;
+      } else {
+        throw new Error("No valid authentication method available. Provide either OAuth token or API key.");
+      }
+      
+      this.client.defaults.headers.common['Authorization'] = headers['Authorization'];
 
       console.log(`🚀 HubSpot ${args.action}${args.objectType ? ` ${args.objectType}` : ''}...`);
 
@@ -779,11 +817,17 @@ export class HubSpotTool {
       headers['Content-Type'] = 'application/json';
     }
 
-    if (this.accessToken) {
-      headers['Authorization'] = `Bearer ${this.accessToken}`;
-    } else if (this.developerApiKey) {
+    // Check for OAuth token first, then fallback to API key
+    let accessToken: string | null = this.oauthToken;
+    if (!accessToken) {
+      accessToken = await getValidOAuthAccessToken(this.userId, "hubspot");
+    }
+
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    } else if (this.apiKey) {
       const urlObj = new URL(url);
-      urlObj.searchParams.append('hapikey', this.developerApiKey);
+      urlObj.searchParams.append('hapikey', this.apiKey);
       url = urlObj.toString();
     }
 

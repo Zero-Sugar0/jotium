@@ -116,6 +116,20 @@ export async function GET(
       });
       break;
 
+    case "asana":
+      clientId = process.env.ASANA_CLIENT_ID;
+      clientSecret = process.env.ASANA_CLIENT_SECRET;
+      tokenUrl = "https://app.asana.com/-/oauth_token";
+      userInfoUrl = "https://app.asana.com/api/1.0/users/me";
+      tokenRequestBody = new URLSearchParams({
+        code: code,
+        client_id: clientId || "",
+        client_secret: clientSecret || "",
+        redirect_uri: redirectUri,
+        grant_type: "authorization_code",
+      });
+      break;
+
     case "hubspot":
       clientId = process.env.HUBSPOT_CLIENT_ID;
       clientSecret = process.env.HUBSPOT_CLIENT_SECRET;
@@ -142,7 +156,7 @@ export async function GET(
   try {
     console.log(`Exchanging code for tokens with ${service}...`);
     console.log(`Token URL: ${tokenUrl}`);
-    console.log(`Redirect URI: ${redirectUri}`);
+    // console.log(`Redirect URI: ${redirectUri}`);
 
     // Exchange code for tokens
     const tokenResponse = await fetch(tokenUrl, {
@@ -265,6 +279,30 @@ export async function GET(
         const userData = await userRes.json();
         externalUserId = userData.user_id;
         externalUserName = userData.email;
+      }
+    } else if ((service as string) === "calendly") {
+      const userRes = await fetch("https://api.calendly.com/users/me", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+        },
+      });
+      if (userRes.ok) {
+        const userData = await userRes.json();
+        externalUserId = userData.resource.uri; // Calendly uses URI as ID
+        externalUserName = userData.resource.name;
+      }
+    } else if ((service as string) === "asana") {
+      const userRes = await fetch("https://app.asana.com/api/1.0/users/me", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+        },
+      });
+      if (userRes.ok) {
+        const userData = await userRes.json();
+        externalUserId = userData.data.gid; // Asana uses gid as ID
+        externalUserName = userData.data.name || userData.data.email;
       }
     }
 

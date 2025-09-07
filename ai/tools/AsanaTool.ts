@@ -1,11 +1,17 @@
 import { FunctionDeclaration, Type } from "@google/genai";
 
+import { getValidOAuthAccessToken } from "@/lib/oauth-refresh";
+
 export class AsanaTool {
   private baseUrl = "https://app.asana.com/api/1.0";
   private accessToken: string;
+  private userId: string;
+  private oauthToken: string | null;
 
-  constructor(accessToken: string) {
+  constructor(accessToken: string, userId: string = "", oauthToken: string | null = null) {
     this.accessToken = accessToken;
+    this.userId = userId;
+    this.oauthToken = oauthToken;
   }
 
   getDefinition(): FunctionDeclaration {
@@ -238,6 +244,19 @@ export class AsanaTool {
 
   async execute(args: any): Promise<any> {
     try {
+      // Try OAuth first if available, otherwise use API key
+      let accessToken: string | null = this.oauthToken;
+      if (!accessToken && this.userId) {
+        accessToken = await getValidOAuthAccessToken(this.userId, "asana");
+      }
+      
+      const token = accessToken || this.accessToken;
+      if (!token) {
+        throw new Error("Asana access token or OAuth connection is required for this action.");
+      }
+
+      this.setAccessToken(token);
+
       switch (args.action) {
         // Task operations
         case "get_task":

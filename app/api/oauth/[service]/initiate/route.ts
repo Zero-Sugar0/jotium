@@ -14,7 +14,7 @@ export async function GET(
 
   const { service } = params;
   const nextAuthUrl = process.env.NEXTAUTH_URL;
-  console.log("DEBUG: NEXTAUTH_URL in initiate route:", nextAuthUrl);
+  // console.log("DEBUG: NEXTAUTH_URL in initiate route:", nextAuthUrl);
   if (!nextAuthUrl) {
     console.error("NEXTAUTH_URL environment variable is not set.");
     return new Response("Server configuration error", { status: 500 });
@@ -45,7 +45,8 @@ export async function GET(
         "https://www.googleapis.com/auth/calendar",
         "https://www.googleapis.com/auth/drive",
         "https://www.googleapis.com/auth/drive.file",
-        "https://www.googleapis.com/auth/spreadsheets"
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/documents"
       ].join(" ");
       if (!clientId) {
         console.error("GOOGLE_CLIENT_ID environment variable is not set.");
@@ -132,8 +133,117 @@ export async function GET(
 
     case "slack":
       clientId = process.env.SLACK_CLIENT_ID;
-      // Slack tokens typically don't expire
-      scope = "users:read users:read.email channels:read chat:write";
+      // Comprehensive Slack scopes for full functionality
+      scope = [
+        // User management
+        "users:read",
+        "users:read.email",
+        "users.profile:read",
+        "users.profile:write",
+        "users:write",
+        
+        // Channel management
+        "channels:read",
+        "channels:write",
+        "channels:history",
+        "channels:manage",
+        "groups:read",
+        "groups:write",
+        "groups:history",
+        "mpim:read",
+        "mpim:write",
+        "im:read",
+        "im:write",
+        "im:history",
+        
+        // Messaging
+        "chat:write",
+        "chat:write.public",
+        "chat:write.customize",
+        "chat:write.bot",
+        
+        // Reactions
+        "reactions:read",
+        "reactions:write",
+        
+        // Files
+        "files:read",
+        "files:write",
+        "remote_files:read",
+        "remote_files:write",
+        
+        // Search
+        "search:read",
+        
+        // Team/Workspace
+        "team:read",
+        "team:write",
+        
+        // Apps & Integrations
+        "apps:read",
+        "apps:write",
+        
+        // Workflow & Automation
+        "workflow.steps:execute",
+        "workflow.steps:read",
+        
+        // Webhooks
+        "incoming-webhook",
+        
+        // Analytics
+        "analytics:read",
+        
+        // Bookmarks
+        "bookmarks:read",
+        "bookmarks:write",
+        
+        // Calls
+        "calls:read",
+        "calls:write",
+        
+        // Conversations
+        "conversations:read",
+        "conversations:write",
+        
+        // Emoji
+        "emoji:read",
+        
+        // Links
+        "links:read",
+        "links:write",
+        
+        // Pins
+        "pins:read",
+        "pins:write",
+        
+        // Reminders
+        "reminders:read",
+        "reminders:write",
+        
+        // Stars
+        "stars:read",
+        "stars:write",
+        
+        // User groups
+        "usergroups:read",
+        "usergroups:write",
+        
+        // Admin (if needed)
+        "admin",
+        "admin.analytics:read",
+        "admin.apps:read",
+        "admin.apps:write",
+        "admin.conversations:read",
+        "admin.conversations:write",
+        "admin.invites:read",
+        "admin.invites:write",
+        "admin.teams:read",
+        "admin.teams:write",
+        "admin.usergroups:read",
+        "admin.usergroups:write",
+        "admin.users:read",
+        "admin.users:write"
+      ].join(" ");
       if (!clientId) {
         console.error("SLACK_CLIENT_ID environment variable is not set.");
         return new Response("Slack OAuth configuration error", { status: 500 });
@@ -144,7 +254,7 @@ export async function GET(
         redirect_uri: redirectUri,
         scope: scope,
         state: state,
-        user_scope: "identity.basic,identity.email"
+        user_scope: "identity.basic,identity.email,users.profile:read,users.profile:write"
       });
       
       authorizationUrl = `https://slack.com/oauth/v2/authorize?${slackParams.toString()}`;
@@ -207,6 +317,109 @@ export async function GET(
       });
 
       authorizationUrl = `https://app.clickup.com/api?${clickupParams.toString()}`;
+      break;
+
+    case "calendly":
+      clientId = process.env.CALENDLY_CLIENT_ID;
+      scope = [
+        "read:events",
+        "write:events",
+        "read:scheduling_links",
+        "write:scheduling_links",
+        "read:organizations",
+        "write:organizations",
+        "read:users",
+        "write:users",
+        "read:invitations",
+        "write:invitations",
+        "read:event_types",
+        "write:event_types",
+        "read:availability",
+        "write:availability",
+        "read:webhooks",
+        "write:webhooks",
+        "read:activity_log",
+        "read:routing_forms",
+        "write:routing_forms",
+        "read:data_compliance",
+        "write:data_compliance",
+        "read:scheduled_events",
+        "write:scheduled_events",
+        "read:invitees",
+        "write:invitees",
+        "read:custom_questions",
+        "write:custom_questions",
+        "read:availability_schedules",
+        "write:availability_schedules",
+        "read:organization_memberships",
+        "write:organization_memberships",
+        "read:organization_invitations",
+        "write:organization_invitations"
+      ].join(" ");
+      if (!clientId) {
+        console.error("CALENDLY_CLIENT_ID environment variable is not set.");
+        return new Response("Calendly OAuth configuration error", { status: 500 });
+      }
+
+      const calendlyParams = new URLSearchParams({
+        client_id: clientId,
+        redirect_uri: redirectUri,
+        response_type: "code",
+        scope: scope,
+        state: state,
+      });
+
+      authorizationUrl = `https://calendly.com/oauth/authorize?${calendlyParams.toString()}`;
+      break;
+
+    case "asana":
+      clientId = process.env.ASANA_CLIENT_ID;
+      scope = [
+        "default",
+        "tasks:read",
+        "tasks:write",
+        "projects:read",
+        "projects:write",
+        "workspaces:read",
+        "workspaces:write",
+        "teams:read",
+        "teams:write",
+        "users:read",
+        "users:write",
+        "attachments:read",
+        "attachments:write",
+        "tags:read",
+        "tags:write",
+        "webhooks:read",
+        "webhooks:write",
+        "portfolios:read",
+        "portfolios:write",
+        "goals:read",
+        "goals:write",
+        "status_updates:read",
+        "status_updates:write",
+        "custom_fields:read",
+        "custom_fields:write",
+        "forms:read",
+        "forms:write",
+        "goals:write",
+        "organization:read",
+        "organization:write"
+      ].join(" ");
+      if (!clientId) {
+        console.error("ASANA_CLIENT_ID environment variable is not set.");
+        return new Response("Asana OAuth configuration error", { status: 500 });
+      }
+
+      const asanaParams = new URLSearchParams({
+        client_id: clientId,
+        redirect_uri: redirectUri,
+        response_type: "code",
+        scope: scope,
+        state: state,
+      });
+
+      authorizationUrl = `https://app.asana.com/-/oauth_authorize?${asanaParams.toString()}`;
       break;
 
     case "hubspot":
@@ -390,9 +603,9 @@ export async function GET(
       return new Response("Unsupported OAuth service", { status: 400 });
   }
 
-  console.log(`OAuth ${service} redirect URI:`, redirectUri);
-  console.log(`OAuth ${service} authorization URL:`, authorizationUrl);
-  console.log(`OAuth ${service} scopes requested:`, scope);
+  // console.log(`OAuth ${service} redirect URI:`, redirectUri);
+  // console.log(`OAuth ${service} authorization URL:`, authorizationUrl);
+  // console.log(`OAuth ${service} scopes requested:`, scope);
 
   const response = NextResponse.redirect(authorizationUrl);
   
