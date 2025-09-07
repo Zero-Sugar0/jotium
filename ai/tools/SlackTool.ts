@@ -1,9 +1,10 @@
 import { FunctionDeclaration, Type } from "@google/genai";
 import { WebClient } from "@slack/web-api";
 import { RTMClient } from "@slack/rtm-api";
+import { getValidOAuthAccessToken } from "@/lib/oauth-refresh";
 
 export interface SlackToolConfig {
-  botToken: string;
+  botToken?: string; // Make optional as OAuth might be used
   userToken?: string;
   signingSecret?: string;
   appToken?: string;
@@ -34,17 +35,19 @@ export interface SlackMessage {
 }
 
 export class SlackTool {
-  private webClient: WebClient;
+  private webClient!: WebClient; // Initialize in constructor
   private rtmClient?: RTMClient;
   private config: SlackToolConfig;
+  private userId: string;
+  private oauthToken: string | null;
   private rateLimitInfo: Map<string, { remaining: number; resetTime: number }> = new Map();
 
-  constructor(config: SlackToolConfig) {
+  constructor(config: SlackToolConfig, userId: string, oauthToken: string | null = null) {
     this.config = config;
-    this.webClient = new WebClient(config.botToken, {
-      retryConfig: config.retryConfig || { retries: 3, factor: 2 }
-    });
+    this.userId = userId;
+    this.oauthToken = oauthToken;
 
+    // WebClient will be initialized in execute based on token availability
     if (config.socketMode && config.appToken) {
       this.rtmClient = new RTMClient(config.appToken);
     }
@@ -316,6 +319,21 @@ export class SlackTool {
   async execute(args: any): Promise<any> {
     try {
       console.log(`🔔 Slack Action: ${args.action}`);
+
+      let accessToken: string | null = this.oauthToken;
+      if (!accessToken) {
+        accessToken = await getValidOAuthAccessToken(this.userId, "slack");
+      }
+
+      const token = accessToken || this.config.botToken;
+
+      if (!token) {
+        throw new Error("Slack bot token or OAuth token is required for this action.");
+      }
+
+      this.webClient = new WebClient(token, {
+        retryConfig: this.config.retryConfig || { retries: 3, factor: 2 }
+      });
       
       // Check rate limits
       await this.checkRateLimit(args.action);
@@ -762,6 +780,6 @@ export class SlackTool {
 }
 
 // Factory function
-export function createSlackTool(config: SlackToolConfig): SlackTool {
-  return new SlackTool(config);
+export function createSlackTool(config: SlackToolConfig, userId: string, oauthToken: string | null = null): SlackTool {
+  return new SlackTool(config, userId, oauthToken);
 }
