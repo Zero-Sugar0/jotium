@@ -218,7 +218,7 @@ export function MultimodalInput({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 w-full bg-transparent z-30 p-2 mb-2">
+    <div className="fixed bottom-0 left-0 w-full bg-transparent z-30 p-2">
       <div className="w-full flex justify-center">
         <div className="relative w-full md:max-w-xl lg:max-w-xl xl:max-w-2xl flex flex-col gap-1 sm:gap-1">
           {/* Suggested Actions - Responsive grid */}
@@ -334,7 +334,7 @@ export function MultimodalInput({
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
                 className={`
-                  min-h-[72px] sm:min-h-[88px] max-h-[250px] sm:max-h-[300px] overflow-y-auto resize-none 
+                  min-h-[100px] sm:min-h-[100px] max-h-[300px] sm:max-h-[300px] overflow-y-auto resize-none 
                   border-0 bg-transparent text-sm sm:text-sm placeholder:text-muted-foreground/60 
                   focus-visible:ring-0 focus-visible:ring-offset-0 p-3 sm:p-4 
                   pr-20 sm:pr-28 leading-relaxed thin-scrollbar
