@@ -113,12 +113,6 @@ export function MessageImageDisplay({
               </div>
             </div>
             
-            {/* File type badge */}
-            <div className="absolute top-2 left-2">
-              <span className="inline-block text-xs font-medium text-white bg-black/60 backdrop-blur-sm px-2 py-1 rounded-md">
-                {fileTypeLabel}
-              </span>
-            </div>
 
             {/* Multiple images indicator */}
             {hasMultipleImages && (
@@ -149,13 +143,9 @@ export function MessageImageDisplay({
             
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-medium text-primary bg-primary/10 px-1.5 sm:px-2 py-0.5 rounded-md">
-                  {fileTypeLabel}
-                </span>
+                {/* File type indicator removed */}
               </div>
-              <p className="text-xs sm:text-sm font-medium text-foreground truncate">
-                {attachment.name || "Unknown file"}
-              </p>
+              {/* File name removed */}
             </div>
 
             {/* Download button for non-images */}
@@ -217,11 +207,11 @@ export function MessageImageDisplay({
               
               {/* Current image */}
               <div className="relative">
-                <img
-                  src={imageAttachments[currentModalIndex]?.url}
-                  alt={imageAttachments[currentModalIndex]?.name || "Image"}
-                  className="max-w-[90vw] max-h-[85vh] sm:max-w-[95vw] sm:max-h-[90vh] object-contain rounded-lg shadow-2xl"
-                />
+              <img
+                src={imageAttachments[currentModalIndex]?.url}
+                alt="Image"
+                className="max-w-[90vw] max-h-[85vh] sm:max-w-[95vw] sm:max-h-[90vh] object-contain rounded-lg shadow-2xl"
+              />
                 
                 {/* Download button in modal */}
                 <button
@@ -235,14 +225,9 @@ export function MessageImageDisplay({
                 </button>
               </div>
               
-              {/* Image info and counter */}
+              {/* Image counter only - name removed */}
               <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm text-white px-3 py-2 rounded-lg">
                 <div className="flex items-center gap-3">
-                  {imageAttachments[currentModalIndex]?.name && (
-                    <p className="text-xs sm:text-sm font-medium truncate max-w-[200px] sm:max-w-[300px]">
-                      {imageAttachments[currentModalIndex].name}
-                    </p>
-                  )}
                   {hasMultipleImages && (
                     <span className="text-xs sm:text-sm text-white/80 whitespace-nowrap">
                       {currentModalIndex + 1} / {imageAttachments.length}

@@ -24,28 +24,52 @@ import { Textarea } from "../ui/textarea";
 
 const suggestedActions = [
   {
-    title: "Project Work",
-    label: "Create a Linear project, schedule a meeting, and send an email.",
-    action: "Please create a new project in Linear called 'Jotium AI Feature Development'. Add initial tasks: 'Implement new user authentication flow', 'Develop real-time chat functionality', and 'Integrate third-party API for data enrichment'. Once the project is set up, schedule a project kickoff meeting for next Wednesday at 11 AM in Google Calendar, and send an email to devteam@example.com with the project overview and meeting invitation.",
-    icon: "💼",
+    title: "Research & Analyze",
+    label: "Deep dive into any topic with data and insights",
+    action: "Research the latest developments in quantum computing and AI. Find 3-5 recent breakthrough papers, summarize the key findings, create visualizations showing the progress timeline, and identify potential real-world applications in the next 2-5 years.",
+    icon: "🔬",
   },
   {
-    title: "Renewable & Report",
-    label: "Trends in global renewable energy capacity.",
-    action: "What are the trends in global renewable energy capacity in the last 10 years?\n1. Do a search and provide at least 3 relevant links.\n2. Summarize capacity growth rates (solar, wind, hydro).\n3. Visualize the data using bar, line, pie, and scatter charts.",
-    icon: "📈",
+    title: "Plan & Organize",
+    label: "Create projects, schedule tasks, manage workflow",
+    action: "Create a comprehensive project plan for developing a mobile app. Set up the project structure in Linear with phases: Research, Design, Development, Testing, Launch. Schedule weekly check-ins, create milestone deadlines, and send progress updates to stakeholders.",
+    icon: "📋",
   },
   {
-    title: "Flight & Itinerary",
-    label: "Find flights, add to calendar, and email details.",
-    action: "Find the cheapest round-trip flights from San Francisco (SFO) to Tokyo (NRT) for a two-week trip starting exactly two weeks from today. Once you find suitable flights, please add the travel dates to my Google Calendar and send an email with the flight details and itinerary to my.travel@example.com.",
-    icon: "✈️",
+    title: "Create & Design",
+    label: "Generate content, designs, and creative assets",
+    action: "Design a modern landing page for a sustainable fashion brand. Create wireframes, generate compelling copy, suggest color schemes and typography, and provide 3 different layout concepts with explanations of the design choices.",
+    icon: "🎨",
   },
   {
-    title: "Code & Reminder",
-    label: "Create GitHub issue, email team, and set calendar reminder.",
-    action: "For the 'Jotium AI Feature Development' project in Linear, please create a new GitHub issue titled 'Refactor AgenticDecisionEngine for better extensibility'. Assign it to developer@example.com. Once the issue is created, send an email to team-leads@example.com notifying them about this new refactoring task and its importance, and add a reminder to my Google Calendar for next Monday to follow up on this issue.",
-    icon: "💻",
+    title: "Code & Build",
+    label: "Develop features, fix bugs, optimize performance",
+    action: "Build a real-time collaborative text editor with syntax highlighting for multiple programming languages. Include features like live cursors, version history, and export functionality. Use modern web technologies and ensure responsive design.",
+    icon: "⚡",
+  },
+  {
+    title: "Travel & Explore",
+    label: "Plan trips, find deals, create itineraries",
+    action: "Plan a 7-day eco-friendly trip to Costa Rica. Find sustainable accommodations, arrange transportation, create a day-by-day itinerary focusing on wildlife watching and nature experiences, and calculate the carbon footprint with offset options.",
+    icon: "🌿",
+  },
+  {
+    title: "Learn & Grow",
+    label: "Discover courses, track progress, build skills",
+    action: "Create a personalized learning path for mastering data science. Find the best online courses, set up a 6-month study schedule with weekly goals, suggest practical projects, and track progress with regular assessments.",
+    icon: "📚",
+  },
+  {
+    title: "Health & Wellness",
+    label: "Fitness plans, nutrition tracking, mindfulness",
+    action: "Design a holistic wellness program including: personalized workout routines based on fitness level, meal planning with recipes and nutritional breakdown, meditation and mindfulness exercises, and progress tracking with weekly check-ins.",
+    icon: "💪",
+  },
+  {
+    title: "Business & Strategy",
+    label: "Market analysis, competitive research, growth planning",
+    action: "Conduct a comprehensive market analysis for launching a plant-based food delivery service. Research competitors, identify target demographics, analyze pricing strategies, create financial projections, and develop a go-to-market strategy.",
+    icon: "📊",
   },
 ];
 
@@ -230,7 +254,7 @@ export function MultimodalInput({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 w-full"
+                  className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-3 w-full"
                 >
                   {suggestedActions.map((suggestedAction, index) => (
                     <motion.div
@@ -245,18 +269,15 @@ export function MultimodalInput({
                           setInput(suggestedAction.action);
                           textareaRef.current?.focus();
                         }}
-                        className="group w-full text-left bg-background/60 backdrop-blur-sm border border-border/50 hover:border-border transition-all duration-200 rounded-2xl p-2 hover:bg-muted/50 hover:shadow-sm hover:-translate-y-0.5"
+                  className="group w-full text-left bg-background/70 backdrop-blur-sm border border-border/40 hover:border-border/70 transition-all duration-300 ease-out rounded-xl sm:rounded-2xl p-2 sm:p-3 hover:bg-background/80 hover:shadow-md hover:-translate-y-1"
                       >
-                        <div className="flex items-start gap-2">
+                        <div className="flex items-center gap-2">
                           <span className="text-[11px] group-hover:scale-110 transition-transform duration-200 shrink-0">
                             {suggestedAction.icon}
                           </span>
                           <div className="flex-1 min-w-0">
-                            <span className="font-medium text-foreground block text-[10px]">
+                            <span className="font-medium text-foreground block text-[10px] leading-tight truncate">
                               {suggestedAction.title}
-                            </span>
-                            <span className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
-                              {suggestedAction.label}
                             </span>
                           </div>
                         </div>
@@ -276,50 +297,52 @@ export function MultimodalInput({
             tabIndex={-1}
           />
 
-          {/* Attachments Preview - Responsive */}
-          <AnimatePresence>
-            {(attachments.length > 0 || uploadQueue.length > 0) && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="flex flex-row gap-2 overflow-x-auto pb-1"
-              >
-                {attachments.map((attachment) => (
-                  <PreviewAttachment 
-                    key={attachment.url} 
-                    attachment={attachment} 
-                    onRemove={() => handleRemoveAttachment(attachment)} 
-                  />
-                ))}
-
-                {uploadQueue.map((filename) => (
-                  <PreviewAttachment
-                    key={filename}
-                    attachment={{
-                      url: "",
-                      name: filename,
-                      contentType: "",
-                    }}
-                    isUploading={true}
-                  />
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
           {/* Input Container - Responsive sizing */}
           <div className={`
-            relative bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl sm:rounded-3xl
-            transition-all duration-200 shadow-sm
-            ${isFocused ? "border-primary/50 shadow-md ring-2 sm:ring-4 ring-primary/10" : "hover:border-border"}
-            ${input.trim().length > 0 ? "border-primary/30" : ""}
-          `} style={{ animation: 'glowing 2s infinite alternate' }}>
+            relative bg-background/90 backdrop-blur-md border border-border/30 rounded-2xl sm:rounded-3xl
+            transition-all duration-300 ease-out shadow-sm hover:shadow-md
+            ${isFocused ? "border-primary/40 shadow-lg ring-2 sm:ring-4 ring-primary/20 scale-[1.01]" : "hover:border-border/60"}
+            ${input.trim().length > 0 ? "border-primary/25 shadow-md" : ""}
+          `} style={{ animation: 'glowing 3s infinite alternate' }}>
             <MessageLimitBanner
               messageCount={messageCount}
               messageLimit={messageLimit}
               messageLimitResetAt={messageLimitResetAt}
             />
+            
+            {/* Attachments Preview - Inside Input Area */}
+            <AnimatePresence>
+              {(attachments.length > 0 || uploadQueue.length > 0) && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="px-3 sm:px-4 pt-3 sm:pt-4 pb-0"
+                >
+                  <div className="flex flex-row gap-2 overflow-x-auto pb-2">
+                    {attachments.map((attachment) => (
+                      <PreviewAttachment 
+                        key={attachment.url} 
+                        attachment={attachment} 
+                        onRemove={() => handleRemoveAttachment(attachment)} 
+                      />
+                    ))}
+
+                    {uploadQueue.map((filename) => (
+                      <PreviewAttachment
+                        key={filename}
+                        attachment={{
+                          url: "",
+                          name: filename,
+                          contentType: "",
+                        }}
+                        isUploading={true}
+                      />
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
             
             {isRecording ? (
               <div className="p-3 sm:p-4">
@@ -392,7 +415,7 @@ export function MultimodalInput({
                 <Button
                   className={`
                     rounded-full p-1.5 sm:p-2 size-8 sm:size-10 transition-all duration-200
-                    ${input.trim().length > 0
+                    ${(input.trim().length > 0 || attachments.length > 0)
                       ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg hover:scale-105"
                       : isRecording
                       ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
@@ -401,7 +424,7 @@ export function MultimodalInput({
                   `}
                   onClick={(event) => {
                     event.preventDefault();
-                    if (input.trim().length > 0) {
+                    if (input.trim().length > 0 || attachments.length > 0) {
                       submitForm();
                     } else {
                       handleAudioClick();
@@ -410,7 +433,7 @@ export function MultimodalInput({
                   disabled={uploadQueue.length > 0 || isTranscribing}
                   size="sm"
                 >
-                  {input.trim().length > 0 ? (
+                  {(input.trim().length > 0 || attachments.length > 0) ? (
                     <ArrowUpIcon size={14} className="sm:size-4" />
                   ) : isRecording ? (
                     <Square size={14} className="sm:size-4" />

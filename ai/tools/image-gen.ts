@@ -147,7 +147,7 @@ export class ImageGenerationTool {
         contents = this.enhancePrompt(prompt, args);
       }
 
-      // Generate the image
+      // Generate the image with streaming enabled
       const response = await this.geminiClient.models.generateContent({
         model: "gemini-2.0-flash-preview-image-generation",
         contents: contents,
@@ -165,6 +165,7 @@ export class ImageGenerationTool {
         error: null
       };
 
+      // Check if we have image data
       let hasImageData = false;
       for (const part of response.candidates[0].content.parts) {
         if (part.inlineData) {
@@ -173,7 +174,7 @@ export class ImageGenerationTool {
         }
       }
 
-      // Process the response
+      // Process the response immediately
       for (const part of response.candidates[0].content.parts) {
         if (part.text) {
           if (!hasImageData) { // Only set textResponse if no image was generated
@@ -181,15 +182,26 @@ export class ImageGenerationTool {
             console.log("📝 Text response:", part.text);
           }
         } else if (part.inlineData) {
+          // Process image data immediately for streaming
           result.imageData = part.inlineData.data;
           result.imageBase64 = part.inlineData.data;
-          // Always return as data URL for frontend display
+          
+          // Create data URL for immediate frontend display
           const extension = args.outputFormat || "png";
           const mimeType = `image/${extension}`;
           result.imageDataUrl = `data:${mimeType};base64,${part.inlineData.data}`;
-          // Do NOT save to file by default
+          
+          // Ensure we don't save to file by default for immediate streaming
           result.savedFile = null;
+          
+          console.log("🎨 Image generated successfully");
+          break; // Exit loop once we have image data
         }
+      }
+
+      // If no image was generated but we have text, log it
+      if (!hasImageData && result.textResponse) {
+        console.log("📝 No image generated, returning text response");
       }
 
       return result;

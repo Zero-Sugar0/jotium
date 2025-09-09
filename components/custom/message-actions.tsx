@@ -68,12 +68,12 @@ export function MessageActions({ messageId, content, onRegenerate, className, is
           size="sm"
           onClick={onEdit}
           className={cn(
-            "text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors",
-            isMobile ? "h-6 w-6 p-0" : "h-6 w-6 p-0",
+            "text-muted-foreground hover:text-foreground hover:bg-muted/50 backdrop-blur-sm border border-border/40 hover:border-border/60 transition-all duration-200",
+            isMobile ? "h-7 w-7 p-0" : "h-8 w-8 p-0",
           )}
           title="Edit message"
        >
-          <Pencil className={cn(isMobile ? "h-3 w-3" : "h-3 w-3")} />
+          <Pencil className={cn(isMobile ? "h-3.5 w-3.5" : "h-4 w-4")} />
         </Button>
       )}
 
@@ -84,15 +84,15 @@ export function MessageActions({ messageId, content, onRegenerate, className, is
         size="sm"
         onClick={handleCopy}
         className={cn(
-          "text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors",
-          isMobile ? "h-6 w-6 p-0" : "h-6 w-6 p-0",
+          "text-muted-foreground hover:text-foreground hover:bg-muted/50 backdrop-blur-sm border border-border/40 hover:border-border/60 transition-all duration-200",
+          isMobile ? "h-7 w-7 p-0" : "h-8 w-8 p-0",
         )}
         title="Copy message"
       >
         {copied ? (
-          <Check className={cn(isMobile ? "h-3 w-3" : "h-3 w-3", "text-green-600")} />
+          <Check className={cn(isMobile ? "h-3.5 w-3.5" : "h-4 w-4", "text-green-600")} />
         ) : (
-          <Copy className={cn(isMobile ? "h-3 w-3" : "h-3 w-3")} />
+          <Copy className={cn(isMobile ? "h-3.5 w-3.5" : "h-4 w-4")} />
         )}
       </Button>
 
@@ -102,12 +102,12 @@ export function MessageActions({ messageId, content, onRegenerate, className, is
           size="sm"
           onClick={handleShare}
           className={cn(
-            "text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors",
-            isMobile ? "h-6 w-6 p-0" : "h-6 w-6 p-0",
+            "text-muted-foreground hover:text-foreground hover:bg-muted/50 backdrop-blur-sm border border-border/40 hover:border-border/60 transition-all duration-200",
+            isMobile ? "h-7 w-7 p-0" : "h-8 w-8 p-0",
           )}
           title="Share message"
         >
-          <Share className={cn(isMobile ? "h-3 w-3" : "h-3 w-3")} />
+          <Share className={cn(isMobile ? "h-3.5 w-3.5" : "h-4 w-4")} />
         </Button>
       )}
 
@@ -117,13 +117,13 @@ export function MessageActions({ messageId, content, onRegenerate, className, is
           size="sm"
           onClick={() => handleFeedback("up")}
           className={cn(
-            "text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors",
-            isMobile ? "h-6 w-6 p-0" : "h-6 w-6 p-0",
-            feedback === "up" && "text-green-600 bg-green-50",
+            "text-muted-foreground hover:text-foreground hover:bg-muted/50 backdrop-blur-sm border border-border/40 hover:border-border/60 transition-all duration-200",
+            isMobile ? "h-7 w-7 p-0" : "h-8 w-8 p-0",
+            feedback === "up" && "text-green-600 bg-green-100/50 border-green-200",
           )}
           title="Good response"
         >
-          <ThumbsUp className={cn(isMobile ? "h-3 w-3" : "h-3 w-3")} />
+          <ThumbsUp className={cn(isMobile ? "h-3.5 w-3.5" : "h-4 w-4")} />
         </Button>
       )}
 
@@ -133,13 +133,13 @@ export function MessageActions({ messageId, content, onRegenerate, className, is
           size="sm"
           onClick={() => handleFeedback("down")}
           className={cn(
-            "text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors",
-            isMobile ? "h-6 w-6 p-0" : "h-6 w-6 p-0",
-            feedback === "down" && "text-red-600 bg-red-50",
+            "text-muted-foreground hover:text-foreground hover:bg-muted/50 backdrop-blur-sm border border-border/40 hover:border-border/60 transition-all duration-200",
+            isMobile ? "h-7 w-7 p-0" : "h-8 w-8 p-0",
+            feedback === "down" && "text-red-600 bg-red-100/50 border-red-200",
           )}
           title="Poor response"
         >
-          <ThumbsDown className={cn(isMobile ? "h-3 w-3" : "h-3 w-3")} />
+          <ThumbsDown className={cn(isMobile ? "h-3.5 w-3.5" : "h-4 w-4")} />
         </Button>
       )}
     </div>

@@ -225,6 +225,12 @@ export function Chat({
                   }
                   // Add the new image attachment as it streams in
                   assistantMessage.attachments.push(data.content);
+                  // Force immediate update to ensure image appears
+                  setMessages((prev) =>
+                    prev.map((msg) =>
+                      msg.id === assistantMessage.id ? { ...assistantMessage } : msg
+                    )
+                  );
                 }
                 if (data.attachments && Array.isArray(data.attachments)) {
                   pendingAttachments = data.attachments;
@@ -306,7 +312,7 @@ export function Chat({
                     executingTools={(() => {
                       const toolsForMessage = messageToolsMap[message.id] || [];
                       const hasImageAttachment = message.attachments?.some(
-                        (att: any) => att.type === "image_generation_result"
+                        (att: any) => att.contentType?.startsWith("image/")
                       );
                       
                       let currentExecuting: string[] = [];
