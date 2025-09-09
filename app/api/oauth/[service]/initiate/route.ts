@@ -630,65 +630,12 @@ export async function GET(
 
     case "linkedin":
       clientId = process.env.LINKEDIN_CLIENT_ID;
-      // Comprehensive LinkedIn scopes for 2025 with enhanced features
+      // Use only the specified scopes for LinkedIn OAuth
       scope = [
-        // Basic Profile Access
         "openid",
-        "profile",
+        "profile", 
         "email",
-        
-        // Member Social Actions
-        "w_member_social",           // Post, comment, like on behalf of member
-        "r_member_social",           // Read member's posts and interactions
-        
-        // Organization/Company Management
-        "w_organization_social",     // Post on behalf of organizations
-        "r_organization_social",     // Read organization posts and analytics
-        "rw_organization_admin",     // Manage organization settings
-        
-        // Network and Connections
-        "r_network",                 // Read network updates and connections
-        "w_network",                 // Manage network connections
-        "r_connections",             // Read connection list
-        "r_contactinfo",             // Access contact information
-        
-        // Messaging
-        "w_messages",                // Send messages
-        "r_messages",                // Read messages
-        
-        // Analytics and Insights
-        "r_member_postAnalytics",    // Access post analytics (2025)
-        "r_organization_lookup",     // Lookup organizations
-        "r_member_analytics",        // Member analytics
-        
-        // Skills and Endorsements
-        "w_skills",                  // Add skills
-        "r_skills",                  // Read skills
-        
-        // Recommendations
-        "w_recommendations",         // Request/give recommendations
-        "r_recommendations",         // Read recommendations
-        
-        // Jobs and Recruiting
-        "r_jobs",                    // Read job postings
-        "r_jobseeker",               // Job seeker information
-        
-        // Learning
-        "r_learning",                // Access learning data
-        
-        // Events
-        "r_events",                  // Read events
-        "w_events",                  // Manage events
-        
-        // Groups
-        "r_groups",                  // Read group information
-        "w_groups",                  // Manage group interactions
-        
-        // Advanced Features
-        "r_compliance",              // Compliance data
-        "r_ads",                     // Advertising data
-        "r_sales_navigator",         // Sales Navigator data
-        "r_recruiter"               // Recruiter data
+        "w_member_social"
       ].join(" ");
       
       if (!clientId) {
@@ -702,7 +649,7 @@ export async function GET(
         response_type: "code",
         scope: scope,
         state: state,
-        access_type: "offline"
+        access_type: "offline"  // Add offline access for refresh tokens
       });
 
       authorizationUrl = `https://www.linkedin.com/oauth/v2/authorization?${linkedinParams.toString()}`;

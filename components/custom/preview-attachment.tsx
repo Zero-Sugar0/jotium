@@ -44,23 +44,23 @@ export function PreviewAttachment({
       className="relative group"
     >
       {/* Main Preview Card */}
-      <div className="relative bg-zinc-800/90 border border-zinc-700/60 rounded-xl p-3 hover:bg-zinc-800 transition-colors duration-200">
+      <div className="relative bg-background/60 backdrop-blur-sm border border-border/40 rounded-lg p-2 hover:bg-background/70 transition-colors duration-200">
         
-        {/* Close Button - Always visible and positioned like in your image */}
+        {/* Close Button - Minimal design */}
         {onRemove && !isUploading && (
           <button
             onClick={onRemove}
-            className="absolute -top-2 -right-2 w-6 h-6 bg-zinc-600 hover:bg-zinc-500 text-white rounded-full flex items-center justify-center transition-all duration-200 border border-zinc-500 shadow-lg z-10"
+            className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-muted hover:bg-destructive text-destructive-foreground rounded-full flex items-center justify-center transition-all duration-200 border border-border shadow-md z-10"
           >
-            <X size={14} strokeWidth={2} />
+            <X size={12} strokeWidth={2} />
           </button>
         )}
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {/* File Icon/Image */}
           <div className="relative flex-shrink-0">
             {isImage && attachment.url && !isUploading ? (
-              <div className="w-10 h-10 rounded-lg overflow-hidden bg-zinc-700">
+              <div className="w-12 h-12 rounded-md overflow-hidden bg-muted">
                 <img 
                   src={attachment.url} 
                   alt=""
@@ -68,24 +68,17 @@ export function PreviewAttachment({
                 />
               </div>
             ) : (
-              <div className="w-10 h-10 rounded-lg bg-zinc-700 border border-zinc-600 flex items-center justify-center">
-                <IconComponent size={18} className="text-zinc-300" />
+              <div className="w-10 h-10 rounded-md bg-muted border border-border flex items-center justify-center">
+                <IconComponent size={16} className="text-muted-foreground" />
               </div>
             )}
             
             {/* Upload Progress Overlay */}
             {isUploading && (
-              <div className="absolute inset-0 bg-zinc-800/90 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                <div className="w-5 h-5 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-md flex items-center justify-center">
+                <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
               </div>
             )}
-          </div>
-
-          {/* File Type Label Only - No filename */}
-          <div className="flex-1">
-            <span className="inline-block text-sm font-medium text-amber-400 bg-amber-400/10 px-2 py-1 rounded-md">
-              {fileTypeLabel}
-            </span>
           </div>
         </div>
       </div>
