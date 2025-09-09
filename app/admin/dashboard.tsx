@@ -175,7 +175,7 @@ export default function AdminDashboard() {
       formatter: (v: number) => `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       change: '+20.1%',
       dataKey: 'amount',
-      color: '#3b82f6',
+      color: 'hsl(var(--primary))',
     },
     {
       key: 'totalUsers',
@@ -185,7 +185,7 @@ export default function AdminDashboard() {
       formatter: (v: number) => v.toLocaleString(),
       change: '+12%',
       dataKey: 'count',
-      color: '#10b981',
+      color: 'hsl(var(--secondary))',
     },
     {
       key: 'activeSubs',
@@ -195,7 +195,7 @@ export default function AdminDashboard() {
       formatter: (v: number) => v.toLocaleString(),
       change: '+8%',
       dataKey: 'count',
-      color: '#f59e0b',
+      color: 'hsl(var(--accent))',
     },
     {
       key: 'freeUsers',
@@ -205,7 +205,7 @@ export default function AdminDashboard() {
       formatter: (v: number) => v.toLocaleString(),
       change: '+5%',
       dataKey: 'count',
-      color: '#8b5cf6',
+      color: 'hsl(var(--muted))',
     },
   ];
 
@@ -233,7 +233,7 @@ export default function AdminDashboard() {
                 key={metric.key} 
                 className={`cursor-pointer transition-all hover:shadow-lg border-l-4 ${
                   selectedMetric === metric.key 
-                    ? 'border-l-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                    ? 'border-l-primary bg-primary/10 dark:bg-primary/20' 
                     : 'border-l-gray-200 dark:border-l-gray-700'
                 }`}
                 onClick={() => setSelectedMetric(metric.key)}
@@ -325,8 +325,8 @@ export default function AdminDashboard() {
                     />
                     <BarChartTooltip 
                       contentStyle={{
-                        backgroundColor: 'white',
-                        border: '1px solid #e5e7eb',
+                        backgroundColor: 'hsl(var(--background))',
+                        border: '1px solid hsl(var(--border))',
                         borderRadius: '8px',
                         boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
                       }}
@@ -462,18 +462,18 @@ export default function AdminDashboard() {
                         <TableCell className="font-medium text-left min-w-[220px]">{user.name}</TableCell>
                         <TableCell className="hidden sm:table-cell text-left min-w-[260px] text-gray-600">{user.email}</TableCell>
                         <TableCell className="text-center min-w-[140px]">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            user.plan === 'Pro' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
-                            user.plan === 'Advanced' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300' :
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            user.plan === 'Pro' ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground' :
+                            user.plan === 'Advanced' ? 'bg-secondary/10 text-secondary dark:bg-secondary/20 dark:text-secondary-foreground' :
                             'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                           }`}>
                             {user.plan}
                           </span>
                         </TableCell>
                         <TableCell className="hidden md:table-cell text-center min-w-[160px]">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                             user.subscriptionStatus === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' :
-                            user.subscriptionStatus === 'canceled' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' :
+                            user.subscriptionStatus === 'canceled' ? 'bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive' :
                             'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
                           }`}>
                             {user.subscriptionStatus}
@@ -498,7 +498,7 @@ export default function AdminDashboard() {
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 onSelect={() => openDeleteModal(user)}
-                                className="text-red-600"
+                                className="text-destructive"
                               >
                                 Delete
                               </DropdownMenuItem>
@@ -583,7 +583,7 @@ export default function AdminDashboard() {
             <AlertDialogDescription>
               Are you sure you want to delete {selectedIds.length} user{selectedIds.length > 1 ? 's' : ''}?
               {anySelectedAdmin && (
-                <div className="text-red-600 font-semibold mt-2">
+                <div className="text-destructive font-semibold mt-2">
                   Warning: One or more selected users are admins. This action cannot be undone!
                 </div>
               )}
@@ -662,7 +662,7 @@ export default function AdminDashboard() {
                   </SelectContent>
                 </Select>
               </div>
-              {editError && <div className="text-red-600 text-sm">{editError}</div>}
+              {editError && <div className="text-destructive text-sm">{editError}</div>}
               <AlertDialogFooter>
                 <AlertDialogCancel type="button">Cancel</AlertDialogCancel>
                 <Button type="submit" disabled={editLoading}>
@@ -681,7 +681,7 @@ export default function AdminDashboard() {
             </AlertDialogHeader>
             <AlertDialogDescription>
               Are you sure you want to delete user <strong>{selectedUser?.name}</strong>? This action cannot be undone.
-              {deleteError && <div className="text-red-600 text-sm mt-2">{deleteError}</div>}
+              {deleteError && <div className="text-destructive text-sm mt-2">{deleteError}</div>}
             </AlertDialogDescription>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>

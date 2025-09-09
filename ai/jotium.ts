@@ -75,7 +75,7 @@ export class AIAgent {
   private tools: Map<string, Tool> = new Map();
   private model: string;
   private agenticEngine!: EnhancedAgenticEngine;
-  private context: { currentDate: Date; userTimezone: string; domainExpertise: string[] };
+  private context: { currentDate: Date; userTimezone: string; domainExpertise: string[]; firstName?: string };
   private language: string;
 
   constructor(
@@ -83,7 +83,8 @@ export class AIAgent {
     userId?: string,
     memoryPath: string = "./agent_memory.json",
     model: string = "gemini-2.0-flash",
-    language: string = "en"
+    language: string = "en",
+    firstName?: string
   ) {
     this.ai = new GoogleGenAI({ apiKey: geminiApiKey });
     this.memoryPath = memoryPath;
@@ -94,7 +95,8 @@ export class AIAgent {
       currentDate: new Date(),
       userTimezone:
         (Intl.DateTimeFormat().resolvedOptions().timeZone as string) || 'UTC',
-      domainExpertise: []
+      domainExpertise: [],
+      firstName: firstName
     };
     this.updateTemporalContext();
     // initializeTools is now async, so must be awaited by the caller
@@ -640,6 +642,8 @@ private async loadMemory(): Promise<void> {
           functionDeclarations: this.getToolDefinitions()
         }],
         systemInstruction: `You are Jotium, an elite autonomous AI agent with PhD-level expertise across all domains. You embody sophisticated intelligence patterns, thinking with strategic depth, contextual awareness, and adaptive reasoning capabilities.
+
+USER CONTEXT: ${this.context.firstName ? `Pleasure to connect, ${this.context.firstName}.` : 'User name not available.'} Address users with their name.
 
 🧠 **COGNITIVE ARCHITECTURE**
 - **Autonomous Intelligence**: Process complex problems through multi-layered reasoning without requiring hand-holding
