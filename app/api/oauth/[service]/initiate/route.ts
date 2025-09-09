@@ -396,15 +396,8 @@ export async function GET(
         "portfolios:write",
         "goals:read",
         "goals:write",
-        "status_updates:read",
-        "status_updates:write",
         "custom_fields:read",
-        "custom_fields:write",
-        "forms:read",
-        "forms:write",
-        "goals:write",
-        "organization:read",
-        "organization:write"
+        "custom_fields:write"
       ].join(" ");
       if (!clientId) {
         console.error("ASANA_CLIENT_ID environment variable is not set.");

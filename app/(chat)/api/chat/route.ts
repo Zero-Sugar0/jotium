@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
   const user = await getUserById(userId);
   const userPlan = user?.plan || "Free";
   const limit = planLimits[userPlan];
+  const firstName = user?.firstName;
 
   const { count, messageLimitResetAt } = await getUserDailyMessageCount(userId);
   const now = new Date();
@@ -51,7 +52,8 @@ export async function POST(request: NextRequest) {
   const language = await getUserLanguage(userId);
   
   const geminiApiKey = process.env.GOOGLE_API_KEY || '';
-  const agent = new AIAgent(geminiApiKey, userId, undefined, model, language || "en");
+  
+  const agent = new AIAgent(geminiApiKey, userId, undefined, model, language || "en", firstName);
   await agent.initializeTools(userId);
   const lastMessage = messages[messages.length - 1];
 

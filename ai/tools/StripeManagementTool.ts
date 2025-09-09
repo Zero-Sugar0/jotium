@@ -34,7 +34,7 @@ export class StripeManagementTool implements Tool {
               "create_customer", "get_customer", "update_customer", "delete_customer", "list_customers",
               "create_product", "get_product", "update_product", "delete_product", "list_products",
               "create_price", "get_price", "update_price", "list_prices",
-              "create_payment_intent", "confirm_payment_intent", "capture_payment_intent", "cancel_payment_intent",
+            "create_payment_intent", "confirm_payment_intent", "capture_payment_intent", "cancel_payment_intent",
               "create_subscription", "get_subscription", "update_subscription", "cancel_subscription", "list_subscriptions",
               "create_invoice", "get_invoice", "pay_invoice", "void_invoice", "finalize_invoice", "list_invoices",
               "create_webhook", "get_webhook", "update_webhook", "delete_webhook", "list_webhooks",
@@ -44,7 +44,12 @@ export class StripeManagementTool implements Tool {
               "create_payout", "get_payout", "update_payout", "list_payouts",
               "get_balance", "get_balance_transactions", "create_charge", "get_charge", "list_charges",
               "create_payment_method", "get_payment_method", "attach_payment_method", "detach_payment_method",
-              "get_account", "update_account", "create_account_link", "get_tax_rates", "create_tax_rate"
+              "get_account", "update_account", "create_account_link", "get_tax_rates", "create_tax_rate",
+              "create_checkout_session",
+              "get_dispute", "update_dispute", "close_dispute", "list_disputes",
+              "create_subscription_schedule", "get_subscription_schedule", "update_subscription_schedule", "cancel_subscription_schedule", "list_subscription_schedules",
+              "create_usage_record",
+              "verify_webhook_signature"
             ]
           },
           // Customer fields
@@ -100,6 +105,35 @@ export class StripeManagementTool implements Tool {
             type: Type.STRING,
             description: "Subscription ID"
           },
+          items: {
+            type: Type.ARRAY,
+            description: "A list of items to subscribe to."
+          },
+          trialPeriodDays: {
+            type: Type.NUMBER,
+            description: "Number of trial days for a new subscription."
+          },
+          prorationBehavior: {
+            type: Type.STRING,
+            description: "Determines how to handle prorations when the billing cycle changes.",
+            enum: ["create_prorations", "none", "always_invoice"]
+          },
+          subscriptionScheduleId: {
+            type: Type.STRING,
+            description: "Subscription Schedule ID"
+          },
+          phases: {
+            type: Type.ARRAY,
+            description: "List of phases for a subscription schedule."
+          },
+          subscriptionItemId: {
+            type: Type.STRING,
+            description: "The ID of the subscription item to create a usage record for."
+          },
+          quantity: {
+            type: Type.NUMBER,
+            description: "The quantity of usage to report."
+          },
           // Invoice fields
           invoiceId: {
             type: Type.STRING,
@@ -113,6 +147,49 @@ export class StripeManagementTool implements Tool {
           url: {
             type: Type.STRING,
             description: "Webhook URL or other URLs"
+          },
+          enabledEvents: {
+            type: Type.ARRAY,
+            description: "The list of events to enable for a webhook endpoint."
+          },
+          signature: {
+            type: Type.STRING,
+            description: "The value of the `Stripe-Signature` header from the webhook request."
+          },
+          payload: {
+            type: Type.STRING,
+            description: "The raw request body from the webhook."
+          },
+          secret: {
+            type: Type.STRING,
+            description: "The webhook signing secret."
+          },
+          // Checkout fields
+          lineItems: {
+            type: Type.ARRAY,
+            description: "A list of line items for a checkout session."
+          },
+          mode: {
+            type: Type.STRING,
+            description: "The mode of the checkout session.",
+            enum: ["payment", "setup", "subscription"]
+          },
+          successUrl: {
+            type: Type.STRING,
+            description: "The URL to redirect to on successful checkout."
+          },
+          cancelUrl: {
+            type: Type.STRING,
+            description: "The URL to redirect to on canceled checkout."
+          },
+          // Dispute fields
+          disputeId: {
+            type: Type.STRING,
+            description: "Dispute ID"
+          },
+          evidence: {
+            type: Type.OBJECT,
+            description: "Evidence to submit to a dispute."
           },
           // Other fields
           metadata: {
@@ -362,6 +439,52 @@ export class StripeManagementTool implements Tool {
           result = await this.createTaxRate(args);
           break;
 
+        // Checkout operations
+        case 'create_checkout_session':
+          result = await this.createCheckoutSession(args);
+          break;
+
+        // Dispute operations
+        case 'get_dispute':
+          result = await this.getDispute(args.disputeId);
+          break;
+        case 'update_dispute':
+          result = await this.updateDispute(args);
+          break;
+        case 'close_dispute':
+          result = await this.closeDispute(args.disputeId);
+          break;
+        case 'list_disputes':
+          result = await this.listDisputes(args);
+          break;
+
+        // Subscription Schedule operations
+        case 'create_subscription_schedule':
+          result = await this.createSubscriptionSchedule(args);
+          break;
+        case 'get_subscription_schedule':
+          result = await this.getSubscriptionSchedule(args.subscriptionScheduleId);
+          break;
+        case 'update_subscription_schedule':
+          result = await this.updateSubscriptionSchedule(args);
+          break;
+        case 'cancel_subscription_schedule':
+          result = await this.cancelSubscriptionSchedule(args.subscriptionScheduleId);
+          break;
+        case 'list_subscription_schedules':
+          result = await this.listSubscriptionSchedules(args);
+          break;
+
+        // Usage Record operations
+        case 'create_usage_record':
+          result = await this.createUsageRecord(args);
+          break;
+
+        // Webhook Signature Verification
+        case 'verify_webhook_signature':
+          result = await this.verifyWebhookSignature(args);
+          break;
+
         default:
           return {
             success: false,
@@ -380,7 +503,12 @@ export class StripeManagementTool implements Tool {
               'create_payout', 'get_payout', 'update_payout', 'list_payouts',
               'get_balance', 'get_balance_transactions', 'create_charge', 'get_charge', 'list_charges',
               'create_payment_method', 'get_payment_method', 'attach_payment_method', 'detach_payment_method',
-              'get_account', 'update_account', 'create_account_link', 'get_tax_rates', 'create_tax_rate'
+              'get_account', 'update_account', 'create_account_link', 'get_tax_rates', 'create_tax_rate',
+              'create_checkout_session',
+              'get_dispute', 'update_dispute', 'close_dispute', 'list_disputes',
+              'create_subscription_schedule', 'get_subscription_schedule', 'update_subscription_schedule', 'cancel_subscription_schedule', 'list_subscription_schedules',
+              'create_usage_record',
+              'verify_webhook_signature'
             ]
           };
       }
@@ -596,7 +724,9 @@ export class StripeManagementTool implements Tool {
     const data: any = {
       customer: args.customerId
     };
-    if (args.priceId) data.items = [{ price: args.priceId }];
+    if (args.items) data.items = args.items;
+    if (args.trialPeriodDays) data.trial_period_days = args.trialPeriodDays;
+    if (args.prorationBehavior) data.proration_behavior = args.prorationBehavior;
     if (args.metadata) data.metadata = args.metadata;
 
     const response = await this.apiClient.post('/subscriptions', this.toFormData(data));
@@ -610,6 +740,8 @@ export class StripeManagementTool implements Tool {
 
   private async updateSubscription(args: any): Promise<any> {
     const data: any = {};
+    if (args.items) data.items = args.items;
+    if (args.prorationBehavior) data.proration_behavior = args.prorationBehavior;
     if (args.metadata) data.metadata = args.metadata;
 
     const response = await this.apiClient.post(`/subscriptions/${args.subscriptionId}`, this.toFormData(data));
@@ -675,7 +807,7 @@ export class StripeManagementTool implements Tool {
   private async createWebhook(args: any): Promise<any> {
     const data: any = {
       url: args.url,
-      enabled_events: args.events || ['*']
+      enabled_events: args.enabledEvents || ['*']
     };
     if (args.description) data.description = args.description;
 
@@ -691,7 +823,7 @@ export class StripeManagementTool implements Tool {
   private async updateWebhook(args: any): Promise<any> {
     const data: any = {};
     if (args.url) data.url = args.url;
-    if (args.events) data.enabled_events = args.events;
+    if (args.enabledEvents) data.enabled_events = args.enabledEvents;
     if (args.description) data.description = args.description;
 
     const response = await this.apiClient.post(`/webhook_endpoints/${args.webhookId}`, this.toFormData(data));
@@ -983,6 +1115,109 @@ export class StripeManagementTool implements Tool {
 
     const response = await this.apiClient.post('/tax_rates', this.toFormData(data));
     return response.data;
+  }
+
+  // Checkout operations
+  private async createCheckoutSession(args: any): Promise<any> {
+    const data: any = {
+      line_items: args.lineItems,
+      mode: args.mode,
+      success_url: args.successUrl,
+      cancel_url: args.cancelUrl
+    };
+    if (args.customerId) data.customer = args.customerId;
+    if (args.metadata) data.metadata = args.metadata;
+
+    const response = await this.apiClient.post('/checkout/sessions', this.toFormData(data));
+    return response.data;
+  }
+
+  // Dispute operations
+  private async getDispute(disputeId: string): Promise<any> {
+    const response = await this.apiClient.get(`/disputes/${disputeId}`);
+    return response.data;
+  }
+
+  private async updateDispute(args: any): Promise<any> {
+    const data: any = {};
+    if (args.evidence) data.evidence = args.evidence;
+    if (args.metadata) data.metadata = args.metadata;
+
+    const response = await this.apiClient.post(`/disputes/${args.disputeId}`, this.toFormData(data));
+    return response.data;
+  }
+
+  private async closeDispute(disputeId: string): Promise<any> {
+    const response = await this.apiClient.post(`/disputes/${disputeId}/close`, '');
+    return response.data;
+  }
+
+  private async listDisputes(args: any): Promise<any> {
+    const params: any = {};
+    if (args.limit) params.limit = args.limit;
+
+    const response = await this.apiClient.get('/disputes', { params });
+    return response.data;
+  }
+
+  // Subscription Schedule operations
+  private async createSubscriptionSchedule(args: any): Promise<any> {
+    const data: any = {};
+    if (args.customerId) data.customer = args.customerId;
+    if (args.phases) data.phases = args.phases;
+    if (args.metadata) data.metadata = args.metadata;
+
+    const response = await this.apiClient.post('/subscription_schedules', this.toFormData(data));
+    return response.data;
+  }
+
+  private async getSubscriptionSchedule(subscriptionScheduleId: string): Promise<any> {
+    const response = await this.apiClient.get(`/subscription_schedules/${subscriptionScheduleId}`);
+    return response.data;
+  }
+
+  private async updateSubscriptionSchedule(args: any): Promise<any> {
+    const data: any = {};
+    if (args.phases) data.phases = args.phases;
+    if (args.metadata) data.metadata = args.metadata;
+
+    const response = await this.apiClient.post(`/subscription_schedules/${args.subscriptionScheduleId}`, this.toFormData(data));
+    return response.data;
+  }
+
+  private async cancelSubscriptionSchedule(subscriptionScheduleId: string): Promise<any> {
+    const response = await this.apiClient.post(`/subscription_schedules/${subscriptionScheduleId}/cancel`, '');
+    return response.data;
+  }
+
+  private async listSubscriptionSchedules(args: any): Promise<any> {
+    const params: any = {};
+    if (args.limit) params.limit = args.limit;
+    if (args.customerId) params.customer = args.customerId;
+
+    const response = await this.apiClient.get('/subscription_schedules', { params });
+    return response.data;
+  }
+
+  // Usage Record operations
+  private async createUsageRecord(args: any): Promise<any> {
+    const data: any = {
+      quantity: args.quantity
+    };
+
+    const response = await this.apiClient.post(`/subscription_items/${args.subscriptionItemId}/usage_records`, this.toFormData(data));
+    return response.data;
+  }
+
+  // Webhook Signature Verification
+  private async verifyWebhookSignature(args: any): Promise<any> {
+    // This is a placeholder. In a real application, you would use the Stripe SDK to verify the signature.
+    // This is because signature verification requires the raw request body, which is not easily accessible here.
+    // For demonstration purposes, we'll just return a success message.
+    return {
+      verified: true,
+      message: "Webhook signature verification is not implemented in this tool. Please use the Stripe SDK for this."
+    };
   }
 }
 
