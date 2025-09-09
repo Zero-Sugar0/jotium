@@ -107,7 +107,8 @@ export class StripeManagementTool implements Tool {
           },
           items: {
             type: Type.ARRAY,
-            description: "A list of items to subscribe to."
+            description: "A list of items to subscribe to.",
+            items: { type: Type.OBJECT }
           },
           trialPeriodDays: {
             type: Type.NUMBER,
@@ -124,7 +125,8 @@ export class StripeManagementTool implements Tool {
           },
           phases: {
             type: Type.ARRAY,
-            description: "List of phases for a subscription schedule."
+            description: "List of phases for a subscription schedule.",
+            items: { type: Type.OBJECT }
           },
           subscriptionItemId: {
             type: Type.STRING,
@@ -150,7 +152,8 @@ export class StripeManagementTool implements Tool {
           },
           enabledEvents: {
             type: Type.ARRAY,
-            description: "The list of events to enable for a webhook endpoint."
+            description: "The list of events to enable for a webhook endpoint.",
+            items: { type: Type.STRING }
           },
           signature: {
             type: Type.STRING,
@@ -167,7 +170,8 @@ export class StripeManagementTool implements Tool {
           // Checkout fields
           lineItems: {
             type: Type.ARRAY,
-            description: "A list of line items for a checkout session."
+            description: "A list of line items for a checkout session.",
+            items: { type: Type.OBJECT }
           },
           mode: {
             type: Type.STRING,
