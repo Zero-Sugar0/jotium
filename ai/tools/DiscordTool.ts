@@ -1,14 +1,23 @@
 import { FunctionDeclaration, Type } from "@google/genai";
+import { getValidOAuthAccessToken } from "@/lib/oauth-refresh";
+
+export interface DiscordConfig {
+  token: string;
+}
 
 export class DiscordTool {
   private baseUrl: string = "https://discord.com/api/v10";
   private userAgent: string = "DiscordTool/1.0";
   private botToken: string | null = null;
   private defaultGuildId: string | null = null;
+  private userId: string;
+  private oauthToken: string | null;
 
-  constructor(botToken?: string, defaultGuildId?: string) {
-    this.botToken = botToken || null;
-    this.defaultGuildId = defaultGuildId || null;
+  constructor(config: DiscordConfig, userId: string, oauthToken: string | null = null) {
+    this.botToken = config.token;
+    this.userId = userId;
+    this.oauthToken = oauthToken;
+    this.defaultGuildId = null;
   }
 
   /**
@@ -78,13 +87,13 @@ export class DiscordTool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "discord_bot",
-      description: "Interact with Discord servers using Discord Bot API. Send messages, create slash commands, manage channels, roles, and members. Supports embeds, buttons, select menus, threads, voice channels, and more across guilds and DMs.",
+      description: "Interact with Discord servers using Discord Bot API. Send messages, create slash commands, manage channels, roles, and members. Supports embeds, buttons, select menus, threads, voice channels, and more across guilds and DMs. Supports both bot tokens and OAuth 2.0 authentication with official scopes: identify, email, connections, guilds, guilds.join, applications.commands, applications.commands.permissions.update, webhook.incoming.",
       parameters: {
         type: Type.OBJECT,
         properties: {
           botToken: {
             type: Type.STRING,
-            description: "Bot token from Discord Developer Portal (format: MTAx...). Required if not set in constructor."
+            description: "Bot token from Discord Developer Portal (format: MTAx...). Required if not set in constructor. For OAuth 2.0, use access token from OAuth flow."
           },
           endpoint: {
             type: Type.STRING,
@@ -110,6 +119,9 @@ export class DiscordTool {
               "PUT /channels/{channel.id}/thread-members/@me",
               "DELETE /channels/{channel.id}/thread-members/@me",
               "GET /channels/{channel.id}/thread-members",
+              "PATCH /channels/{channel.id}/thread-members/@me",
+              "GET /channels/{channel.id}/thread-members/{user.id}",
+              "DELETE /channels/{channel.id}/thread-members/{user.id}",
               
               // Guild endpoints
               "GET /guilds/{guild.id}",
@@ -135,6 +147,31 @@ export class DiscordTool {
               "DELETE /guilds/{guild.id}/members/{user.id}/roles/{role.id}",
               "POST /guilds/{guild.id}/prune",
               "GET /guilds/{guild.id}/prune",
+              "GET /guilds/{guild.id}/regions",
+              "GET /guilds/{guild.id}/invites",
+              "GET /guilds/{guild.id}/integrations",
+              "GET /guilds/{guild.id}/widget",
+              "PATCH /guilds/{guild.id}/widget",
+              "GET /guilds/{guild.id}/vanity-url",
+              "GET /guilds/{guild.id}/widget.json",
+              "GET /guilds/{guild.id}/welcome-screen",
+              "PATCH /guilds/{guild.id}/welcome-screen",
+              "GET /guilds/{guild.id}/voice-states",
+              "GET /guilds/{guild.id}/scheduled-events",
+              "POST /guilds/{guild.id}/scheduled-events",
+              "GET /guilds/{guild.id}/scheduled-events/{guild_scheduled_event.id}",
+              "PATCH /guilds/{guild.id}/scheduled-events/{guild_scheduled_event.id}",
+              "DELETE /guilds/{guild.id}/scheduled-events/{guild_scheduled_event.id}",
+              "GET /guilds/{guild.id}/scheduled-events/{guild_scheduled_event.id}/users",
+              "GET /guilds/{guild.id}/templates",
+              "POST /guilds/{guild.id}/templates",
+              "PUT /guilds/{guild.id}/templates/{template.code}",
+              "POST /guilds/templates/{template.code}",
+              "GET /guilds/{guild.id}/stickers",
+              "POST /guilds/{guild.id}/stickers",
+              "GET /guilds/{guild.id}/stickers/{sticker.id}",
+              "PATCH /guilds/{guild.id}/stickers/{sticker.id}",
+              "DELETE /guilds/{guild.id}/stickers/{sticker.id}",
               
               // Application commands
               "GET /applications/{application.id}/commands",
@@ -166,7 +203,128 @@ export class DiscordTool {
               "PATCH /users/@me",
               "GET /users/@me/guilds",
               "DELETE /users/@me/guilds/{guild.id}",
-              "GET /applications/@me"
+              "GET /applications/@me",
+              
+              // Voice endpoints
+              "GET /voice/regions",
+              "GET /voice/connections",
+              
+              // Stage instance endpoints
+              "POST /stage-instances",
+              "GET /stage-instances/{channel.id}",
+              "PATCH /stage-instances/{channel.id}",
+              "DELETE /stage-instances/{channel.id}",
+              
+              // Sticker endpoints
+              "GET /stickers/{sticker.id}",
+              "GET /sticker-packs",
+              "GET /sticker-packs/{sticker_pack.id}",
+              "GET /guilds/{guild.id}/stickers",
+              "POST /guilds/{guild.id}/stickers",
+              "GET /guilds/{guild.id}/stickers/{sticker.id}",
+              "PATCH /guilds/{guild.id}/stickers/{sticker.id}",
+              "DELETE /guilds/{guild.id}/stickers/{sticker.id}",
+              
+              // Emoji endpoints
+              "GET /guilds/{guild.id}/emojis",
+              "POST /guilds/{guild.id}/emojis",
+              "GET /guilds/{guild.id}/emojis/{emoji.id}",
+              "PATCH /guilds/{guild.id}/emojis/{emoji.id}",
+              "DELETE /guilds/{guild.id}/emojis/{emoji.id}",
+              
+              // Webhook endpoints
+              "POST /channels/{channel.id}/webhooks",
+              "GET /channels/{channel.id}/webhooks",
+              "GET /guilds/{guild.id}/webhooks",
+              "GET /webhooks/{webhook.id}",
+              "GET /webhooks/{webhook.id}/{webhook.token}",
+              "PATCH /webhooks/{webhook.id}",
+              "PATCH /webhooks/{webhook.id}/{webhook.token}",
+              "DELETE /webhooks/{webhook.id}",
+              "DELETE /webhooks/{webhook.id}/{webhook.token}",
+              "POST /webhooks/{webhook.id}/{webhook.token}",
+              "POST /webhooks/{webhook.id}/{webhook.token}/slack",
+              "POST /webhooks/{webhook.id}/{webhook.token}/github",
+              "GET /webhooks/{webhook.id}/{webhook.token}/messages/{message.id}",
+              "PATCH /webhooks/{webhook.id}/{webhook.token}/messages/{message.id}",
+              "DELETE /webhooks/{webhook.id}/{webhook.token}/messages/{message.id}",
+              
+              // Audit log endpoints
+              "GET /guilds/{guild.id}/audit-logs",
+              
+              // Integration endpoints
+              "GET /guilds/{guild.id}/integrations",
+              "DELETE /guilds/{guild.id}/integrations/{integration.id}",
+              "GET /guilds/{guild.id}/integrations/{integration.id}",
+              "PATCH /guilds/{guild.id}/integrations/{integration.id}",
+              
+              // Invite endpoints
+              "GET /invites/{invite.code}",
+              "DELETE /invites/{invite.code}",
+              "POST /invites/{invite.code}",
+              
+              // Template endpoints
+              "GET /guilds/templates/{template.code}",
+              "POST /guilds/templates/{template.code}",
+              "GET /guilds/{guild.id}/templates",
+              "POST /guilds/{guild.id}/templates",
+              "PUT /guilds/{guild.id}/templates/{template.code}",
+              "DELETE /guilds/{guild.id}/templates/{template.code}",
+              "PATCH /guilds/{guild.id}/templates/{template.code}",
+              "POST /guilds/templates/{template.code}",
+              
+              // Discovery endpoints
+              "GET /discoverable-guilds",
+              "GET /guilds/{guild.id}/discovery-requirements",
+              "GET /guilds/{guild.id}/discovery-metadata",
+              "PATCH /guilds/{guild.id}/discovery-metadata",
+              
+              // Activity endpoints
+              "GET /activities",
+              "GET /activities/{activity.id}",
+              "GET /activities/{activity.id}/assets",
+              "GET /applications/{application.id}/activities",
+              "POST /applications/{application.id}/activities",
+              "GET /applications/{application.id}/activities/{activity.id}",
+              "PATCH /applications/{application.id}/activities/{activity.id}",
+              "DELETE /applications/{application.id}/activities/{activity.id}",
+              
+              // Relationship endpoints
+              "GET /users/@me/relationships",
+              "PUT /users/@me/relationships/{user.id}",
+              "DELETE /users/@me/relationships/{user.id}",
+              
+              // DM endpoints
+              "POST /users/@me/channels",
+              "GET /users/@me/channels",
+              
+              // Connection endpoints
+              "GET /users/@me/connections",
+              "GET /users/@me/connections/{connection.id}",
+              "PATCH /users/@me/connections/{connection.id}",
+              "DELETE /users/@me/connections/{connection.id}",
+              
+              // OAuth2 endpoints
+              "GET /oauth2/applications/@me",
+              "GET /oauth2/authorize",
+              "POST /oauth2/token",
+              "POST /oauth2/token/revoke",
+              "GET /oauth2/@me",
+              
+              // CDN endpoints
+              "GET /stickers/{sticker.id}",
+              "GET /stickers/{sticker.id}.png",
+              "GET /emojis/{emoji.id}",
+              "GET /emojis/{emoji.id}.png",
+              "GET /icons/{guild.id}/{guild.icon}",
+              "GET /avatars/{user.id}/{user.avatar}",
+              "GET /splashes/{guild.id}/{guild.splash}",
+              "GET /banners/{guild.id}/{guild.banner}",
+              "GET /banners/{user.id}/{user.banner}",
+              
+              // Gateway endpoints
+              "GET /gateway",
+              "GET /gateway/bot"
             ]
           },
           channelId: {
@@ -451,14 +609,15 @@ export class DiscordTool {
 
   async execute(args: any): Promise<any> {
     try {
-      const botToken = args.botToken || this.botToken;
-      
-      if (!botToken) {
-        throw new Error("Bot token is required. Get one from Discord Developer Portal.");
+      let accessToken: string | null = this.oauthToken;
+      if (!accessToken) {
+        accessToken = await getValidOAuthAccessToken(this.userId, "discord");
       }
 
-      if (!this.isValidBotToken(botToken)) {
-        throw new Error("Invalid bot token format. Expected format starts with 'MT' or 'MTA'");
+      const token = accessToken || (args.botToken || this.botToken);
+      
+      if (!token) {
+        throw new Error("Bot token or OAuth access token is required. Get one from Discord Developer Portal or authenticate via OAuth.");
       }
 
       const endpoint = args.endpoint;
@@ -466,7 +625,7 @@ export class DiscordTool {
 
       console.log(`🤖 Calling Discord API endpoint: ${endpoint}`);
 
-      const result = await this.sendApiRequest(botToken, endpoint, url, args);
+      const result = await this.sendApiRequest(token, endpoint, url, args);
 
       return {
         success: true,
@@ -474,14 +633,14 @@ export class DiscordTool {
         response: result.response,
         status: result.status,
         timestamp: new Date().toISOString(),
-        source: "Discord Bot API"
+        source: "Discord API"
       };
 
     } catch (error: unknown) {
-      console.error("❌ Discord Bot API call failed:", error);
+      console.error("❌ Discord API call failed:", error);
       return {
         success: false,
-        error: `Discord Bot API failed: ${error instanceof Error ? error.message : String(error)}`,
+        error: `Discord API failed: ${error instanceof Error ? error.message : String(error)}`,
         endpoint: args.endpoint,
         timestamp: new Date().toISOString()
       };

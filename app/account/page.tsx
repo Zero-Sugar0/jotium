@@ -62,10 +62,12 @@ const apiTools = [
 const oauthProviders = [
   { name: "Google", service: "gmail", icon: "/logo/google.svg" },
   { name: "GitHub", service: "github", icon: "/logo/github.svg" },
+  { name: "Discord", service: "discord", icon: "/logo/discord.svg" },
   { name: "Slack", service: "slack", icon: "/logo/slack.svg" },
   { name: "HubSpot", service: "hubspot", icon: "/logo/hubspot.svg" },
   { name: "Calendly", service: "calendly", icon: "/logo/calendly.svg" },
   { name: "Asana", service: "asana", icon: "/logo/asana.svg" },
+  { name: "LinkedIn", service: "linkedin", icon: "/logo/linkedin.svg" },
   // { name: "X", service: "x", icon: "/logo/x-twitter.svg" },
   { name: "ClickUp", service: "clickup", icon: "/logo/clickup.svg" }, // Assuming a ClickUp logo exists at /logo/clickup.svg
 ];
@@ -672,7 +674,9 @@ export default function AccountPage() {
               <ul className="list-disc ml-6">
                 <li>Google: Profile, Email, Calendar</li>
                 <li>GitHub: Repos, Issues, Pull Requests</li>
+                <li>Discord: Comprehensive server management including channels, roles, messages, voice channels, threads, webhooks, slash commands, interactions, user relationships, activities, and rich presence</li>
                 <li>Slack: Comprehensive workspace management including channels, messaging, file sharing, user management, reactions, search, analytics, workflows, and admin functions</li>
+                <li>LinkedIn: Profile management, posts, connections, messaging, company management, analytics, skills, recommendations, and network operations</li>
                 {/* <li>X: Post and engage with tweets, access profile information and settings</li> */}
                 <li>ClickUp: Tasks, Spaces, Goals, Comments, Teams, Folders, Lists, Views, Time Tracking, Webhooks</li>
                 <li>Cal.com: Bookings, Events</li>

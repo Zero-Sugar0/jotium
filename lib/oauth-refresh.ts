@@ -121,6 +121,18 @@ export async function refreshOAuthToken(userId: string, service: string): Promis
         });
         break;
 
+      case "discord":
+        clientId = process.env.DISCORD_CLIENT_ID;
+        clientSecret = process.env.DISCORD_CLIENT_SECRET;
+        tokenUrl = "https://discord.com/api/v10/oauth2/token";
+        tokenRequestBody = new URLSearchParams({
+          client_id: clientId || "",
+          client_secret: clientSecret || "",
+          refresh_token: refreshToken,
+          grant_type: "refresh_token",
+        });
+        break;
+
       case "hubspot":
         clientId = process.env.HUBSPOT_CLIENT_ID;
         clientSecret = process.env.HUBSPOT_CLIENT_SECRET;
@@ -130,6 +142,18 @@ export async function refreshOAuthToken(userId: string, service: string): Promis
           client_secret: clientSecret || "",
           refresh_token: refreshToken,
           grant_type: "refresh_token",
+        });
+        break;
+
+      case "linkedin":
+        clientId = process.env.LINKEDIN_CLIENT_ID;
+        clientSecret = process.env.LINKEDIN_CLIENT_SECRET;
+        tokenUrl = "https://www.linkedin.com/oauth/v2/accessToken";
+        tokenRequestBody = new URLSearchParams({
+          grant_type: "refresh_token",
+          refresh_token: refreshToken,
+          client_id: clientId || "",
+          client_secret: clientSecret || "",
         });
         break;
 
