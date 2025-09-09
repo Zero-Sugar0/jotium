@@ -60,6 +60,7 @@ import { HubSpotTool } from './tools/HubSpotTool';
 import { DiscordTool } from './tools/DiscordTool';
 import { TelegramTool } from './tools/TelegramTool';
 import { FirebaseTool } from './tools/FirebaseTool';
+import { LinkedInTool } from './tools/LinkedInTool';
 
 // Import Enhanced Agentic Engine
 import { EnhancedAgenticEngine, EnhancedActionIntent } from './actions';
@@ -415,8 +416,13 @@ export class AIAgent {
     // Discord
     const discordBotToken = await getKey("Discord Bot Token", "DISCORD_BOT_TOKEN");
     const discordDefaultGuildId = await getKey("Discord Default Guild ID", "DISCORD_DEFAULT_GUILD_ID");
-    if (discordBotToken) {
-      const discordTool = new DiscordTool(discordBotToken, discordDefaultGuildId);
+    let discordOauthToken: string | null = null;
+    if (userId) {
+      discordOauthToken = await getDecryptedOAuthAccessToken({ userId, service: "discord" });
+    }
+    if (discordBotToken || discordOauthToken) {
+      const discordConfig = { token: discordBotToken || "" };
+      const discordTool = new DiscordTool(discordConfig, userId || "", discordOauthToken);
       this.tools.set("discord_bot", {
         getDefinition: () => discordTool.getDefinition(),
         execute: (args: any) => discordTool.execute(args),
@@ -509,6 +515,19 @@ export class AIAgent {
       });
       if (githubAccessToken) {
         // Add GitHub OAuth tool here
+      }
+
+      // LinkedIn OAuth
+      const linkedinAccessToken = await getDecryptedOAuthAccessToken({ 
+        userId, 
+        service: "linkedin" 
+      });
+      if (linkedinAccessToken) {
+        const linkedinTool = new LinkedInTool(userId);
+        const linkedinToolName = linkedinTool.getDefinition().name;
+        if (linkedinToolName) {
+          this.tools.set(linkedinToolName, linkedinTool);
+        }
       }
 
       // Slack OAuth

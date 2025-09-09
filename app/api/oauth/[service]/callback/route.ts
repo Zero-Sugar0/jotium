@@ -130,6 +130,20 @@ export async function GET(
       });
       break;
 
+    case "discord":
+      clientId = process.env.DISCORD_CLIENT_ID;
+      clientSecret = process.env.DISCORD_CLIENT_SECRET;
+      tokenUrl = "https://discord.com/api/v10/oauth2/token";
+      userInfoUrl = "https://discord.com/api/v10/users/@me";
+      tokenRequestBody = new URLSearchParams({
+        code: code,
+        client_id: clientId || "",
+        client_secret: clientSecret || "",
+        redirect_uri: redirectUri,
+        grant_type: "authorization_code",
+      });
+      break;
+
     case "hubspot":
       clientId = process.env.HUBSPOT_CLIENT_ID;
       clientSecret = process.env.HUBSPOT_CLIENT_SECRET;
@@ -141,6 +155,20 @@ export async function GET(
         client_secret: clientSecret || "",
         redirect_uri: redirectUri,
         grant_type: "authorization_code",
+      });
+      break;
+
+    case "linkedin":
+      clientId = process.env.LINKEDIN_CLIENT_ID;
+      clientSecret = process.env.LINKEDIN_CLIENT_SECRET;
+      tokenUrl = "https://www.linkedin.com/oauth/v2/accessToken";
+      userInfoUrl = "https://api.linkedin.com/v2/userinfo";
+      tokenRequestBody = new URLSearchParams({
+        grant_type: "authorization_code",
+        code: code,
+        redirect_uri: redirectUri,
+        client_id: clientId || "",
+        client_secret: clientSecret || "",
       });
       break;
 
@@ -303,6 +331,18 @@ export async function GET(
         const userData = await userRes.json();
         externalUserId = userData.data.gid; // Asana uses gid as ID
         externalUserName = userData.data.name || userData.data.email;
+      }
+    } else if (service === "linkedin") {
+      const userRes = await fetch(userInfoUrl, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+        },
+      });
+      if (userRes.ok) {
+        const userData = await userRes.json();
+        externalUserId = userData.sub; // LinkedIn uses 'sub' as the user ID
+        externalUserName = userData.name || userData.email;
       }
     }
 

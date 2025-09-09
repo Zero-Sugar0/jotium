@@ -131,6 +131,11 @@ export class GoogleSheetsTool {
 
   async execute(args: any): Promise<any> {
     try {
+      // Validate required action parameter
+      if (!args.action) {
+        return { success: false, error: "action parameter is required" };
+      }
+
       // Reuse Gmail OAuth token (unified Google service)
       const accessToken = await getValidOAuthAccessToken(this.userId, "gmail");
       if (!accessToken) {
@@ -142,75 +147,156 @@ export class GoogleSheetsTool {
         "Content-Type": "application/json",
       };
 
+      let result: any;
+
       switch (args.action) {
         case "create_spreadsheet":
-          return await this.createSpreadsheet(args.title, headers, args.sheetTitle, args.values);
+          if (!args.title) {
+            return { success: false, error: "title is required for create_spreadsheet" };
+          }
+          result = await this.createSpreadsheet(args.title, headers, args.sheetTitle, args.values);
+          break;
         case "get_spreadsheet":
-          return await this.getSpreadsheet(args.spreadsheetId, Boolean(args.includeGridData), headers);
+          if (!args.spreadsheetId) {
+            return { success: false, error: "spreadsheetId is required for get_spreadsheet" };
+          }
+          result = await this.getSpreadsheet(args.spreadsheetId, Boolean(args.includeGridData), headers);
+          break;
         case "get_spreadsheet_info":
-          return await this.getSpreadsheetInfo(args.spreadsheetId, headers);
+          if (!args.spreadsheetId) {
+            return { success: false, error: "spreadsheetId is required for get_spreadsheet_info" };
+          }
+          result = await this.getSpreadsheetInfo(args.spreadsheetId, headers);
+          break;
         case "list_all_sheets":
-          return await this.listAllSheets(args.spreadsheetId, headers);
+          if (!args.spreadsheetId) {
+            return { success: false, error: "spreadsheetId is required for list_all_sheets" };
+          }
+          result = await this.listAllSheets(args.spreadsheetId, headers);
+          break;
         case "add_sheet":
-          return await this.addSheet(args.spreadsheetId, args.sheetTitle, headers);
+          if (!args.spreadsheetId || !args.sheetTitle) {
+            return { success: false, error: "spreadsheetId and sheetTitle are required for add_sheet" };
+          }
+          result = await this.addSheet(args.spreadsheetId, args.sheetTitle, headers);
+          break;
         case "delete_sheet":
-          return await this.deleteSheet(args.spreadsheetId, args.sheetId, headers);
+          if (!args.spreadsheetId || args.sheetId === undefined) {
+            return { success: false, error: "spreadsheetId and sheetId are required for delete_sheet" };
+          }
+          result = await this.deleteSheet(args.spreadsheetId, args.sheetId, headers);
+          break;
         case "duplicate_sheet":
-          return await this.duplicateSheet(args.spreadsheetId, args.sheetId, args.sheetTitle, headers);
+          if (!args.spreadsheetId || args.sheetId === undefined || !args.sheetTitle) {
+            return { success: false, error: "spreadsheetId, sheetId and sheetTitle are required for duplicate_sheet" };
+          }
+          result = await this.duplicateSheet(args.spreadsheetId, args.sheetId, args.sheetTitle, headers);
+          break;
         case "rename_sheet":
-          return await this.renameSheet(args.spreadsheetId, args.sheetId, args.newTitle, headers);
+          if (!args.spreadsheetId || args.sheetId === undefined || !args.newTitle) {
+            return { success: false, error: "spreadsheetId, sheetId and newTitle are required for rename_sheet" };
+          }
+          result = await this.renameSheet(args.spreadsheetId, args.sheetId, args.newTitle, headers);
+          break;
         case "read_values":
-          return await this.readValues(args.spreadsheetId, args.range, headers);
+          if (!args.spreadsheetId || !args.range) {
+            return { success: false, error: "spreadsheetId and range are required for read_values" };
+          }
+          result = await this.readValues(args.spreadsheetId, args.range, headers);
+          break;
         case "append_values":
-          return await this.appendValues(
+          if (!args.spreadsheetId || !args.range || !args.values) {
+            return { success: false, error: "spreadsheetId, range and values are required for append_values" };
+          }
+          result = await this.appendValues(
             args.spreadsheetId,
             args.range,
             args.values,
             args.valueInputOption || "USER_ENTERED",
             headers,
           );
+          break;
         case "update_values":
-          return await this.updateValues(
+          if (!args.spreadsheetId || !args.range || !args.values) {
+            return { success: false, error: "spreadsheetId, range and values are required for update_values" };
+          }
+          result = await this.updateValues(
             args.spreadsheetId,
             args.range,
             args.values,
             args.valueInputOption || "USER_ENTERED",
             headers,
           );
+          break;
         case "clear_values":
-          return await this.clearValues(args.spreadsheetId, args.range, headers);
+          if (!args.spreadsheetId || !args.range) {
+            return { success: false, error: "spreadsheetId and range are required for clear_values" };
+          }
+          result = await this.clearValues(args.spreadsheetId, args.range, headers);
+          break;
         case "batch_update_values":
-          return await this.batchUpdateValues(
+          if (!args.spreadsheetId || !args.data) {
+            return { success: false, error: "spreadsheetId and data are required for batch_update_values" };
+          }
+          result = await this.batchUpdateValues(
             args.spreadsheetId,
             args.data,
             args.valueInputOption || "USER_ENTERED",
             headers,
           );
+          break;
         case "format_cells":
-          return await this.formatCells(args.spreadsheetId, args.range, args, headers);
+          if (!args.spreadsheetId || !args.range) {
+            return { success: false, error: "spreadsheetId and range are required for format_cells" };
+          }
+          result = await this.formatCells(args.spreadsheetId, args.range, args, headers);
+          break;
         case "resize_sheet":
-          return await this.resizeSheet(args.spreadsheetId, args.sheetId, args.rowCount, args.columnCount, headers);
+          if (!args.spreadsheetId || args.sheetId === undefined) {
+            return { success: false, error: "spreadsheetId and sheetId are required for resize_sheet" };
+          }
+          result = await this.resizeSheet(args.spreadsheetId, args.sheetId, args.rowCount, args.columnCount, headers);
+          break;
         case "protect_range":
-          return await this.protectRange(
+          if (!args.spreadsheetId || !args.range) {
+            return { success: false, error: "spreadsheetId and range are required for protect_range" };
+          }
+          result = await this.protectRange(
             args.spreadsheetId,
             args.range,
             args.description,
             args.warningOnly || false,
             headers
           );
+          break;
         case "unprotect_range":
-          return await this.unprotectRange(args.spreadsheetId, args.protectedRangeId, headers);
+          if (!args.spreadsheetId || args.protectedRangeId === undefined) {
+            return { success: false, error: "spreadsheetId and protectedRangeId are required for unprotect_range" };
+          }
+          result = await this.unprotectRange(args.spreadsheetId, args.protectedRangeId, headers);
+          break;
         case "copy_sheet_to_another_spreadsheet":
-          return await this.copySheetToAnotherSpreadsheet(
+          if (!args.spreadsheetId || args.sheetId === undefined || !args.destinationSpreadsheetId) {
+            return { success: false, error: "spreadsheetId, sheetId and destinationSpreadsheetId are required for copy_sheet_to_another_spreadsheet" };
+          }
+          result = await this.copySheetToAnotherSpreadsheet(
             args.spreadsheetId,
             args.sheetId,
             args.destinationSpreadsheetId,
             headers
           );
+          break;
         case "get_sheet_properties":
-          return await this.getSheetProperties(args.spreadsheetId, args.sheetId, headers);
+          if (!args.spreadsheetId || args.sheetId === undefined) {
+            return { success: false, error: "spreadsheetId and sheetId are required for get_sheet_properties" };
+          }
+          result = await this.getSheetProperties(args.spreadsheetId, args.sheetId, headers);
+          break;
         case "search_and_replace":
-          return await this.searchAndReplace(
+          if (!args.spreadsheetId || !args.searchText || args.replacementText === undefined) {
+            return { success: false, error: "spreadsheetId, searchText and replacementText are required for search_and_replace" };
+          }
+          result = await this.searchAndReplace(
             args.spreadsheetId,
             args.searchText,
             args.replacementText,
@@ -220,15 +306,37 @@ export class GoogleSheetsTool {
             args.includeFormulas || false,
             headers
           );
+          break;
         case "list_spreadsheets":
-          return await this.listSpreadsheets(headers);
+          result = await this.listSpreadsheets(headers);
+          break;
         default:
           return { success: false, error: `Unknown action: ${args.action}` };
       }
+
+      // Return the result from the operation
+      return result;
+
     } catch (error: unknown) {
+      // Enhanced error handling with more context
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : '';
+      
+      console.error(`Google Sheets operation failed for action '${args.action}':`, {
+        message: errorMessage,
+        stack: errorStack,
+        userId: this.userId,
+        args: args
+      });
+
       return {
         success: false,
-        error: `Google Sheets operation failed: ${error instanceof Error ? error.message : String(error)}`,
+        error: `Google Sheets operation '${args.action}' failed: ${errorMessage}`,
+        details: {
+          action: args.action,
+          timestamp: new Date().toISOString(),
+          userId: this.userId
+        }
       };
     }
   }
@@ -632,57 +740,93 @@ export class GoogleSheetsTool {
   private async createSpreadsheet(title: string, headers: HeadersLike, sheetTitle?: string, values?: string[][]): Promise<any> {
     if (!title) return { success: false, error: "title is required" };
 
-    // First create the basic spreadsheet
-    const spreadsheetBody: any = {
-      properties: { title },
-    };
+    try {
+      // First create the basic spreadsheet
+      const spreadsheetBody: any = {
+        properties: { title },
+      };
 
-    // Create the spreadsheet with basic structure
-    const createRes = await fetch("https://sheets.googleapis.com/v4/spreadsheets", {
-      method: "POST",
-      headers,
-      body: JSON.stringify(spreadsheetBody),
-    });
+      // Create the spreadsheet with basic structure
+      const createRes = await fetch("https://sheets.googleapis.com/v4/spreadsheets", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(spreadsheetBody),
+      });
 
-    if (!createRes.ok) return { success: false, error: await createRes.text() };
-    const spreadsheetData = await createRes.json();
-    const spreadsheetId = spreadsheetData.spreadsheetId;
-
-    // If we have data to populate, update the spreadsheet with the data
-    if (values && values.length > 0) {
-      const sheetName = sheetTitle || 'Sheet1';
-      const range = `${sheetName}!A1`;
-      
-      // Update the spreadsheet with the provided data
-      const updateResult = await this.updateValues(
-        spreadsheetId,
-        range,
-        values,
-        "USER_ENTERED",
-        headers
-      );
-
-      if (!updateResult.success) {
-        // Return the created spreadsheet even if data update failed
-        console.warn("Failed to populate spreadsheet with data:", updateResult.error);
+      if (!createRes.ok) {
+        const errorText = await createRes.text();
+        return { success: false, error: `Failed to create spreadsheet: ${errorText}` };
       }
-    }
 
-    // If a custom sheet title is provided, rename the default sheet
-    if (sheetTitle && sheetTitle !== 'Sheet1') {
-      const sheetId = 0; // Default sheet ID is 0
-      const renameResult = await this.renameSheet(spreadsheetId, sheetId, sheetTitle, headers);
-      if (!renameResult.success) {
-        console.warn("Failed to rename sheet:", renameResult.error);
+      const spreadsheetData = await createRes.json();
+      const spreadsheetId = spreadsheetData.spreadsheetId;
+
+      // Get the actual sheet ID from the created spreadsheet
+      let defaultSheetId: number | null = null;
+      let defaultSheetTitle: string = 'Sheet1';
+
+      if (spreadsheetData.sheets && spreadsheetData.sheets.length > 0) {
+        // Find the first/default sheet (usually index 0)
+        const firstSheet = spreadsheetData.sheets[0];
+        defaultSheetId = firstSheet.properties.sheetId;
+        defaultSheetTitle = firstSheet.properties.title;
+      } else {
+        // Fallback: get spreadsheet info to retrieve sheet details
+        const sheetInfoResult = await this.getSpreadsheetInfo(spreadsheetId, headers);
+        if (sheetInfoResult.success && sheetInfoResult.info.sheets.length > 0) {
+          const firstSheet = sheetInfoResult.info.sheets[0];
+          defaultSheetId = firstSheet.sheetId;
+          defaultSheetTitle = firstSheet.title;
+        } else {
+          return { 
+            success: false, 
+            error: "Unable to determine sheet ID from created spreadsheet" 
+          };
+        }
       }
-    }
 
-    return { 
-      success: true, 
-      spreadsheetId: spreadsheetData.spreadsheetId, 
-      spreadsheetUrl: spreadsheetData.spreadsheetUrl, 
-      data: spreadsheetData 
-    };
+      // If we have data to populate, update the spreadsheet with the data
+      if (values && values.length > 0) {
+        const sheetName = sheetTitle || defaultSheetTitle;
+        const range = `${sheetName}!A1`;
+        
+        // Update the spreadsheet with the provided data
+        const updateResult = await this.updateValues(
+          spreadsheetId,
+          range,
+          values,
+          "USER_ENTERED",
+          headers
+        );
+
+        if (!updateResult.success) {
+          // Return the created spreadsheet even if data update failed
+          console.warn("Failed to populate spreadsheet with data:", updateResult.error);
+        }
+      }
+
+      // If a custom sheet title is provided, rename the default sheet
+      if (sheetTitle && sheetTitle !== defaultSheetTitle && defaultSheetId !== null) {
+        const renameResult = await this.renameSheet(spreadsheetId, defaultSheetId, sheetTitle, headers);
+        if (!renameResult.success) {
+          console.warn("Failed to rename sheet:", renameResult.error);
+        }
+      }
+
+      return { 
+        success: true, 
+        spreadsheetId: spreadsheetData.spreadsheetId, 
+        spreadsheetUrl: spreadsheetData.spreadsheetUrl, 
+        data: spreadsheetData,
+        sheetId: defaultSheetId,
+        sheetTitle: sheetTitle || defaultSheetTitle
+      };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: `Create spreadsheet failed: ${error instanceof Error ? error.message : String(error)}` 
+      };
+    }
   }
 
   private async getSpreadsheet(spreadsheetId: string, includeGridData: boolean, headers: HeadersLike): Promise<any> {
