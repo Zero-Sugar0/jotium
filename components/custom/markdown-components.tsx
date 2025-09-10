@@ -1,5 +1,5 @@
 //components/custom/markdown-components.tsx
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import {
@@ -39,7 +39,7 @@ export const CustomTooltip = ({ active, payload, label }: any) => {
           <div key={index} className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
               <span
-                className="w-2 h-2 rounded-sm"
+              className="size-2 rounded-sm"
                 style={{ backgroundColor: entry.color }}
               />
               <span className="text-white/80">{entry.name}</span>
@@ -74,14 +74,14 @@ export const CopyButton = ({ text }: { text: string }) => {
     >
       {copied ? (
         <>
-          <svg className="w-3.5 h-3.5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="size-3.5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
           <span className="text-green-600 dark:text-green-400">Copied!</span>
         </>
       ) : (
         <>
-          <svg className="w-3.5 h-3.5 group-hover/copy:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="size-3.5 group-hover/copy:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
           </svg>
           <span>Copy</span>
@@ -96,7 +96,7 @@ export const CollapsibleCodeBlock = ({ language, children, codeContent }: { lang
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [lineCount, setLineCount] = useState(0);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const lines = codeContent.split('\n').length;
     setLineCount(lines);
     // Auto-collapse if more than 20 lines
@@ -108,7 +108,7 @@ export const CollapsibleCodeBlock = ({ language, children, codeContent }: { lang
   };
 
   return (
-    <div className="my-2 sm:my-4 rounded-lg sm:rounded-xl border border-zinc-200/60 dark:border-zinc-700/60 overflow-hidden shadow-sm w-full -ml-1.5 sm:ml-0 -mr-4 sm:mr-0">
+    <div className="my-2 sm:my-4 rounded-lg sm:rounded-xl border border-zinc-200/60 dark:border-zinc-700/60 overflow-hidden shadow-sm w-full -ml-1.5 sm:mx-0 -mr-4">
       <div className="flex items-center justify-between px-2 sm:px-3 py-1 sm:py-1.5 bg-zinc-100/80 dark:bg-zinc-800/80 border-b border-zinc-200 dark:border-zinc-700">
         <div className="flex items-center gap-2">
           <span className="text-xs font-mono font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
@@ -121,7 +121,7 @@ export const CollapsibleCodeBlock = ({ language, children, codeContent }: { lang
               aria-label={isCollapsed ? "Expand code" : "Collapse code"}
             >
               <svg 
-                className={`w-3 h-3 transition-transform duration-200 ${isCollapsed ? 'rotate-0' : 'rotate-90'}`} 
+                className={`size-3 transition-transform duration-200 ${isCollapsed ? 'rotate-0' : 'rotate-90'}`}
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
@@ -225,7 +225,7 @@ export const YouTubeEmbed = ({ url }: { url: string }) => {
         src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowFullScreen
-        className="w-full h-full border-0"
+        className="size-full border-0"
         loading="lazy"
         title="YouTube video"
       />
@@ -250,7 +250,7 @@ export const VimeoEmbed = ({ url }: { url: string }) => {
         src={`https://player.vimeo.com/video/${videoId}?responsive=1&dnt=1`}
         allow="autoplay; fullscreen; picture-in-picture"
         allowFullScreen
-        className="w-full h-full border-0"
+        className="size-full border-0"
         loading="lazy"
         title="Vimeo video"
       />
@@ -321,8 +321,8 @@ export const renderChart = (spec: any, isSmallScreen: boolean) => {
   const chartMargin = { top: 8, right: 16, bottom: bottomMargin, left: isSmallScreen ? -8 : 0 } as const;
 
   const Container = ({ children: c }: any) => (
-    <figure className="my-3 sm:my-4 md:my-6 w-full overflow-hidden -ml-2 sm:ml-0">
-      <div className="w-full h-full">
+    <figure className="my-3 sm:my-4 md:my-6 w-full overflow-hidden -ml-2">
+      <div className="size-full">
         <div className="w-full" style={{ height }}>
           <ResponsiveContainer width="100%" height="100%">
             {c}

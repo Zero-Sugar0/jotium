@@ -1,7 +1,8 @@
 import { Attachment } from "ai";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Eye, FileText, Music, Video, Archive, File, Download, ChevronLeft, ChevronRight } from "lucide-react";
-import React, { useState } from "react";
+import Image from "next/image";
+import { useState, useEffect, useCallback } from "react";
 
 interface MessageImageDisplayProps {
   attachment: Attachment;
@@ -58,30 +59,30 @@ export function MessageImageDisplay({
   const imageAttachments = allAttachments.filter(att => att.contentType?.startsWith("image/"));
   const hasMultipleImages = imageAttachments.length > 1;
 
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     setCurrentModalIndex((prev) => 
       prev === 0 ? imageAttachments.length - 1 : prev - 1
     );
-  };
+  }, [imageAttachments.length]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     setCurrentModalIndex((prev) => 
       prev === imageAttachments.length - 1 ? 0 : prev + 1
     );
-  };
+  }, [imageAttachments.length]);
 
-  const handleKeyDown = (e: KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'ArrowLeft') handlePrevious();
     if (e.key === 'ArrowRight') handleNext();
     if (e.key === 'Escape') setShowImageModal(false);
-  };
+  }, [handlePrevious, handleNext]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (showImageModal) {
       document.addEventListener('keydown', handleKeyDown);
       return () => document.removeEventListener('keydown', handleKeyDown);
     }
-  }, [showImageModal]);
+  }, [showImageModal, handleKeyDown]);
 
   return (
     <>
@@ -100,9 +101,11 @@ export function MessageImageDisplay({
             }}
             className="group relative block w-full max-w-sm sm:max-w-md md:max-w-lg rounded-lg overflow-hidden bg-muted border hover:border-primary/50 transition-all duration-200"
           >
-            <img
+            <Image
               src={attachment.url}
               alt={attachment.name || "Uploaded image"}
+              width={400}
+              height={300}
               className="w-full h-auto max-h-48 sm:max-h-56 md:max-h-64 object-cover group-hover:scale-105 transition-transform duration-200"
             />
             
@@ -129,7 +132,7 @@ export function MessageImageDisplay({
                 e.stopPropagation();
                 downloadFile(attachment.url, attachment.name || 'image');
               }}
-              className="absolute bottom-2 right-2 w-8 h-8 sm:w-10 sm:h-10 bg-black/60 backdrop-blur-sm hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-colors duration-200 opacity-0 group-hover:opacity-100"
+              className="absolute bottom-2 right-2 size-8 sm:size-10 bg-black/60 backdrop-blur-sm hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-colors duration-200 opacity-0 group-hover:opacity-100"
             >
               <Download size={14} className="sm:size-4" />
             </button>
@@ -137,7 +140,7 @@ export function MessageImageDisplay({
         ) : (
           // Non-image file display - Mobile Responsive
           <div className="flex items-center gap-2 sm:gap-3 bg-muted/50 border rounded-lg p-2 sm:p-3 w-full max-w-sm sm:max-w-md">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-background border flex items-center justify-center flex-shrink-0">
+            <div className="size-8 sm:size-10 rounded-lg bg-background border flex items-center justify-center shrink-0">
               <IconComponent size={16} className="sm:size-[18px] text-muted-foreground" />
             </div>
             
@@ -152,7 +155,7 @@ export function MessageImageDisplay({
             {attachment.url && (
               <button
                 onClick={() => downloadFile(attachment.url, attachment.name || 'file')}
-                className="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 hover:bg-primary/20 text-primary rounded-full flex items-center justify-center transition-colors duration-200 flex-shrink-0"
+              className="size-8 sm:size-10 bg-primary/10 hover:bg-primary/20 text-primary rounded-full flex items-center justify-center transition-colors duration-200 shrink-0"
               >
                 <Download size={14} className="sm:size-4" />
               </button>
@@ -183,14 +186,14 @@ export function MessageImageDisplay({
                 <>
                   <button
                     onClick={handlePrevious}
-                    className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-colors duration-200 z-10"
+              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 size-10 sm:size-12 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-colors duration-200 z-10"
                   >
                     <ChevronLeft size={20} className="sm:size-6" />
                   </button>
                   
                   <button
                     onClick={handleNext}
-                    className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-colors duration-200 z-10"
+              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 size-10 sm:size-12 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-colors duration-200 z-10"
                   >
                     <ChevronRight size={20} className="sm:size-6" />
                   </button>
@@ -200,16 +203,18 @@ export function MessageImageDisplay({
               {/* Close button */}
               <button
                 onClick={() => setShowImageModal(false)}
-                className="absolute -top-2 -right-2 sm:-top-4 sm:-right-4 w-10 h-10 sm:w-12 sm:h-12 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors duration-200 shadow-lg z-20"
+                className="absolute -top-2 -right-2 sm:-top-4 sm:-right-4 size-10 sm:size-12 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors duration-200 shadow-lg z-20"
               >
                 <X size={18} className="sm:size-5" />
               </button>
               
               {/* Current image */}
               <div className="relative">
-              <img
-                src={imageAttachments[currentModalIndex]?.url}
+              <Image
+                src={imageAttachments[currentModalIndex]?.url || ""}
                 alt="Image"
+                width={800}
+                height={600}
                 className="max-w-[90vw] max-h-[85vh] sm:max-w-[95vw] sm:max-h-[90vh] object-contain rounded-lg shadow-2xl"
               />
                 
@@ -219,7 +224,7 @@ export function MessageImageDisplay({
                     imageAttachments[currentModalIndex].url, 
                     imageAttachments[currentModalIndex].name || 'image'
                   )}
-                  className="absolute bottom-4 right-4 w-10 h-10 sm:w-12 sm:h-12 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-colors duration-200"
+                  className="absolute bottom-4 right-4 size-10 sm:size-12 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-colors duration-200"
                 >
                   <Download size={18} className="sm:size-5" />
                 </button>
@@ -243,16 +248,18 @@ export function MessageImageDisplay({
                     <button
                       key={index}
                       onClick={() => setCurrentModalIndex(index)}
-                      className={`relative w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 flex-shrink-0 ${
+                    className={`relative size-12 sm:size-16 rounded-lg overflow-hidden border-2 transition-all duration-200 shrink-0 ${
                         index === currentModalIndex 
                           ? 'border-white' 
                           : 'border-transparent hover:border-white/50'
                       }`}
                     >
-                      <img
+                      <Image
                         src={img.url}
                         alt=""
-                        className="w-full h-full object-cover"
+                        width={64}
+                        height={64}
+                        className="size-full object-cover"
                       />
                     </button>
                   ))}

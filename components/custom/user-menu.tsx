@@ -74,7 +74,7 @@ export function UserMenu({ session, messageCount, messageLimit }: UserMenuProps)
               {session.user?.email}
             </p>
           </div>
-          <AnimatedThemeToggler className="w-fit h-fit p-2 rounded-full bg-secondary/50 hover:bg-secondary transition-colors duration-200" />
+          <AnimatedThemeToggler className="size-fit p-2 rounded-full bg-secondary/50 hover:bg-secondary transition-colors duration-200" />
         </div>
         <div className="px-3 py-2 border-b border-border/50">
           <p className="text-xs text-muted-foreground">
@@ -94,7 +94,7 @@ export function UserMenu({ session, messageCount, messageLimit }: UserMenuProps)
               Notifications
             </div>
             {unreadCount > 0 && (
-              <Badge variant="secondary" className="h-5 w-5 items-center justify-center p-0">
+              <Badge variant="secondary" className="size-5 items-center justify-center p-0">
                 {unreadCount}
               </Badge>
             )}

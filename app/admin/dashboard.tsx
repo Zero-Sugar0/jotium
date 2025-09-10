@@ -224,7 +224,7 @@ export default function AdminDashboard() {
           {loading ? (
             Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="h-24">
-                <Skeleton className="w-full h-full" />
+                <Skeleton className="size-full" />
               </div>
             ))
           ) : (

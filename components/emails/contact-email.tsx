@@ -9,8 +9,8 @@ import {
   Tailwind,
   Text,
   Hr,
+  pixelBasedPreset,
 } from '@react-email/components';
-import { pixelBasedPreset } from '@react-email/components';
 import * as React from 'react';
 
 interface ContactEmailProps {

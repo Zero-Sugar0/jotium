@@ -3,7 +3,7 @@
 
 import { motion } from "framer-motion";
 import { AudioLines, Mic, Square, X } from "lucide-react";
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 
 import { Button } from "../ui/button";
@@ -157,6 +157,48 @@ export function useAudio(setInput: (value: string) => void, textareaRef: React.R
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+  const transcribeAudio = useCallback(async (audioBlob: Blob) => {
+    try {
+      setIsTranscribing(true);
+      
+      // Convert blob to base64
+      const arrayBuffer = await audioBlob.arrayBuffer();
+      const base64 = Buffer.from(arrayBuffer).toString('base64');
+      
+      const response = await fetch('/api/transcribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          audioBase64: base64,
+          mimeType: 'audio/wav',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Transcription failed');
+      }
+
+      const data = await response.json();
+      const transcription = data.transcription || "";
+      
+      // Add transcription to input
+      setInput(transcription);
+      
+      // Focus textarea for editing
+      textareaRef.current?.focus();
+      
+      return transcription;
+    } catch (error) {
+      console.error('Transcription error:', error);
+      toast.error('Failed to transcribe audio');
+      return '';
+    } finally {
+      setIsTranscribing(false);
+    }
+  }, [setInput, textareaRef]);
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -222,48 +264,6 @@ export function useAudio(setInput: (value: string) => void, textareaRef: React.R
     }
   };
 
-  const transcribeAudio = async (audioBlob: Blob) => {
-    try {
-      setIsTranscribing(true);
-      
-      // Convert blob to base64
-      const arrayBuffer = await audioBlob.arrayBuffer();
-      const base64 = Buffer.from(arrayBuffer).toString('base64');
-      
-      const response = await fetch('/api/transcribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          audioBase64: base64,
-          mimeType: 'audio/wav',
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Transcription failed');
-      }
-
-      const data = await response.json();
-      const transcription = data.transcription || "";
-      
-      // Add transcription to input
-      setInput(transcription);
-      
-      // Focus textarea for editing
-      textareaRef.current?.focus();
-      
-      return transcription;
-    } catch (error) {
-      console.error('Transcription error:', error);
-      toast.error('Failed to transcribe audio');
-      return '';
-    } finally {
-      setIsTranscribing(false);
-    }
-  };
-
   // Auto-transcribe when recording is complete
   useEffect(() => {
     const transcribe = async () => {
@@ -275,7 +275,7 @@ export function useAudio(setInput: (value: string) => void, textareaRef: React.R
     };
     
     transcribe();
-  }, [audioBlob, isRecording, shouldUpload]);
+  }, [audioBlob, isRecording, shouldUpload, transcribeAudio]);
 
   return {
     isRecording,

@@ -216,12 +216,11 @@ export async function POST(request: NextRequest) {
                 }
                 
                 else if (toolName === 'fire_web_scrape') {
-                  shouldContinueToAgent = false; // Don't send result back to the model
                   const result = await agent.executeToolCall(toolCall);
                   const payload = result.result || {};
                   
                   if (payload && payload.success) {
-                    // Stream the raw result with a special type
+                    // Stream the raw result with a special type for direct display
                     controller.enqueue(
                       `data: ${JSON.stringify({ type: "fire_web_scrape_result", content: payload })}\n\n`
                     );
@@ -230,13 +229,27 @@ export async function POST(request: NextRequest) {
                     controller.enqueue(
                       `data: ${JSON.stringify({ type: "response", content: successMessage })}\n\n`
                     );
-                    fullResponse = successMessage;
+                    fullResponse += successMessage;
+                    
+                    // Add the scraped content to tool results so it gets passed back to the model
+                    toolResults.push({
+                      toolCallId: toolCall.id,
+                      result: payload,
+                      error: undefined
+                    });
                   } else {
                     const errorMessage = `I encountered an error scraping the content: ${payload.error || 'Unknown error'}`;
                     controller.enqueue(
                       `data: ${JSON.stringify({ type: "response", content: errorMessage })}\n\n`
                     );
-                    fullResponse = errorMessage;
+                    fullResponse += errorMessage;
+                    
+                    // Add the error to tool results so the model knows what happened
+                    toolResults.push({
+                      toolCallId: toolCall.id,
+                      result: { error: payload.error || 'Unknown error', success: false },
+                      error: payload.error || 'Unknown error'
+                    });
                   }
                 }
                 

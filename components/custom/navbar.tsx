@@ -1,5 +1,6 @@
 //components/custom/navbar.tsx
 import { headers } from "next/headers";
+import Image from "next/image";
 import Link from "next/link";
 
 import { auth } from "@/app/(auth)/auth";
@@ -38,11 +39,13 @@ export const Navbar = async () => {
           <History user={session?.user} />
           {pathname !== "/login" && pathname !== "/register" && (
             <Link href="/" className="flex flex-row gap-3 items-center group">
-              <div className="relative w-5 h-5">
-                <img
+              <div className="relative size-5">
+                <Image
                   src="/images/jotium.png"
                   alt="jotium logo"
-                  className="w-5 h-5 group-hover:scale-105 transition-transform duration-200 object-contain"
+                  width={20}
+                  height={20}
+                  className="size-5 group-hover:scale-105 transition-transform duration-200 object-contain"
                 />
               </div>
               <div className="text-zinc-400 group-hover:text-zinc-500 transition-colors duration-200">

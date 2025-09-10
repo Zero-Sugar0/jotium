@@ -169,7 +169,7 @@ export const TaskCreationDialog = ({
                 <span className="text-xs sm:text-sm">Time</span>
               </div>
               <div className="flex items-center gap-1 sm:gap-2">
-                <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+              <Clock className="size-3 sm:size-4 text-muted-foreground" />
                 <Input
                   type="time"
                   value={time}
@@ -189,7 +189,7 @@ export const TaskCreationDialog = ({
                       variant="outline"
                       className="text-xs sm:text-sm justify-start text-left font-normal px-2 sm:px-3"
                     >
-                      <CalendarIcon className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                      <CalendarIcon className="mr-1 sm:mr-2 size-3 sm:size-4" />
                       {day}
                     </Button>
                   </PopoverTrigger>
@@ -225,7 +225,7 @@ export const TaskCreationDialog = ({
                         !date && "text-muted-foreground"
                       )}
                     >
-                      <CalendarIcon className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                      <CalendarIcon className="mr-1 sm:mr-2 size-3 sm:size-4" />
                       {date ? format(date, "MMM d, yyyy") : <span>Pick a date</span>}
                     </Button>
                   </PopoverTrigger>

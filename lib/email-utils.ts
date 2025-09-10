@@ -1,7 +1,7 @@
 // lib/email-utils.ts
 import { Resend } from 'resend';
 
-import ContactEmail from '@/components/emails/contact-email';
+import { ContactEmail } from '@/components/emails/contact-email';
 import FeedbackEmail from '@/components/emails/feedback-email';
 import { PasswordResetEmail } from '@/components/emails/password-reset-email';
 import { SubscriptionReceiptEmail } from '@/components/emails/subscription-receipt-email';

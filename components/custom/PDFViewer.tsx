@@ -27,7 +27,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfData, title, stats }) => {
         <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <FileText className="w-5 h-5 text-zinc-500 dark:text-zinc-400" />
+              <FileText className="size-5 text-zinc-500 dark:text-zinc-400" />
               <h3 className="text-base sm:text-lg font-semibold text-zinc-800 dark:text-zinc-200">
                 {title || 'Generated PDF'}
               </h3>
@@ -38,7 +38,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfData, title, stats }) => {
               download={`${title || 'document'}.pdf`}
               className="px-4 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2"
             >
-              <FileDown className="w-4 h-4" />
+              <FileDown className="size-4" />
               <span>Download</span>
             </a>
           </div>
@@ -57,23 +57,23 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfData, title, stats }) => {
         <div className="px-4 py-3 border-t border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50">
           <div className="flex flex-wrap items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 gap-x-4 gap-y-2">
             <div className="flex items-center gap-2" title="Estimated Pages">
-              <FileText className="w-3.5 h-3.5" />
+              <FileText className="size-3.5" />
               <span>{stats.estimatedPages} pages</span>
             </div>
             <div className="flex items-center gap-2" title="Word Count">
-              <Type className="w-3.5 h-3.5" />
+              <Type className="size-3.5" />
               <span>{stats.wordCount} words</span>
             </div>
             <div className="flex items-center gap-2" title="Total Blocks">
-              <BarChart2 className="w-3.5 h-3.5" />
+              <BarChart2 className="size-3.5" />
               <span>{stats.totalBlocks} blocks</span>
             </div>
             <div className="flex items-center gap-2" title="Headings">
-              <Hash className="w-3.5 h-3.5" />
+              <Hash className="size-3.5" />
               <span>{stats.headings} headings</span>
             </div>
             <div className="flex items-center gap-2" title="Images">
-              <ImageIcon className="w-3.5 h-3.5" />
+              <ImageIcon className="size-3.5" />
               <span>{stats.images} images</span>
             </div>
           </div>

@@ -65,7 +65,7 @@ export const ToolExecution = ({ toolName, count, isExecuting = false }: ToolExec
       {toolLogo ? (
         <>
           {Array.from({ length: count }).map((_, i) => (
-            <div key={i} className={`relative w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0 ${
+            <div key={i} className={`relative size-2.5 sm:size-3 shrink-0 ${
               isExecuting ? 'animate-pulse' : ''
             }`}>
               <Image
@@ -90,7 +90,7 @@ export const ToolExecution = ({ toolName, count, isExecuting = false }: ToolExec
           {Array.from({ length: count }).map((_, i) => (
             <VscTools 
               key={i}
-              className={`shrink-0 w-2.5 h-2.5 sm:w-3 sm:h-3 ${
+              className={`shrink-0 size-2.5 sm:size-3 ${
                 isExecuting ? 'animate-spin' : ''
               }`}
               style={isExecuting ? { animationDuration: '1s' } : {}}
