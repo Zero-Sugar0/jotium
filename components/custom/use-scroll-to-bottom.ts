@@ -2,7 +2,7 @@ import { useEffect, useRef, RefObject, useCallback } from "react";
 
 export function useScrollToBottom<T extends HTMLElement>(
   deps: any[] = []
-): [RefObject<T>, RefObject<T>, () => void] {
+): [RefObject<T>, RefObject<T>, () => void, boolean] {
   const containerRef = useRef<T>(null);
   const endRef = useRef<T>(null);
   // Ref to track if the user has scrolled up
@@ -59,5 +59,5 @@ export function useScrollToBottom<T extends HTMLElement>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
-  return [containerRef, endRef, forceScrollToBottom];
+  return [containerRef, endRef, forceScrollToBottom, userScrolledUp.current];
 }

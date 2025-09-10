@@ -183,11 +183,32 @@ export const createMarkdownComponents = (isSmallScreen: boolean, showTypewriter:
         const sanitized = sanitizeJson(trimmed);
         const parsed = safeParse(sanitized);
         if (!parsed) return null;
-        return renderChart(parsed, isSmallScreen);
+        
+        // Ensure we have the required chart properties
+        if (!parsed.type || !parsed.data) {
+          console.warn("Chart missing required properties (type, data)", parsed);
+          return null;
+        }
+        
+        const result = renderChart(parsed, isSmallScreen);
+        
+        // If renderChart returns the error component (not null), use it
+        if (result && result.type && result.type.toString().includes('Chart Rendering Error')) {
+          return result;
+        }
+        
+        return result;
       } catch (err) {
-        // Fallthrough to code rendering on error
+        // Instead of falling back to code rendering, show a proper error
         console.error("Chart render error:", err);
-        return null;
+        return (
+          <div className="my-3 sm:my-4 w-full p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+            <div className="text-red-700 dark:text-red-300 text-sm font-medium mb-2">Chart Rendering Error</div>
+            <div className="text-red-600 dark:text-red-400 text-xs">
+              Unable to render chart due to invalid data format. Please check the chart specification.
+            </div>
+          </div>
+        );
       }
     };
     
@@ -277,7 +298,7 @@ export const createMarkdownComponents = (isSmallScreen: boolean, showTypewriter:
     <strong className="font-bold text-zinc-900 dark:text-zinc-100" {...props} />
   ),
   em: (props: any) => (
-    <em className="italic text-zinc-700 dark:text-zinc-300 max-w-full break-words overflow-hidden inline-block align-baseline" {...props} />
+    <em className="italic text-zinc-700 dark:text-zinc-300 max-w-full break-words overflow-wrap anywhere inline align-baseline" {...props} />
   ),
   del: (props: any) => (
     <del className="line-through text-zinc-500 dark:text-zinc-500 decoration-red-500/70" {...props} />

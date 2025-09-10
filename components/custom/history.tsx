@@ -3,7 +3,7 @@
 
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import cx from "classnames";
-import { AlarmClockIcon } from "lucide-react";
+import { AlarmClockIcon, Forward } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { User } from "next-auth";
@@ -159,45 +159,47 @@ export const History = ({ user }: { user: User | undefined }) => {
           <div className="mt-4 flex flex-col flex-1 overflow-hidden">
             <div className="px-1">
               {user && (
-                <Button
-                  className="font-normal text-sm flex flex-row justify-between text-white w-full mb-2"
-                  asChild
-                  onClick={() => setIsHistoryVisible(false)} // Close sidebar on new chat click
-                >
-                  <Link href={`/chat/${generateUUID()}`} prefetch={false}>
-                    <div>Start a new chat</div>
-                    <PencilEditIcon size={14} />
-                  </Link>
-                </Button>
+                <>
+                  <Button
+                    className="font-normal text-sm flex flex-row justify-between text-white w-full mb-2"
+                    asChild
+                    onClick={() => setIsHistoryVisible(false)} // Close sidebar on new chat click
+                  >
+                    <Link href={`/chat/${generateUUID()}`} prefetch={false}>
+                      <div>Start a new chat</div>
+                      <PencilEditIcon size={14} />
+                    </Link>
+                  </Button>
+                  <Button
+                    className="font-normal text-base flex flex-row justify-between text-foreground w-full mb-2"
+                    variant="ghost"
+                    asChild
+                    onClick={() => setIsHistoryVisible(false)} // Close sidebar on tasks click
+                  >
+                    <Link href="/task" prefetch={false}>
+                      <div className="text-base">Tasks</div>
+                      <AlarmClockIcon size={16} className="text-foreground" />
+                    </Link>
+                  </Button>
+                  <div className="relative mb-2">
+                    <Input
+                      type="search"
+                      placeholder="Search history..."
+                      className="h-9 pr-10"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      autoFocus={false}
+                      tabIndex={-1}
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                      </svg>
+                    </div>
+                  </div>
+                </>
               )}
-              <Button
-                className="font-normal text-base flex flex-row justify-between text-foreground w-full mb-2"
-                variant="ghost"
-                asChild
-                onClick={() => setIsHistoryVisible(false)} // Close sidebar on tasks click
-              >
-                <Link href="/task" prefetch={false}>
-                  <div className="text-base">Tasks</div>
-                  <AlarmClockIcon size={16} className="text-foreground" />
-                </Link>
-              </Button>
-              <div className="relative mb-2">
-                <Input
-                  type="search"
-                  placeholder="Search history..."
-                  className="h-9 pr-10"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  autoFocus={false}
-                  tabIndex={-1}
-                />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <path d="m21 21-4.35-4.35"></path>
-                  </svg>
-                </div>
-              </div>
             </div>
 
             <div className="flex flex-col overflow-y-auto p-1 flex-1 tiny-scrollbar mt-2">
@@ -262,6 +264,35 @@ export const History = ({ user }: { user: User | undefined }) => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent side="left" className="z-[60]">
+                        <DropdownMenuItem asChild>
+                          <Button
+                            className="flex flex-row gap-2 items-center justify-start w-full h-fit font-normal p-1.5 rounded-sm"
+                            variant="ghost"
+                            onClick={() => {
+                              // Share functionality
+                              const shareUrl = `${window.location.origin}/chat/${chat.id}`;
+                              if (navigator.share) {
+                                // Use Web Share API if available
+                                navigator.share({
+                                  title: chat.title || 'Chat',
+                                  url: shareUrl,
+                                }).catch(() => {
+                                  // Fallback to clipboard if share fails
+                                  navigator.clipboard.writeText(shareUrl);
+                                  toast.success("Chat link copied to clipboard!");
+                                });
+                              } else {
+                                // Fallback to clipboard
+                                navigator.clipboard.writeText(shareUrl);
+                                toast.success("Chat link copied to clipboard!");
+                              }
+                              setIsHistoryVisible(false); // Close sidebar on share
+                            }}
+                          >
+                            <Forward size={16} />
+                            <div>Share</div>
+                          </Button>
+                        </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Button
                             className="flex flex-row gap-2 items-center justify-start w-full h-fit font-normal p-1.5 rounded-sm"

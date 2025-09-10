@@ -12,6 +12,7 @@ import { generateUUID } from "@/lib/utils";
 
 import { MultimodalInput } from "./multimodal-input";
 import { Overview } from "./overview";
+import { ScrollToBottom } from "./scroll-to-bottom";
 import { useScrollToBottom } from "./use-scroll-to-bottom";
 
 const MESSAGES_PER_PAGE = 25; // Define how many messages to fetch per page
@@ -38,7 +39,7 @@ export function Chat({
     initialMessages.length === MESSAGES_PER_PAGE
   ); // Assume more if initial load filled the page
   const [loadingMore, setLoadingMore] = useState(false);
-  const [messagesContainerRef, messagesEndRef, forceScrollToBottom] =
+  const [messagesContainerRef, messagesEndRef, forceScrollToBottom, hasScrolledUp] =
     useScrollToBottom<HTMLDivElement>([messages]);
   const [attachments, setAttachments] = useState<any[]>([]);
   const [firstName, setFirstName] = useState<string | undefined>(undefined);
@@ -508,6 +509,12 @@ export function Chat({
           messageCount={messageCount}
           messageLimit={messageLimit}
           messageLimitResetAt={messageLimitResetAt}
+        />
+        
+        {/* Scroll to bottom button - appears when user scrolls up */}
+        <ScrollToBottom 
+          onClick={forceScrollToBottom}
+          isVisible={hasScrolledUp}
         />
       </div>
       {/* Global styles for scrollbar and code blocks */}

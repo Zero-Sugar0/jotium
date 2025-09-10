@@ -166,6 +166,28 @@ export class LinkedInTool {
             type: Type.STRING,
             description: "Relationship type for recommendation",
             enum: ["colleague", "manager", "direct_report", "client", "vendor", "partner", "student", "professor", "alumni"]
+          },
+          // Profile update parameters
+          profileSummary: {
+            type: Type.STRING,
+            description: "Profile summary text for profile updates"
+          },
+          headline: {
+            type: Type.STRING,
+            description: "Professional headline for profile updates"
+          },
+          industry: {
+            type: Type.STRING,
+            description: "Industry type for profile updates"
+          },
+          location: {
+            type: Type.STRING,
+            description: "Location for profile updates"
+          },
+          // Invitation parameters
+          invitationId: {
+            type: Type.STRING,
+            description: "Invitation ID for accept/ignore invitation actions"
           }
         },
         required: ["action"]
