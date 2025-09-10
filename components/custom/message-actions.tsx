@@ -1,6 +1,6 @@
 "use client"
 
-import { Check, Copy, MoreVertical, Pencil, Share, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
+import { Check, Copy, MoreVertical, Pencil, Forward, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
 
@@ -107,7 +107,7 @@ export function MessageActions({ messageId, content, onRegenerate, className, is
           )}
           title="Share message"
         >
-          <Share className={cn(isMobile ? "h-3.5 w-3.5" : "h-4 w-4")} />
+          <Forward className={cn(isMobile ? "h-3.5 w-3.5" : "h-4 w-4")} />
         </Button>
       )}
 

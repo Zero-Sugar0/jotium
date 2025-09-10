@@ -185,6 +185,8 @@ export const Message = ({
                 prose-li:text-sm lg:prose-li:text-xs
                 prose-headings:text-base lg:prose-headings:text-sm
                 prose-code:text-xs
+                prose-em:break-words
+                prose-em:overflow-wrap-anywhere
                 
 /* Tighter inline code styling */
                 prose-code:bg-muted/60

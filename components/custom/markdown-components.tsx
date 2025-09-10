@@ -459,5 +459,13 @@ export const renderChart = (spec: any, isSmallScreen: boolean) => {
     );
   }
   
-  return null;
+  // Instead of returning null (which shows raw JSON), return a proper error component
+  return (
+    <div className="my-3 sm:my-4 w-full p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+      <div className="text-red-700 dark:text-red-300 text-sm font-medium mb-2">Chart Rendering Error</div>
+      <div className="text-red-600 dark:text-red-400 text-xs">
+        Unable to render chart. Please check the data format and try again.
+      </div>
+    </div>
+  );
 };

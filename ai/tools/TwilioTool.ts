@@ -8,8 +8,9 @@ export class TwilioTool {
   constructor(accountSid: string, authToken: string) {
     this.accountSid = accountSid;
     this.authToken = authToken;
-    // Dynamic import to avoid issues if twilio is not available
-    this.twilio = require('twilio')(accountSid, authToken);
+    // Use proper import instead of require
+    const twilio = require('twilio');
+    this.twilio = twilio(accountSid, authToken);
   }
 
   // SMS Messaging functionality
@@ -80,7 +81,7 @@ export class TwilioTool {
             description: "Rich actions that persist after the message is delivered"
           }
         },
-        required: ["to", "body"]
+        required: ["to", "body", "from"]
       }
     };
   }
