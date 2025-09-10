@@ -72,11 +72,11 @@ export const FeedbackForm = ({ onClose }: FeedbackFormProps) => {
     <div className="p-3 md:p-4 bg-background rounded-lg shadow-lg max-w-sm md:max-w-md mx-auto">
       <div className="flex justify-between items-center mb-3 md:mb-4">
         <div className="flex items-center gap-2">
-          <MessageSquareTextIcon size={18} className="md:w-5 md:h-5" />
+          <MessageSquareTextIcon size={18} className="md:size-5" />
           <h3 className="text-base md:text-lg font-semibold">Submit Feedback</h3>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 md:h-10 md:w-10">
-          <XIcon size={16} className="md:w-5 md:h-5" />
+        <Button variant="ghost" size="icon" onClick={onClose} className="size-8 md:size-10">
+          <XIcon size={16} className="md:size-5" />
         </Button>
       </div>
       <p className="text-xs md:text-sm text-zinc-500 dark:text-zinc-400 mb-3 md:mb-4">
@@ -109,7 +109,7 @@ export const FeedbackForm = ({ onClose }: FeedbackFormProps) => {
         <Button
           variant="outline"
           size="icon"
-          className={`h-8 w-8 md:h-10 md:w-10 rounded-full ${sentiment === "positive" ? "bg-green-500/20 border-green-500" : ""}`}
+          className={`size-8 md:size-10 rounded-full ${sentiment === "positive" ? "bg-green-500/20 border-green-500" : ""}`}
           onClick={() => setSentiment("positive")}
         >
           <SmileIcon />
@@ -117,7 +117,7 @@ export const FeedbackForm = ({ onClose }: FeedbackFormProps) => {
         <Button
           variant="outline"
           size="icon"
-          className={`h-8 w-8 md:h-10 md:w-10 rounded-full ${sentiment === "neutral" ? "bg-yellow-500/20 border-yellow-500" : ""}`}
+          className={`size-8 md:size-10 rounded-full ${sentiment === "neutral" ? "bg-yellow-500/20 border-yellow-500" : ""}`}
           onClick={() => setSentiment("neutral")}
         >
           <MehIcon />
@@ -125,7 +125,7 @@ export const FeedbackForm = ({ onClose }: FeedbackFormProps) => {
         <Button
           variant="outline"
           size="icon"
-          className={`h-8 w-8 md:h-10 md:w-10 rounded-full ${sentiment === "negative" ? "bg-red-500/20 border-red-500" : ""}`}
+          className={`size-8 md:size-10 rounded-full ${sentiment === "negative" ? "bg-red-500/20 border-red-500" : ""}`}
           onClick={() => setSentiment("negative")}
         >
           <FrownIcon />

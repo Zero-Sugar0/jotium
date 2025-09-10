@@ -5,8 +5,8 @@ node_modules
 .pnp
 .pnp.js
 
-components/mcp
-app/api/mcp
+test-tavily-extract-with-key.js
+test-tavily-extract.js
 
 # testing
 coverage

@@ -252,10 +252,10 @@ export const createMarkdownComponents = (isSmallScreen: boolean, showTypewriter:
     <thead className="bg-zinc-50 dark:bg-zinc-800/50" {...props} />
   ),
   th: (props: any) => (
-    <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider border-b border-zinc-200 dark:border-zinc-700" {...props} />
+    <th className="p-2 sm:p-4 md:p-6 text-left text-xs sm:text-sm font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider border-b border-zinc-200 dark:border-zinc-700" {...props} />
   ),
   td: (props: any) => (
-    <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-4 text-zinc-700 dark:text-zinc-300 border-b border-zinc-100 dark:border-zinc-800 last:border-b-0" {...props} />
+    <td className="p-2 sm:p-4 md:p-6 text-zinc-700 dark:text-zinc-300 border-b border-zinc-100 dark:border-zinc-800 last:border-b-0" {...props} />
   ),
   tr: (props: any) => (
     <tr className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors" {...props} />
@@ -290,7 +290,7 @@ export const createMarkdownComponents = (isSmallScreen: boolean, showTypewriter:
   blockquote: (props: any) => (
     <blockquote className="relative my-4 sm:my-8 pl-6 sm:pl-8 pr-4 sm:pr-6 py-4 sm:py-6 bg-gradient-to-r from-blue-50/80 via-blue-50/40 to-transparent dark:from-blue-950/30 dark:via-blue-950/10 dark:to-transparent border-l-4 border-blue-500 dark:border-blue-400 rounded-r-lg sm:rounded-r-xl shadow-sm" {...props}>
       <div className="absolute top-2 sm:top-3 left-2 sm:left-3 text-blue-500/30 dark:text-blue-400/30">
-        <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
+        <svg className="size-4 sm:size-6" fill="currentColor" viewBox="0 0 24 24">
           <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
         </svg>
       </div>
@@ -348,16 +348,18 @@ export const createMarkdownComponents = (isSmallScreen: boolean, showTypewriter:
         <PopoverTrigger asChild>
           <Link
             href={href || "#"}
-            className="group inline-flex items-center gap-0 px-0.5 py-0.5 text-xs font-normal text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 rounded-sm hover:underline transition-all duration-200"
+            className="group inline-flex items-center gap-0 p-0.5 text-xs font-normal text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 rounded-sm hover:underline transition-all duration-200"
             target="_blank"
             rel="noopener noreferrer"
             {...props}
           >
             {faviconUrl && (
-              <img
+              <Image
                 src={faviconUrl}
                 alt=""
-                className="w-3 h-3 rounded-full bg-white dark:bg-zinc-800 ring-1 ring-zinc-200 dark:ring-zinc-700"
+                width={12}
+                height={12}
+                className="size-3 rounded-full bg-white dark:bg-zinc-800 ring-1 ring-zinc-200 dark:ring-zinc-700"
                 loading="lazy"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
@@ -430,11 +432,11 @@ export const createMarkdownComponents = (isSmallScreen: boolean, showTypewriter:
   // Beautiful horizontal rule - MOBILE OPTIMIZED
   hr: (props: any) => (
     <div className="relative my-6 sm:my-12 flex items-center" {...props}>
-      <div className="flex-grow border-t border-zinc-200 dark:border-zinc-700"></div>
-      <div className="flex-shrink-0 px-4">
-        <div className="w-2 h-2 bg-zinc-300 dark:bg-zinc-600 rounded-full"></div>
+      <div className="grow border-t border-zinc-200 dark:border-zinc-700"></div>
+      <div className="shrink-0 px-4">
+        <div className="size-2 bg-zinc-300 dark:bg-zinc-600 rounded-full"></div>
       </div>
-      <div className="flex-grow border-t border-zinc-200 dark:border-zinc-700"></div>
+      <div className="grow border-t border-zinc-200 dark:border-zinc-700"></div>
     </div>
   ),
 
@@ -444,7 +446,7 @@ export const createMarkdownComponents = (isSmallScreen: boolean, showTypewriter:
       return (
         <input
           {...props}
-          className="mr-2 h-3 w-3 sm:h-4 sm:w-4 rounded border-zinc-300 dark:border-zinc-600 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-2"
+          className="mr-2 size-3 sm:size-4 rounded border-zinc-300 dark:border-zinc-600 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-2"
         />
       );
     }

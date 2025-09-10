@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import React, { useState, useRef, useEffect } from 'react';
 
 import { Markdown } from './markdown'; 
@@ -146,31 +147,31 @@ const ScrapeViewer: React.FC<ScrapeViewerProps> = ({
     switch (action) {
       case 'scrape':
         return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
         );
       case 'crawl':
         return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
           </svg>
         );
       case 'search':
         return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         );
       case 'extract':
         return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
           </svg>
         );
       default:
         return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         );
@@ -229,9 +230,11 @@ const ScrapeViewer: React.FC<ScrapeViewerProps> = ({
         
         {metadata.ogImage && (
           <div className="mt-3">
-            <img 
+            <Image 
               src={metadata.ogImage} 
               alt="Page preview" 
+              width={400}
+              height={300}
               className="w-full max-w-sm h-auto rounded border border-zinc-200 dark:border-zinc-700"
             />
           </div>
@@ -317,7 +320,7 @@ const ScrapeViewer: React.FC<ScrapeViewerProps> = ({
                       </p>
                     </div>
                     <svg 
-                      className={`w-4 h-4 text-zinc-400 transition-transform ${
+                      className={`size-4 text-zinc-400 transition-transform ${
                         expandedItems.has(index) ? 'rotate-180' : ''
                       }`} 
                       fill="none" 
@@ -388,7 +391,7 @@ const ScrapeViewer: React.FC<ScrapeViewerProps> = ({
                   className="ml-3 p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded"
                 >
                   <svg 
-                    className={`w-4 h-4 text-zinc-400 transition-transform ${
+                    className={`size-4 text-zinc-400 transition-transform ${
                       expandedItems.has(index) ? 'rotate-180' : ''
                     }`} 
                     fill="none" 
@@ -479,7 +482,7 @@ const ScrapeViewer: React.FC<ScrapeViewerProps> = ({
         {error && (
           <div className="px-4 py-3 bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800">
             <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="size-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
               </svg>
               <span className="text-sm font-medium">{error}</span>

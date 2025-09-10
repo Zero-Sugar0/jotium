@@ -250,25 +250,25 @@ export class TavilyWebSearchTool {
         extractOptions.format = args.format;
       }
 
-      // Call Tavily extract method with proper options
+      // Call Tavily extract method with proper signature: tvly.extract(urls, options)
       const result = await this.tavilyClient.extract(args.urls, extractOptions);
 
       // Process extracted content based on actual Tavily response structure
       const processedResults = result.results?.map((item: { 
         url: string; 
-        raw_content: string; 
+        rawContent: string; 
         images?: string[];
       }) => ({
         url: item.url,
-        content: item.raw_content || '', // Raw content from Tavily (in markdown format by default)
+        content: item.rawContent || '', // Raw content from Tavily (in markdown format by default)
         images: item.images || [],
         extractedAt: new Date().toISOString(),
-        contentLength: item.raw_content?.length || 0,
-        status: item.raw_content ? 'success' : 'failed'
+        contentLength: item.rawContent?.length || 0,
+        status: item.rawContent ? 'success' : 'failed'
       })) || [];
 
-      // Handle failed results if present in response
-      const failedResults = result.failed_results?.map((failedItem: any) => ({
+      // Handle failed results if present in response - Tavily uses failedResults (camelCase)
+      const failedResults = result.failedResults?.map((failedItem: any) => ({
         url: failedItem.url || 'unknown',
         error: failedItem.error || 'extraction failed',
         status: 'failed'
@@ -283,7 +283,7 @@ export class TavilyWebSearchTool {
         successfulExtractions: processedResults.filter((r: { status: string; }) => r.status === 'success').length,
         failedExtractions: failedResults.length,
         extractionTime: new Date().toISOString(),
-        responseTime: result.response_time || 0,
+        responseTime: result.responseTime || 0, // Tavily uses responseTime (camelCase)
         extractOptions: extractOptions
       };
 

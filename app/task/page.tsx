@@ -98,7 +98,7 @@ const TaskDetailContent = ({
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Header Section */}
-      <div className="flex-shrink-0 p-4 border-b border-border/50">
+      <div className="shrink-0 p-4 border-b border-border/50">
         {/* Task Status and Actions Row */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -107,7 +107,7 @@ const TaskDetailContent = ({
                 ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300' 
                 : 'bg-muted text-muted-foreground'
             }`}>
-              <div className={`w-1.5 h-1.5 rounded-full ${
+              <div className={`size-1.5 rounded-full ${
                 selectedTask.isActive ? 'bg-amber-500' : 'bg-muted-foreground'
               }`} />
               {selectedTask.isActive ? 'Active' : 'Paused'}
@@ -119,7 +119,7 @@ const TaskDetailContent = ({
               onClick={() => onEditTask(selectedTask)}
               className="h-6 px-2 text-xs"
             >
-              <Pen className="h-3 w-3" />
+              <Pen className="size-3" />
             </Button>
           </div>
 
@@ -128,17 +128,17 @@ const TaskDetailContent = ({
               size="sm"
               variant="ghost"
               onClick={() => onDeleteTask(selectedTask.id)}
-              className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+              className="size-6 p-0 text-muted-foreground hover:text-destructive"
             >
-              <Trash2 className="h-3 w-3" />
+              <Trash2 className="size-3" />
             </Button>
             <Button
               size="sm"
               variant="ghost"
               onClick={onClose}
-              className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+              className="size-6 p-0 text-muted-foreground hover:text-foreground"
             >
-              <X className="h-3 w-3" />
+              <X className="size-3" />
             </Button>
           </div>
         </div>
@@ -175,11 +175,11 @@ const TaskDetailContent = ({
             >
               {selectedTask.isActive ? (
                 <>
-                  {isMobile ? <Pause className="h-3 w-3" /> : <><Pause className="h-3 w-3 mr-1" />Pause</>}
+                  {isMobile ? <Pause className="size-3" /> : <><Pause className="size-3 mr-1" />Pause</>}
                 </>
               ) : (
                 <>
-                  {isMobile ? <Play className="h-3 w-3" /> : <><Play className="h-3 w-3 mr-1" />Resume</>}
+                  {isMobile ? <Play className="size-3" /> : <><Play className="size-3 mr-1" />Resume</>}
                 </>
               )}
             </Button>
@@ -190,7 +190,7 @@ const TaskDetailContent = ({
               onClick={() => onTestTask(selectedTask)}
               className="h-7 px-3 text-xs"
             >
-              {isMobile ? <Play className="h-3 w-3" /> : <><Play className="h-3 w-3 mr-1" />Run</>}
+              {isMobile ? <Play className="size-3" /> : <><Play className="size-3 mr-1" />Run</>}
             </Button>
 
             <Button
@@ -198,7 +198,7 @@ const TaskDetailContent = ({
               onClick={() => onTestTask(selectedTask)}
               className="h-7 px-3 text-xs"
             >
-              {isMobile ? <Play className="h-3 w-3" /> : <><Play className="h-3 w-3 mr-1" />Test</>}
+              {isMobile ? <Play className="size-3" /> : <><Play className="size-3 mr-1" />Test</>}
             </Button>
           </div>
 
@@ -208,18 +208,18 @@ const TaskDetailContent = ({
               variant="ghost"
               onClick={onPreviousExecution}
               disabled={currentExecutionIndex >= getTaskExecutions(selectedTask.id).length - 1}
-              className="h-7 w-7 p-0"
+              className="size-7 p-0"
             >
-              <ChevronLeft className="h-3 w-3" />
+              <ChevronLeft className="size-3" />
             </Button>
             <Button
               size="sm"
               variant="ghost"
               onClick={onNextExecution}
               disabled={currentExecutionIndex <= 0}
-              className="h-7 w-7 p-0"
+              className="size-7 p-0"
             >
-              <ChevronRight className="h-3 w-3" />
+              <ChevronRight className="size-3" />
             </Button>
             <Button
               size="sm"
@@ -235,7 +235,7 @@ const TaskDetailContent = ({
               onClick={onChatWithExecution}
               className="h-7 px-3 text-xs flex items-center gap-1"
             >
-              <MessageCircle className="h-3 w-3" />
+              <MessageCircle className="size-3" />
               Chat
             </Button>
           </div>
@@ -589,7 +589,7 @@ export default function TasksPage() {
                   onClick={handleAddNewTask}
                   className="flex items-center gap-1 text-[0.7rem] sm:text-xs h-6 sm:h-7 px-2 sm:px-2.5"
                 >
-                  <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                  <Plus className="size-2.5 sm:size-3" />
                   Add new
                 </Button>
               </div>
@@ -625,19 +625,19 @@ export default function TasksPage() {
                         <Button
                           size="icon"
                           variant="secondary"
-                          className="h-5 w-5 p-0 bg-background/80 backdrop-blur-sm hover:bg-background"
+                          className="size-5 p-0 bg-background/80 backdrop-blur-sm hover:bg-background"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleEditTask(task);
                           }}
                         >
-                          <Pen className="h-2 w-2" />
+                          <Pen className="size-2" />
                         </Button>
 
                         <Button
                           size="icon"
                           variant="secondary"
-                          className={`h-5 w-5 p-0 backdrop-blur-sm hover:bg-background ${
+                          className={`size-5 p-0 backdrop-blur-sm hover:bg-background ${
                             task.isActive 
                               ? 'bg-amber-500/20 hover:bg-amber-500/30' 
                               : 'bg-green-500/20 hover:bg-green-500/30'
@@ -648,9 +648,9 @@ export default function TasksPage() {
                           }}
                         >
                           {task.isActive ? (
-                            <Pause className="h-2 w-2" />
+                            <Pause className="size-2" />
                           ) : (
-                            <Play className="h-2 w-2" />
+                            <Play className="size-2" />
                           )}
                         </Button>
                       </div>
@@ -691,19 +691,19 @@ export default function TasksPage() {
                         <Button
                           size="icon"
                           variant="secondary"
-                          className="h-5 w-5 p-0 bg-background/80 backdrop-blur-sm hover:bg-background"
+                        className="size-5 p-0 bg-background/80 backdrop-blur-sm hover:bg-background"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleEditTask(task);
                           }}
                         >
-                          <Pen className="h-2 w-2" />
+                          <Pen className="size-2" />
                         </Button>
 
                       <Button
                         size="icon"
                         variant="secondary"
-                        className={`h-5 w-5 p-0 backdrop-blur-sm hover:bg-background ${
+                        className={`size-5 p-0 backdrop-blur-sm hover:bg-background ${
                           task.isActive 
                             ? 'bg-amber-500/20 hover:bg-amber-500/30' 
                             : 'bg-green-500/20 hover:bg-green-500/30'
@@ -714,9 +714,9 @@ export default function TasksPage() {
                         }}
                       >
                         {task.isActive ? (
-                          <Pause className="h-2 w-2" />
+                          <Pause className="size-2" />
                         ) : (
-                          <Play className="h-2 w-2" />
+                          <Play className="size-2" />
                         )}
                       </Button>
                     </div>
@@ -726,19 +726,19 @@ export default function TasksPage() {
                       <Button
                         size="icon"
                         variant="secondary"
-                        className="h-4 w-4 p-0 bg-background/80 backdrop-blur-sm"
+                        className="size-4 p-0 bg-background/80 backdrop-blur-sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleEditTask(task);
                         }}
                       >
-                        <Pen className="h-1.5 w-1.5" />
+                        <Pen className="size-1.5" />
                       </Button>
 
                       <Button
                         size="icon"
                         variant="secondary"
-                        className={`h-4 w-4 p-0 backdrop-blur-sm ${
+                        className={`size-4 p-0 backdrop-blur-sm ${
                           task.isActive 
                             ? 'bg-amber-500/20' 
                             : 'bg-green-500/20'
@@ -749,9 +749,9 @@ export default function TasksPage() {
                         }}
                       >
                         {task.isActive ? (
-                          <Pause className="h-1.5 w-1.5" />
+                          <Pause className="size-1.5" />
                         ) : (
-                          <Play className="h-1.5 w-1.5" />
+                          <Play className="size-1.5" />
                         )}
                       </Button>
                     </div>
@@ -764,7 +764,7 @@ export default function TasksPage() {
                 <div className="text-center py-4">
                   <p className="text-[0.7rem] sm:text-xs text-muted-foreground mb-1.5">No tasks created yet</p>
                   <Button onClick={handleAddNewTask} variant="outline" className="h-5 sm:h-6 px-2 text-[0.65rem] sm:text-[0.75rem]">
-                    <Plus className="h-2 w-2 sm:h-2.5 sm:w-2.5 mr-0.5" />
+                    <Plus className="size-2 sm:size-2.5 mr-0.5" />
                     Create task
                   </Button>
                 </div>

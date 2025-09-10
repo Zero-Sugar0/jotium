@@ -95,7 +95,7 @@ export function Chat({
     } finally {
       setLoadingMore(false);
     }
-  }, [id, currentPage, hasMoreMessages, loadingMore]);
+  }, [id, currentPage, hasMoreMessages, loadingMore, messagesContainerRef]);
 
   useEffect(() => {
     const container = messagesContainerRef.current;
@@ -110,7 +110,7 @@ export function Chat({
 
     container.addEventListener("scroll", handleScroll, { passive: true });
     return () => container.removeEventListener("scroll", handleScroll);
-  }, [hasMoreMessages, loadingMore, loadMoreMessages]);
+  }, [hasMoreMessages, loadingMore, loadMoreMessages, messagesContainerRef]);
 
   const handleSubmit = async (e?: { preventDefault?: () => void }) => {
     if (e && typeof e.preventDefault === "function") {
