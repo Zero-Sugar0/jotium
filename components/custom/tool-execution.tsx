@@ -15,7 +15,7 @@ const getToolLogo = (toolName: string): { src: string; alt: string } | null => {
     web_search: { src: "/logo/web_search.svg", alt: "Web Search" },
     web_scrape: { src: "/logo/web_scrape.svg", alt: "Web Scrape" },
     alphavantage_tool: { src: "/logo/alphavantage.svg", alt: "Alpha Vantage" },
-    generate_image: { src: "/logo/generate_image.svg", alt: "Image Generation" },
+    generate_image: { src: "/logo/image.svg", alt: "Image Generation" },
     flight_booking: { src: "/logo/flight.svg", alt: "Flight Booking" },
     file_manager: { src: "/logo/file.svg", alt: "File Manager" },
     api_tool: { src: "/logo/api.svg", alt: "API Tool" },

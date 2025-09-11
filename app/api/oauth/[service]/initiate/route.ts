@@ -652,6 +652,114 @@ export async function GET(
       authorizationUrl = `https://www.linkedin.com/oauth/v2/authorization?${linkedinParams.toString()}`;
       break;
 
+    case "quickbooks":
+      clientId = process.env.QUICKBOOKS_CLIENT_ID;
+      // QuickBooks Online API scopes for comprehensive financial management
+      scope = [
+        "com.intuit.quickbooks.accounting",
+        "com.intuit.quickbooks.payment",
+        "com.intuit.quickbooks.payroll",
+        "com.intuit.quickbooks.time_tracking",
+        "com.intuit.quickbooks.projects",
+        "com.intuit.quickbooks.budgets",
+        "com.intuit.quickbooks.reports",
+        "com.intuit.quickbooks.customers",
+        "com.intuit.quickbooks.vendors",
+        "com.intuit.quickbooks.employees",
+        "com.intuit.quickbooks.inventory",
+        "com.intuit.quickbooks.sales",
+        "com.intuit.quickbooks.purchases",
+        "com.intuit.quickbooks.banking",
+        "com.intuit.quickbooks.taxes",
+        "com.intuit.quickbooks.company",
+        "com.intuit.quickbooks.users",
+        "com.intuit.quickbooks.webhooks",
+        "com.intuit.quickbooks.attachments",
+        "com.intuit.quickbooks.preferences",
+        "com.intuit.quickbooks.classifications",
+        "com.intuit.quickbooks.locations",
+        "com.intuit.quickbooks.departments",
+        "com.intuit.quickbooks.currencies",
+        "com.intuit.quickbooks.exchange_rates",
+        "com.intuit.quickbooks.journal_entries",
+        "com.intuit.quickbooks.transactions",
+        "com.intuit.quickbooks.reports",
+        "com.intuit.quickbooks.budgets",
+        "com.intuit.quickbooks.projects",
+        "com.intuit.quickbooks.time_tracking",
+        "com.intuit.quickbooks.payroll",
+        "com.intuit.quickbooks.payment",
+        "com.intuit.quickbooks.accounting"
+      ].join(" ");
+      
+      if (!clientId) {
+        console.error("QUICKBOOKS_CLIENT_ID environment variable is not set.");
+        return new Response("QuickBooks OAuth configuration error", { status: 500 });
+      }
+
+      const quickbooksParams = new URLSearchParams({
+        client_id: clientId,
+        redirect_uri: redirectUri,
+        response_type: "code",
+        scope: scope,
+        state: state,
+        access_type: "offline"  // Ensure refresh tokens are provided
+      });
+
+      authorizationUrl = `https://appcenter.intuit.com/connect/oauth2?${quickbooksParams.toString()}`;
+      break;
+
+    case "shopify":
+      clientId = process.env.SHOPIFY_CLIENT_ID;
+      // Shopify Admin API scopes - simplified to valid scopes only
+      scope = [
+        "read_products",
+        "write_products",
+        "read_orders",
+        "write_orders",
+        "read_customers",
+        "write_customers",
+        "read_inventory",
+        "write_inventory",
+        "read_script_tags",
+        "write_script_tags",
+        "read_themes",
+        "write_themes",
+        "read_price_rules",
+        "write_price_rules",
+        "read_discounts",
+        "write_discounts",
+        "read_marketing_events",
+        "write_marketing_events",
+        "read_analytics",
+        "read_reports",
+        "read_webhooks",
+        "write_webhooks",
+        "read_fulfillments",
+        "write_fulfillments",
+        "read_shipping",
+        "write_shipping",
+        "read_content",
+        "write_content"
+      ].join(" ");
+      
+      if (!clientId) {
+        console.error("SHOPIFY_CLIENT_ID environment variable is not set.");
+        return new Response("Shopify OAuth configuration error", { status: 500 });
+      }
+
+      const shopifyParams = new URLSearchParams({
+        client_id: clientId,
+        redirect_uri: redirectUri,
+        response_type: "code",
+        scope: scope,
+        state: state,
+        access_type: "offline"  // Ensure refresh tokens are provided
+      });
+
+      authorizationUrl = `https://admin.shopify.com/store/YOUR_STORE/oauth/authorize?${shopifyParams.toString()}`;
+      break;
+
     default:
       return new Response("Unsupported OAuth service", { status: 400 });
   }

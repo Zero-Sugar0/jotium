@@ -164,6 +164,20 @@ export async function GET(
       tokenUrl = "https://www.linkedin.com/oauth/v2/accessToken";
       userInfoUrl = "https://api.linkedin.com/v2/userinfo";
       tokenRequestBody = new URLSearchParams({
+        grant_type: "refresh_token",
+        code: code,
+        redirect_uri: redirectUri,
+        client_id: clientId || "",
+        client_secret: clientSecret || "",
+      });
+      break;
+
+    case "quickbooks":
+      clientId = process.env.QUICKBOOKS_CLIENT_ID;
+      clientSecret = process.env.QUICKBOOKS_CLIENT_SECRET;
+      tokenUrl = "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer";
+      userInfoUrl = "https://sandbox-quickbooks.api.intuit.com/v3/company/{companyId}/companyinfo/{companyId}";
+      tokenRequestBody = new URLSearchParams({
         grant_type: "authorization_code",
         code: code,
         redirect_uri: redirectUri,
