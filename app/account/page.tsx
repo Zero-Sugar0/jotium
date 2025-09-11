@@ -24,38 +24,38 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
 const apiTools = [
-  { name: "Airtable", keyName: "airtableApiKey", placeholder: "key..." },
-  { name: "Asana", keyName: "asanaApiKey", placeholder: "pat_..." },
-  { name: "AWS Access Key", keyName: "awsAccessKeyId", placeholder: "AKIA..." },
-  { name: "AWS Region", keyName: "awsRegion", placeholder: "us-east-1" },
-  { name: "AWS Secret Key", keyName: "awsSecretAccessKey", placeholder: "..." },
-  { name: "Ayrshare", keyName: "ayrshareApiKey", placeholder: "ayr-..." },
-  { name: "Cal.com", keyName: "calcomApiKey", placeholder: "cal-..." },
-  { name: "Calendly", keyName: "calendlyApiKey", placeholder: "calendly_..." },
-  { name: "ClickUp", keyName: "clickupApiToken", placeholder: "pk_..." },
-  { name: "GitHub", keyName: "githubToken", placeholder: "ghp-..." },
-  { name: "Linear", keyName: "linearApiKey", placeholder: "lin_api_..." },
-  { name: "MongoDB", keyName: "mongoConnectionString", placeholder: "mongodb+srv://..." },
-  { name: "n8n API Key", keyName: "n8nApiKey", placeholder: "n8n_..." },
-  { name: "n8n Base URL", keyName: "n8nBaseUrl", placeholder: "https://your-n8n-instance.com" },
-  { name: "Notion", keyName: "notionApiKey", placeholder: "secret_..." },
-  { name: "Sentry", keyName: "sentryApiToken", placeholder: "sntrys_..." },
-  { name: "Slack", keyName: "slackBotToken", placeholder: "xoxb-..." },
-  { name: "Stripe", keyName: "stripeSecretKey", placeholder: "sk_test_..." },
-  { name: "Supabase Key", keyName: "supabaseKey", placeholder: "ey..." },
-  { name: "Supabase URL", keyName: "supabaseUrl", placeholder: "https://<project-ref>.supabase.co" },
-  { name: "Trello API Key", keyName: "trelloApiKey", placeholder: "key..." },
-  { name: "Trello Token", keyName: "trelloToken", placeholder: "token..." },
-  { name: "Twilio SID", keyName: "twilioAccountSid", placeholder: "AC..." },
-  { name: "Twilio Token", keyName: "twilioAuthToken", placeholder: "..." },
-  { name: "Zapier API Key", keyName: "zapierApiKey", placeholder: "sk_..." },
-  { name: "Zapier Webhook URL", keyName: "zapierWebhookUrl", placeholder: "https://hooks.zapier.com/hooks/catch/..." },
-  { name: "HubSpot Access Token", keyName: "hubspotAccessToken", placeholder: "pat-..." },
-  { name: "HubSpot Developer API Key", keyName: "hubspotDeveloperApiKey", placeholder: "hsapi..." },
-  { name: "Discord Bot Token", keyName: "discordBotToken", placeholder: "MTAx..." },
-  { name: "Discord Default Guild ID", keyName: "discordDefaultGuildId", placeholder: "1234567890..." },
-  { name: "Telegram Bot Token", keyName: "telegramBotToken", placeholder: "1234567890:..." },
-  { name: "Firebase Config", keyName: "firebaseConfig", placeholder: "{...}" },
+  { name: "Airtable", keyName: "airtableApiKey", placeholder: "key...", icon: "/logo/airtable.svg" },
+  { name: "Asana", keyName: "asanaApiKey", placeholder: "pat_...", icon: "/logo/asana.svg" },
+  { name: "AWS Access Key", keyName: "awsAccessKeyId", placeholder: "AKIA...", icon: "/logo/amazon-s3.svg" },
+  { name: "AWS Region", keyName: "awsRegion", placeholder: "us-east-1", icon: "/logo/amazon-s3.svg" },
+  { name: "AWS Secret Key", keyName: "awsSecretAccessKey", placeholder: "...", icon: "/logo/amazon-s3.svg" },
+  { name: "Ayrshare", keyName: "ayrshareApiKey", placeholder: "ayr-...", icon: "/logo/social-media.svg" },
+  { name: "Cal.com", keyName: "calcomApiKey", placeholder: "cal-...", icon: "/logo/calendar.svg" },
+  { name: "Calendly", keyName: "calendlyApiKey", placeholder: "calendly_...", icon: "/logo/calendly.svg" },
+  { name: "ClickUp", keyName: "clickupApiToken", placeholder: "pk_...", icon: "/logo/clickup.svg" },
+  { name: "GitHub", keyName: "githubToken", placeholder: "ghp-...", icon: "/logo/github.svg" },
+  { name: "Linear", keyName: "linearApiKey", placeholder: "lin_api_...", icon: "/logo/linear.svg" },
+  { name: "MongoDB", keyName: "mongoConnectionString", placeholder: "mongodb+srv://...", icon: "/logo/mongodb.svg" },
+  { name: "n8n API Key", keyName: "n8nApiKey", placeholder: "n8n_...", icon: "/logo/n8n-color.svg" },
+  { name: "n8n Base URL", keyName: "n8nBaseUrl", placeholder: "https://your-n8n-instance.com", icon: "/logo/n8n-color.svg" },
+  { name: "Notion", keyName: "notionApiKey", placeholder: "secret_...", icon: "/logo/notion.svg" },
+  { name: "Sentry", keyName: "sentryApiToken", placeholder: "sntrys_...", icon: "/logo/api.svg" },
+  { name: "Slack", keyName: "slackBotToken", placeholder: "xoxb-...", icon: "/logo/slack.svg" },
+  { name: "Stripe", keyName: "stripeSecretKey", placeholder: "sk_test_...", icon: "/logo/stripe.svg" },
+  { name: "Supabase Key", keyName: "supabaseKey", placeholder: "ey...", icon: "/logo/supabase.svg" },
+  { name: "Supabase URL", keyName: "supabaseUrl", placeholder: "https://<project-ref>.supabase.co", icon: "/logo/supabase.svg" },
+  { name: "Trello API Key", keyName: "trelloApiKey", placeholder: "key...", icon: "/logo/trello.svg" },
+  { name: "Trello Token", keyName: "trelloToken", placeholder: "token...", icon: "/logo/trello.svg" },
+  { name: "Twilio SID", keyName: "twilioAccountSid", placeholder: "AC...", icon: "/logo/twilio.svg" },
+  { name: "Twilio Token", keyName: "twilioAuthToken", placeholder: "...", icon: "/logo/twilio.svg" },
+  { name: "Zapier API Key", keyName: "zapierApiKey", placeholder: "sk_...", icon: "/logo/zapier.svg" },
+  { name: "Zapier Webhook URL", keyName: "zapierWebhookUrl", placeholder: "https://hooks.zapier.com/hooks/catch/...", icon: "/logo/zapier.svg" },
+  { name: "HubSpot Access Token", keyName: "hubspotAccessToken", placeholder: "pat-...", icon: "/logo/hubspot.svg" },
+  { name: "HubSpot Developer API Key", keyName: "hubspotDeveloperApiKey", placeholder: "hsapi...", icon: "/logo/hubspot.svg" },
+  { name: "Discord Bot Token", keyName: "discordBotToken", placeholder: "MTAx...", icon: "/logo/discord.svg" },
+  { name: "Discord Default Guild ID", keyName: "discordDefaultGuildId", placeholder: "1234567890...", icon: "/logo/discord.svg" },
+  { name: "Telegram Bot Token", keyName: "telegramBotToken", placeholder: "1234567890:...", icon: "/logo/telegram.svg" },
+  { name: "Firebase Config", keyName: "firebaseConfig", placeholder: "{...}", icon: "/logo/api.svg" },
 ];
 
 // List of OAuth providers
@@ -69,7 +69,8 @@ const oauthProviders = [
   { name: "Asana", service: "asana", icon: "/logo/asana.svg" },
   { name: "LinkedIn", service: "linkedin", icon: "/logo/linkedin.svg" },
   // { name: "X", service: "x", icon: "/logo/x-twitter.svg" },
-  { name: "ClickUp", service: "clickup", icon: "/logo/clickup.svg" }, // Assuming a ClickUp logo exists at /logo/clickup.svg
+  { name: "ClickUp", service: "clickup", icon: "/logo/clickup.svg" }, 
+  { name: "Shopify", service: "shopify", icon: "/logo/shopify.svg" },
 ];
 
 export default function AccountPage() {
@@ -748,7 +749,7 @@ export default function AccountPage() {
           {activeSection === "customize" && (
             <>
               <h2 className="text-xl font-semibold mb-2 text-foreground">Customize Agent Behavior</h2>
-              <p className="text-sm text-foreground/70 mb-4">Set a persistent instruction to guide the agent’s tone and behavior. This will be prepended to your chat prompts automatically.</p>
+              <p className="text-sm text-foreground/70 mb-4">Set a persistent instruction to guide the tone and behavior of Jotium. This will be prepended to your chat prompts automatically.</p>
               <div className="space-y-4">
                 {/* Presets grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
@@ -794,7 +795,7 @@ export default function AccountPage() {
           {activeSection === "api-keys" && (
             <>
             <h2 className="text-xl font-semibold mb-4 text-foreground">API Keys</h2>
-            <p className="text-sm text-foreground/70 mb-6">Store your API keys for each tool here. These keys are used to connect your account to external services. <span className="font-medium text-foreground">We do not generate API keys for you. Please obtain them from the respective service providers.</span></p>
+              <p className="text-sm text-foreground/70 mb-6">Store your API keys for each tool here. These keys are used to connect your account to external services. <span className="font-medium text-foreground">We do not generate API keys for you. Please obtain them from the respective service providers.</span></p>
             {(() => {
               const grouped = Object.entries(
                 apiTools.reduce<Record<string, Array<typeof apiTools[number]>>>(
@@ -818,7 +819,16 @@ export default function AccountPage() {
                         {tools.map((tool) => (
                           <div key={tool.keyName} className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                             <div className="flex-1">
-                              <Label htmlFor={tool.keyName} className="text-foreground">{tool.name}</Label>
+                              <div className="flex items-center gap-3 mb-2">
+                                <Image
+                                  src={tool.icon}
+                                  alt={tool.name}
+                                  width={24}
+                                  height={24}
+                                  className="size-6"
+                                />
+                                <Label htmlFor={tool.keyName} className="text-foreground">{tool.name}</Label>
+                              </div>
                               <Input
                                 id={tool.keyName}
                                 type={showKey[tool.keyName] ? "text" : "password"}
@@ -826,7 +836,7 @@ export default function AccountPage() {
                                 value={inputValues[tool.keyName]}
                                 onChange={(e) => handleInputChange(tool.keyName, e.target.value)}
                                 autoComplete="off"
-                                className="mt-1 bg-background text-foreground border-border w-full"
+                                className="bg-background text-foreground border-border w-full"
                               />
                             </div>
                             <div className="flex gap-2 md:mt-5">

@@ -40,7 +40,7 @@ import { ZapierTool } from './tools/ZapierTool';
 import { SerpstackTool } from './tools/SerpstackTool';
 import { HackerNewsTool } from './tools/HackerNewsTool';
 import { YouTubeTool } from "./tools/YouTubeTool";
-import { SentryTool } from "./tools/SentryTool";
+import { SentryTool } from './tools/SentryTool';
 import { CalendlyTool } from "./tools/CalendlyTool";
 // Google OAuth Tools
 import { GmailTool } from './tools/GmailTool';
