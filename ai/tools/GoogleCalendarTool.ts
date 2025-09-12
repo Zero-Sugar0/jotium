@@ -12,13 +12,13 @@ export class GoogleCalendarTool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "google_calendar_operations",
-      description: "Interact with Google Calendar to create events, list events, update events, delete events, and manage calendars. Requires Google OAuth connection.",
+      description: "Comprehensive Google Calendar management tool for scheduling, event management, and calendar operations. Create and manage events with advanced features like recurring meetings, attendee management, conference links, and availability checking. Supports multiple calendars, sharing permissions, and time zone handling. Perfect for appointment scheduling, meeting coordination, calendar automation, and team collaboration. Requires Google OAuth connection for authentication.",
       parameters: {
         type: Type.OBJECT,
         properties: {
           action: {
             type: Type.STRING,
-            description: "The action to perform",
+            description: "Calendar operation to perform. Choose from event management (create_event, list_events, update_event, delete_event), calendar management (list_calendars, create_calendar, share_calendar), or advanced features (check_availability, move_event). Each action requires specific parameters.",
             enum: [
               "create_event", "list_events", "get_event", "update_event", "delete_event", 
               "list_calendars", "create_calendar", "update_calendar", "delete_calendar", "clear_calendar",
@@ -30,36 +30,36 @@ export class GoogleCalendarTool {
           // Calendar ID (defaults to 'primary')
           calendarId: {
             type: Type.STRING,
-            description: "Calendar ID (default: 'primary' for main calendar)"
+            description: "Calendar ID to work with (default: 'primary' for your main calendar). Use 'primary' for your default calendar, or get specific calendar IDs from list_calendars action. Examples: 'primary', 'en.usa#holiday@group.v.calendar.google.com', or a custom calendar ID"
           },
           // Event creation/update parameters
           summary: {
             type: Type.STRING,
-            description: "Event title/summary (required for create_event and update_event)"
+            description: "Event title/summary - the main text that appears in the calendar (required for create_event and update_event). Examples: 'Team Meeting', 'Doctor Appointment', 'Project Deadline', 'Lunch with Sarah'"
           },
           description: {
             type: Type.STRING,
-            description: "Event description"
+            description: "Event description - detailed information about the event. Can include agenda, notes, links, or any additional details. Supports plain text and basic formatting."
           },
           location: {
             type: Type.STRING,
-            description: "Event location"
+            description: "Event location - physical address, room number, or virtual meeting link. Examples: 'Conference Room A', '123 Main St, New York', 'https://meet.google.com/abc-defg-hij', 'Zoom: https://zoom.us/j/123456789'"
           },
           startDateTime: {
             type: Type.STRING,
-            description: "Event start date/time in ISO format (e.g., '2024-03-15T10:00:00Z') or date for all-day events (e.g., '2024-03-15')"
+            description: "Event start date/time in ISO 8601 format. For timed events: '2024-03-15T10:00:00Z' (UTC) or '2024-03-15T10:00:00-05:00' (with timezone). For all-day events: '2024-03-15'. Always include timezone offset or use with timeZone parameter."
           },
           endDateTime: {
             type: Type.STRING,
-            description: "Event end date/time in ISO format (e.g., '2024-03-15T11:00:00Z') or date for all-day events (e.g., '2024-03-15')"
+            description: "Event end date/time in ISO 8601 format. For timed events: '2024-03-15T11:00:00Z' (UTC) or '2024-03-15T11:00:00-05:00' (with timezone). For all-day events: '2024-03-15'. Must be after startDateTime."
           },
           timeZone: {
             type: Type.STRING,
-            description: "Time zone for the event (e.g., 'America/New_York', 'UTC'). Default: UTC"
+            description: "Time zone for the event. Examples: 'America/New_York', 'America/Los_Angeles', 'Europe/London', 'Asia/Tokyo', 'UTC'. Use IANA timezone identifiers. Default: UTC if not specified."
           },
           allDay: {
             type: Type.BOOLEAN,
-            description: "Whether this is an all-day event (default: false)"
+            description: "Whether this is an all-day event (default: false). When true, event spans entire days without specific times. Useful for holidays, birthdays, or multi-day events."
           },
           attendees: {
             type: Type.ARRAY,
@@ -71,12 +71,12 @@ export class GoogleCalendarTool {
                 optional: { type: Type.BOOLEAN }
               }
             },
-            description: "Event attendees with email, displayName, and optional status"
+            description: "Event attendees - people invited to the meeting. Each attendee needs an email address. Optional attendees are not required to respond. Example: [{'email': 'john@example.com', 'displayName': 'John Smith', 'optional': false}]"
           },
           recurrence: {
             type: Type.ARRAY,
             items: { type: Type.STRING },
-            description: "Recurrence rules (e.g., ['RRULE:FREQ=WEEKLY;BYDAY=MO,WE,FR'])"
+            description: "Recurrence rules for repeating events. Use RRULE format. Examples: ['RRULE:FREQ=WEEKLY;BYDAY=MO,WE,FR'] for weekly on Mon/Wed/Fri, ['RRULE:FREQ=DAILY;COUNT=5'] for 5 daily occurrences, ['RRULE:FREQ=MONTHLY;BYMONTHDAY=15'] for monthly on the 15th"
           },
           reminders: {
             type: Type.OBJECT,
@@ -93,7 +93,7 @@ export class GoogleCalendarTool {
                 }
               }
             },
-            description: "Event reminders configuration"
+            description: "Event reminders configuration. Set useDefault: true for default reminders, or provide custom overrides. Example: {'useDefault': false, 'overrides': [{'method': 'email', 'minutes': 15}, {'method': 'popup', 'minutes': 5}]}"
           },
           conferenceData: {
             type: Type.OBJECT,
@@ -111,58 +111,58 @@ export class GoogleCalendarTool {
                 }
               }
             },
-            description: "Conference/meeting link data (e.g., Google Meet)"
+            description: "Conference/meeting link data for virtual meetings. Automatically creates Google Meet or other conference links. Set createRequest with type 'hangoutsMeet' for Google Meet links."
           },
           // Event ID for get, update, delete operations
           eventId: {
             type: Type.STRING,
-            description: "Event ID (required for get_event, update_event, delete_event)"
+            description: "Event ID - unique identifier for existing events (required for get_event, update_event, delete_event). Get event IDs from list_events or create_event operations."
           },
           // List events parameters
           timeMin: {
             type: Type.STRING,
-            description: "Lower bound for event start time (ISO format)"
+            description: "Lower bound for event start time in ISO format. Use to filter events starting after this time. Example: '2024-03-01T00:00:00Z' to get events from March 1st onwards"
           },
           timeMax: {
             type: Type.STRING,
-            description: "Upper bound for event start time (ISO format)"
+            description: "Upper bound for event start time in ISO format. Use to filter events starting before this time. Example: '2024-03-31T23:59:59Z' to get events until March 31st"
           },
           maxResults: {
             type: Type.NUMBER,
-            description: "Maximum number of events to return (default: 10, max: 2500)"
+            description: "Maximum number of events to return (default: 10, max: 2500). Use for pagination and performance. Higher values return more results but may be slower. Use with nextPageToken for large result sets."
           },
           orderBy: {
             type: Type.STRING,
-            description: "Order of events returned",
+            description: "Order of events returned. 'startTime' sorts by event start time (chronological), 'updated' sorts by last modification time. Use 'startTime' for chronological viewing, 'updated' for recent changes.",
             enum: ["startTime", "updated"]
           },
           // Calendar creation parameters
           calendarSummary: {
             type: Type.STRING,
-            description: "Calendar title/summary (required for create_calendar)"
+            description: "Calendar title/summary - the display name for the calendar (required for create_calendar). Examples: 'Work Schedule', 'Personal Appointments', 'Team Events', 'Project Deadlines'"
           },
           calendarDescription: {
             type: Type.STRING,
-            description: "Calendar description"
+            description: "Calendar description - detailed information about the calendar's purpose. Useful for shared calendars to explain their use. Example: 'Team meeting schedule and deadlines for Project Alpha'"
           },
           // Permissions
           role: {
             type: Type.STRING,
-            description: "The role to grant the user ('reader', 'writer', 'owner')",
+            description: "The role to grant when sharing calendars. 'reader' for view-only access, 'writer' for full editing rights, 'owner' for complete control including sharing. Choose based on required access level.",
             enum: ["reader", "writer", "owner"]
           },
           scopeType: {
             type: Type.STRING,
-            description: "The type of the scope ('user', 'group', 'domain', 'default')",
+            description: "The type of scope when sharing calendars. 'user' for individual email addresses, 'group' for Google Groups, 'domain' for entire organization, 'default' for public access. Use 'user' for specific people.",
             enum: ["user", "group", "domain", "default"]
           },
           scopeValue: {
             type: Type.STRING,
-            description: "The email address, group address, or domain name for the scope"
+            description: "The email address, group address, or domain name for calendar sharing. For scopeType 'user': 'colleague@company.com', for 'group': 'team@company.com', for 'domain': 'company.com'"
           },
           ruleId: {
             type: Type.STRING,
-            description: "The ID of the permission rule to remove"
+            description: "The ID of the permission rule to remove when revoking calendar access. Get this ID from list_permissions action."
           },
           // Availability
           itemsToCheck: {
@@ -173,12 +173,12 @@ export class GoogleCalendarTool {
                 id: { type: Type.STRING }
               }
             },
-            description: "Array of calendar IDs to check for free/busy times"
+            description: "Array of calendar IDs to check for free/busy times when finding availability. Example: [{'id': 'primary'}, {'id': 'colleague@company.com'}] to check your calendar and a colleague's calendar"
           },
           // Move event
           destinationCalendarId: {
             type: Type.STRING,
-            description: "The ID of the calendar to move the event to"
+            description: "The ID of the calendar to move the event to. Must be a calendar you have write access to. Get calendar IDs from list_calendars action."
           }
         },
         required: ["action"]

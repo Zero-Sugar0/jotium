@@ -17,7 +17,7 @@ export class TwilioTool {
   getSMSDefinition(): FunctionDeclaration {
     return {
       name: "send_sms",
-      description: "Send SMS text messages to phone numbers using Twilio's Programmable SMS API. Supports text messages with optional status callbacks and scheduling.",
+      description: "Send SMS text messages to any phone number worldwide. Perfect for notifications, alerts, marketing campaigns, or two-way communication. Supports plain text messages up to 1600 characters, multimedia messages (MMS) with images/audio/video, delivery tracking, and scheduled sending. Use this for customer notifications, appointment reminders, authentication codes, or bulk marketing campaigns.",
       parameters: {
         type: Type.OBJECT,
         properties: {
@@ -90,7 +90,7 @@ export class TwilioTool {
   getWhatsAppDefinition(): FunctionDeclaration {
     return {
       name: "send_whatsapp",
-      description: "Send WhatsApp messages using Twilio's WhatsApp Business Platform. Supports text, media, and templated messages with rich formatting.",
+      description: "Send WhatsApp Business messages to customers worldwide. Ideal for customer support, order updates, appointment reminders, and marketing campaigns. Supports text messages, images, documents, audio/video files, and pre-approved message templates. Use this for high-engagement customer communication with rich media support and automated responses.",
       parameters: {
         type: Type.OBJECT,
         properties: {
@@ -151,7 +151,7 @@ export class TwilioTool {
   getVoiceCallDefinition(): FunctionDeclaration {
     return {
       name: "make_voice_call",
-      description: "Make outbound voice calls using Twilio's Programmable Voice API. Supports TwiML instructions, recording, and real-time call control.",
+      description: "Make automated voice calls to any phone number with interactive voice response (IVR), call recording, text-to-speech, and real-time call control. Perfect for appointment reminders, customer service hotlines, emergency notifications, or automated surveys. Create dynamic call flows with TwiML instructions, handle voicemail detection, and record conversations for quality assurance.",
       parameters: {
         type: Type.OBJECT,
         properties: {
@@ -282,7 +282,7 @@ export class TwilioTool {
   getVideoDefinition(): FunctionDeclaration {
     return {
       name: "create_video_room",
-      description: "Create and manage video rooms using Twilio Video API for group video calls, webinars, and real-time collaboration.",
+      description: "Create secure, scalable video conferencing rooms for virtual meetings, webinars, telemedicine, online education, and remote collaboration. Supports up to 50 participants with HD video, screen sharing, recording, and real-time chat. Perfect for business meetings, virtual classrooms, healthcare consultations, or social gatherings with enterprise-grade security and global infrastructure.",
       parameters: {
         type: Type.OBJECT,
         properties: {
@@ -347,7 +347,7 @@ export class TwilioTool {
   getPhoneNumberDefinition(): FunctionDeclaration {
     return {
       name: "manage_phone_numbers",
-      description: "Search for, purchase, and manage Twilio phone numbers including voice, SMS, and MMS capabilities.",
+      description: "Search, purchase, and configure local, toll-free, and international phone numbers from 100+ countries. Find numbers by area code, city, or capabilities (SMS, voice, MMS, fax). Set up call forwarding, SMS handling, webhooks, and emergency services. Perfect for businesses needing dedicated numbers for customer service, marketing campaigns, or global operations.",
       parameters: {
         type: Type.OBJECT,
         properties: {
@@ -534,7 +534,7 @@ export class TwilioTool {
   getConversationDefinition(): FunctionDeclaration {
     return {
       name: "manage_conversations",
-      description: "Create and manage multi-channel conversations using Twilio Conversations API for unified messaging across SMS, WhatsApp, Chat, and more.",
+      description: "Create unified, multi-channel conversation threads that seamlessly connect customers across SMS, WhatsApp, web chat, and mobile apps. Perfect for customer support teams, sales conversations, or community building where users can switch between messaging platforms while maintaining conversation history. Supports group conversations, role-based permissions, typing indicators, read receipts, and rich media sharing.",
       parameters: {
         type: Type.OBJECT,
         properties: {
@@ -645,7 +645,7 @@ export class TwilioTool {
   getFaxDefinition(): FunctionDeclaration {
     return {
       name: "send_fax",
-      description: "Send and receive faxes using Twilio Programmable Fax API with support for various document formats and delivery tracking.",
+      description: "Send and receive faxes digitally without traditional fax machines. Perfect for healthcare, legal, financial, and government sectors that still require fax communication. Supports PDF, TIFF, JPEG, GIF, and PNG documents with multiple quality settings, delivery confirmation, and automatic retry. Send faxes to any fax number worldwide with detailed status tracking and webhooks for delivery notifications.",
       parameters: {
         type: Type.OBJECT,
         properties: {
@@ -701,7 +701,7 @@ export class TwilioTool {
   getLookupDefinition(): FunctionDeclaration {
     return {
       name: "phone_lookup",
-      description: "Validate and get information about phone numbers using Twilio Lookup API including carrier info, caller name, and line type.",
+      description: "Validate phone numbers, detect carrier information, identify line type (mobile/landline/VoIP), and prevent fraud before it happens. Get detailed insights including location, timezone, porting history, and spam risk scoring. Perfect for form validation, lead quality assessment, fraud prevention, and ensuring message deliverability. Supports international numbers from 100+ countries with real-time carrier database updates.",
       parameters: {
         type: Type.OBJECT,
         properties: {
@@ -778,7 +778,7 @@ export class TwilioTool {
   getVerifyDefinition(): FunctionDeclaration {
     return {
       name: "phone_verification",
-      description: "Send verification codes and implement 2FA using Twilio Verify API with support for SMS, voice, email, and push notifications.",
+      description: "Implement secure two-factor authentication (2FA) and phone verification with customizable verification codes via SMS, voice calls, WhatsApp, email, or push notifications. Perfect for user registration, password resets, transaction authorization, and account security. Features include rate limiting, fraud detection, custom code lengths, multiple language support, and PSD2 compliance for financial services. Built-in protection against SMS pumping and automated attacks.",
       parameters: {
         type: Type.OBJECT,
         properties: {

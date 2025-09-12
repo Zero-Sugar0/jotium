@@ -11,7 +11,7 @@ export class DuckDuckGoSearchTool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "duckduckgo_search",
-      description: "Search using DuckDuckGo's privacy-focused search engine. Provides web results, instant answers, and related topics without tracking users.",
+      description: "Advanced privacy-focused search and information discovery platform using DuckDuckGo's search engine for anonymous web search with instant answers and intelligent result parsing. Access comprehensive web search results without user tracking or data collection, ensuring complete privacy and anonymity. Get instant answers with abstracts, definitions, and related topics for quick information retrieval. Parse and extract web results with titles, snippets, and URLs from HTML responses. Support for multiple response formats (JSON/XML) and customizable search parameters. Configure safe search settings (strict/moderate/off) and regional localization for targeted results. Handle redirects and disambiguation pages intelligently. Perfect for privacy-conscious users, researchers, developers building search applications, content discovery tools, and any application requiring anonymous web search capabilities with comprehensive result parsing and privacy protection.",
       parameters: {
         type: Type.OBJECT,
         properties: {

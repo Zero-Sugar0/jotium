@@ -1,6 +1,6 @@
 import { Attachment } from "ai";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Eye, FileText, Music, Video, Archive, File, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, FileText, Music, Video, Archive, File, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 
@@ -109,14 +109,6 @@ export function MessageImageDisplay({
               className="w-full h-auto max-h-48 sm:max-h-56 md:max-h-64 object-cover group-hover:scale-105 transition-transform duration-200"
             />
             
-            {/* Hover overlay */}
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-              <div className="bg-white/20 backdrop-blur-sm rounded-full p-2 sm:p-3">
-                <Eye size={16} className="sm:size-5 text-white" />
-              </div>
-            </div>
-            
-
             {/* Multiple images indicator */}
             {hasMultipleImages && (
               <div className="absolute top-2 right-2">
@@ -200,10 +192,10 @@ export function MessageImageDisplay({
                 </>
               )}
 
-              {/* Close button */}
+              {/* Close button - No red background */}
               <button
                 onClick={() => setShowImageModal(false)}
-                className="absolute -top-2 -right-2 sm:-top-4 sm:-right-4 size-10 sm:size-12 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors duration-200 shadow-lg z-20"
+                className="absolute -top-2 -right-2 sm:-top-4 sm:-right-4 size-10 sm:size-12 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-colors duration-200 shadow-lg z-20"
               >
                 <X size={18} className="sm:size-5" />
               </button>

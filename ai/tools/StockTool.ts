@@ -6,7 +6,7 @@ export class StockTool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "get_stock_data",
-      description: "Get real-time stock prices, historical data, and market information using free APIs. Supports major exchanges worldwide.",
+      description: "Complete stock market data and financial analysis platform providing real-time stock prices, comprehensive historical data, and detailed market information using free APIs. Access live stock quotes with current price, daily change, percentage change, volume, market cap, day high/low, and previous close data. Retrieve extensive historical price data with customizable time periods (1 day to 5+ years) and intervals (1 minute to monthly). Get detailed company profiles including business description, sector, industry, market capitalization, P/E ratio, EPS, beta, dividend yield, and 52-week high/low. Fetch recent stock news and market headlines with titles, descriptions, and publication dates. Support for major global exchanges including NYSE, NASDAQ, London Stock Exchange, Tokyo Stock Exchange, and more. Format financial data with proper currency symbols, market cap abbreviations (K, M, B, T), and volume formatting. Calculate technical indicators and price changes automatically. Perfect for investors, traders, financial analysts, portfolio managers, and developers building stock market applications, investment platforms, financial dashboards, and market analysis tools.",
       parameters: {
         type: Type.OBJECT,
         properties: {

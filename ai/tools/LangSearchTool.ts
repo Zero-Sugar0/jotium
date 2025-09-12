@@ -11,7 +11,7 @@ export class LangSearchTool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "langsearch_search",
-      description: "Search using LangSearch's hybrid semantic search engine. Provides enhanced web results with AI-powered summaries, semantic reranking, and hybrid keyword+vector search for high-quality, contextually relevant results.",
+      description: "Advanced AI-powered search and semantic analysis platform using LangSearch's hybrid semantic search engine for intelligent web discovery and content relevance ranking. Perform hybrid keyword+vector searches that combine traditional text matching with semantic understanding for highly relevant, contextually appropriate results. Access AI-powered summaries of search results with markdown formatting for enhanced readability. Apply semantic reranking to reorder results by relevance using advanced language models and vector embeddings. Filter results by freshness with options for no limit, one year, one month, one week, or one day. Include specialized content types like images and videos in search results. Target specific geographic regions (US, GB, DE) and languages (en, es, fr) for localized search results. Process documents with standalone semantic reranking for custom relevance scoring. Validate API keys and manage search configurations. Perfect for researchers, developers, content creators, and businesses building intelligent search applications, knowledge discovery tools, content recommendation systems, and semantic analysis platforms that require high-quality, contextually relevant web results with advanced AI-powered features.",
       parameters: {
         type: Type.OBJECT,
         properties: {

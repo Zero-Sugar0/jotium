@@ -25,7 +25,7 @@ export class GitHubTool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "github_tool",
-      description: "Comprehensive GitHub API tool for searching repositories, analyzing code, tracking development activity, and researching users/organizations. This single tool provides access to all GitHub functionality including repository exploration, issue tracking, pull request analysis, commit history, releases, and user information.",
+      description: "Access GitHub's complete development platform through a unified API interface. Manage repositories, track issues and pull requests, analyze code, monitor development activity, and research users and organizations. Handle everything from repository creation and file management to advanced search, collaboration workflows, webhook automation, and code sharing through gists. Perfect for development teams, open source maintainers, code analysis, project management, and automated CI/CD workflows.",
       parameters: {
         type: Type.OBJECT,
         properties: {
@@ -80,224 +80,224 @@ export class GitHubTool {
           // Repository creation/update parameters
           name: {
             type: Type.STRING,
-            description: "Repository name (required for create_repository and update_repository actions). Must be unique within the owner's account."
+            description: "Repository name (required for create_repository and update_repository actions). Must be unique within the owner's account. Use lowercase with hyphens for best compatibility (e.g., 'my-awesome-project', 'data-analysis-tool'). Avoid spaces and special characters."
           },
           description: {
             type: Type.STRING,
-            description: "Repository description for create_repository and update_repository actions"
+            description: "Repository description for create_repository and update_repository actions. Provide a clear, concise summary of your project's purpose. This appears on the repository homepage and in search results. Maximum 350 characters recommended for optimal display."
           },
           private: {
-            type: Type.BOOLEAN,
-            description: "Whether the repository should be private (default: false). Used with create_repository and update_repository actions"
+            type: Type.STRING,
+            description: "Repository visibility setting. 'true' creates a private repository visible only to you and collaborators. 'false' creates a public repository visible to everyone. Consider privacy needs, licensing requirements, and collaboration scope when choosing."
           },
           hasIssues: {
-            type: Type.BOOLEAN,
-            description: "Whether to enable issues for the repository (default: true). Used with create_repository and update_repository actions"
+            type: Type.STRING,
+            description: "Enable GitHub Issues for bug tracking and feature requests (default: true). Issues provide a structured way to manage project tasks, bugs, and enhancements. Disable only for repositories that don't need issue tracking."
           },
           hasProjects: {
-            type: Type.BOOLEAN,
-            description: "Whether to enable projects for the repository (default: true). Used with create_repository and update_repository actions"
+            type: Type.STRING,
+            description: "Enable GitHub Projects for project management (default: true). Projects provide Kanban-style boards for organizing work, tracking progress, and managing workflows. Useful for complex projects with multiple work streams."
           },
           hasWiki: {
-            type: Type.BOOLEAN,
-            description: "Whether to enable wiki for the repository (default: true). Used with create_repository and update_repository actions"
+            type: Type.STRING,
+            description: "Enable GitHub Wiki for documentation (default: true). Wikis provide collaborative documentation editing. Good for extensive documentation needs, but consider README files for simpler projects."
           },
           hasDownloads: {
-            type: Type.BOOLEAN,
-            description: "Whether to enable downloads for the repository (default: true). Used with create_repository and update_repository actions"
+            type: Type.STRING,
+            description: "Enable downloads section for release artifacts (default: true). Allows users to download release files, binaries, and other artifacts. Useful for distributing compiled applications or data files."
           },
           allowSquashMerge: {
-            type: Type.BOOLEAN,
-            description: "Whether to allow squash merges (default: true). Used with create_repository and update_repository actions"
+            type: Type.STRING,
+            description: "Allow squash merging of pull requests (default: true). Combines all commits from a PR into a single commit when merging. Keeps main branch history clean but loses individual commit details."
           },
           allowMergeCommit: {
-            type: Type.BOOLEAN,
-            description: "Whether to allow merge commits (default: true). Used with create_repository and update_repository actions"
+            type: Type.STRING,
+            description: "Allow merge commits for pull requests (default: true). Preserves all commits from a PR when merging. Maintains complete history but can create complex branch structures."
           },
           allowRebaseMerge: {
-            type: Type.BOOLEAN,
-            description: "Whether to allow rebase merges (default: true). Used with create_repository and update_repository actions"
+            type: Type.STRING,
+            description: "Allow rebase merging of pull requests (default: true). Replays PR commits on top of main branch. Creates linear history but rewrites commit hashes and timestamps."
           },
           autoInit: {
-            type: Type.BOOLEAN,
-            description: "Whether to create an initial commit with empty README (default: false). Used with create_repository action"
+            type: Type.STRING,
+            description: "Create initial commit with README file (default: false). Automatically creates a README.md file with your repository description. Useful for starting with a clean repository structure."
           },
           gitignoreTemplate: {
             type: Type.STRING,
-            description: "Desired language or platform .gitignore template to apply (e.g., 'Node', 'Python', 'Java'). Used with create_repository action"
+            description: "Apply a .gitignore template for your programming language or platform (e.g., 'Node', 'Python', 'Java', 'VisualStudio'). Automatically excludes common build artifacts, dependencies, and system files from version control."
           },
           licenseTemplate: {
             type: Type.STRING,
-            description: "Choose an open source license template (e.g., 'mit', 'apache-2.0', 'gpl-3.0'). Used with create_repository action"
+            description: "Add an open source license template (e.g., 'mit', 'apache-2.0', 'gpl-3.0', 'bsd-3-clause'). Defines how others can use, modify, and distribute your code. Choose based on your project's needs and legal requirements."
           },
           // File operations parameters
           content: {
             type: Type.STRING,
-            description: "File content as a string. For create_file and update_file actions. Will be automatically base64 encoded."
+            description: "File content as a string for create_file and update_file actions. Supports any text content including code, markdown, JSON, XML, etc. Will be automatically base64 encoded for GitHub API compatibility."
           },
           message: {
             type: Type.STRING,
-            description: "Commit message for file operations (create_file, update_file, delete_file). Required for file operations."
+            description: "Commit message for file operations (create_file, update_file, delete_file). Required for all file operations. Write clear, descriptive messages following conventional commit format: 'feat: add user authentication' or 'fix: resolve login validation error'."
           },
           branch: {
             type: Type.STRING,
-            description: "Branch to commit to (default: repository's default branch). Used with file operations."
+            description: "Target branch for file operations (default: repository's default branch, usually 'main' or 'master'). Use for working on feature branches or specific releases. Format: 'feature/new-feature', 'release/v1.0', or full SHA for specific commits."
           },
           committerName: {
             type: Type.STRING,
-            description: "The name of the committer for file operations (defaults to authenticated user)"
+            description: "Name of the committer for file operations (defaults to authenticated user). Override when committing on behalf of someone else or for automation. Format: 'John Doe', 'Jane Smith'."
           },
           committerEmail: {
             type: Type.STRING,
-            description: "The email of the committer for file operations (defaults to authenticated user's email)"
+            description: "Email of the committer for file operations (defaults to authenticated user's email). Must be valid email format. Used for commit attribution and contact information."
           },
           authorName: {
             type: Type.STRING,
-            description: "The name of the author for file operations (defaults to committer name)"
+            description: "Name of the author for file operations (defaults to committer name). Override when the author differs from the committer, such as when applying someone else's changes or for pair programming scenarios."
           },
           authorEmail: {
             type: Type.STRING,
-            description: "The email of the author for file operations (defaults to committer email)"
+            description: "Email of the author for file operations (defaults to committer email). Must be valid email format. Used for proper attribution when author and committer are different people."
           },
           query: {
             type: Type.STRING,
-            description: "Search query for repositories or users. For repositories: can include keywords, programming languages, topics, or advanced search syntax like 'language:python stars:>1000'. For users: can include usernames, real names, email domains, or advanced syntax like 'location:\"San Francisco\" language:python'"
+            description: "Search query for repositories or users. For repositories: combine keywords, languages, topics, or advanced syntax like 'language:python stars:>1000 created:>2023-01-01'. For users: use usernames, real names, or advanced syntax like 'location:\"San Francisco\" language:python followers:>100'."
           },
           sort: {
             type: Type.STRING,
-            description: "Sort results by: For repositories: 'stars', 'forks', 'help-wanted-issues', 'updated'. For users: 'followers', 'repositories', 'joined'. For issues/PRs: 'created', 'updated', 'comments'. For commits: 'author-date', 'committer-date' (default varies by action)"
+            description: "Sort results by relevance criteria. For repositories: 'stars' (popularity), 'forks' (collaboration), 'updated' (recent activity), 'help-wanted-issues' (contribution opportunities). For users: 'followers' (popularity), 'repositories' (activity), 'joined' (newest)."
           },
           order: {
             type: Type.STRING,
-            description: "Sort order: 'desc' for descending or 'asc' for ascending (default: desc)"
+            description: "Sort order direction: 'desc' for descending (most popular/recent first) or 'asc' for ascending (oldest/least popular first). Default is 'desc' for most use cases."
           },
           perPage: {
             type: Type.NUMBER,
-            description: "Number of results to return (default: 30, max: 100)"
+            description: "Number of results to return per page (default: 30, max: 100). Higher values reduce API calls but may impact performance. Use with pagination for large result sets."
           },
           language: {
             type: Type.STRING,
-            description: "Filter repositories by programming language (e.g., 'javascript', 'python', 'go')"
+            description: "Filter repositories by primary programming language (e.g., 'javascript', 'python', 'go', 'rust', 'typescript', 'java'). Use lowercase language names. Combine with other search terms for more specific results."
           },
           // Repository identification
           owner: {
             type: Type.STRING,
-            description: "Repository owner username or organization name (required for repository-specific actions)"
+            description: "Repository owner username or organization name (required for repository-specific actions). Case-sensitive. Found in repository URLs: github.com/owner/repo-name. Can be personal account or organization name."
           },
           repo: {
             type: Type.STRING,
-            description: "Repository name (required for repository-specific actions)"
+            description: "Repository name (required for repository-specific actions). Case-sensitive short name without owner prefix. Found in repository URLs after the owner: github.com/owner/this-value. Use hyphens for multi-word names."
           },
           username: {
             type: Type.STRING,
-            description: "GitHub username or organization name to lookup (required for user actions)"
+            description: "GitHub username or organization name to lookup (required for user actions). Case-sensitive. Can be personal account, organization, or bot account. Found in profile URLs: github.com/username."
           },
           // File/content parameters
           path: {
             type: Type.STRING,
-            description: "Path to specific file or directory. Leave empty for root directory. Used with get_contents and get_file actions"
+            description: "Path to specific file or directory within repository. Leave empty for root directory listing. Format: 'src/main.js', 'docs/README.md', 'package.json'. Use forward slashes regardless of operating system."
           },
           ref: {
             type: Type.STRING,
-            description: "Git reference (branch, tag, or commit SHA) to browse or get file from (default: default branch)"
+            description: "Git reference (branch, tag, or commit SHA) to browse or get file from. Default uses repository's default branch. Examples: 'main', 'v1.0.0', 'feature/new-feature', full 40-character SHA for specific commits."
           },
           decode: {
-            type: Type.BOOLEAN,
-            description: "Whether to decode base64 content to readable text for get_file action (default: true)"
+            type: Type.STRING,
+            description: "Automatically decode base64 content to readable text for get_file action (default: true). Disable when you need raw base64 content for binary files or specific processing requirements."
           },
           recursive: {
-            type: Type.BOOLEAN,
-            description: "Whether to recursively list all files in subdirectories for get_contents action (default: false)"
+            type: Type.STRING,
+            description: "Recursively list all files in subdirectories for get_contents action (default: false). When true, returns complete directory tree. When false, returns only top-level items."
           },
           // Repository info options
           includeReadme: {
-            type: Type.BOOLEAN,
-            description: "Whether to include the repository's README content for get_repository action (default: true)"
+            type: Type.STRING,
+            description: "Include the repository's README content for get_repository action (default: true). Provides full README text content, useful for documentation analysis and project understanding."
           },
           includeLanguages: {
-            type: Type.BOOLEAN,
-            description: "Whether to include programming language statistics for get_repository action (default: true)"
+            type: Type.STRING,
+            description: "Include programming language statistics for get_repository action (default: true). Shows percentage breakdown of languages used in the repository, helpful for technology stack analysis."
           },
           includeContributors: {
-            type: Type.BOOLEAN,
-            description: "Whether to include top contributors information for get_repository action (default: true)"
+            type: Type.STRING,
+            description: "Include top contributors information for get_repository action (default: true). Lists users with most contributions, useful for understanding project maintainership and community engagement."
           },
           // Issues/PR parameters
           state: {
             type: Type.STRING,
-            description: "Filter by state: 'open' for active items, 'closed' for resolved items, 'all' for both (default: open). Used with get_issues and get_pull_requests"
+            description: "Filter by issue/PR state: 'open' for active items, 'closed' for resolved items, 'all' for both (default: open). Use 'open' for current work, 'closed' for completed items, 'all' for comprehensive analysis."
           },
           labels: {
             type: Type.STRING,
-            description: "Filter issues by labels (comma-separated list, e.g., 'bug,enhancement'). Used with get_issues action"
+            description: "Filter issues by labels using comma-separated list (e.g., 'bug,enhancement,good first issue'). Common labels include 'bug', 'enhancement', 'documentation', 'help wanted', 'question'. Combine multiple labels for precise filtering."
           },
           direction: {
             type: Type.STRING,
-            description: "Sort direction: 'asc' or 'desc' (default: desc). Used with get_issues, get_pull_requests, get_commits"
+            description: "Sort direction: 'asc' for ascending (oldest first) or 'desc' for descending (newest first). Default is 'desc' for showing most recent activity first."
           },
           // PR-specific parameters  
           head: {
             type: Type.STRING,
-            description: "Filter pull requests by head branch (format: user:ref-name or organization:ref-name). Used with get_pull_requests"
+            description: "Filter pull requests by head branch in format 'user:ref-name' or 'organization:ref-name'. Example: 'feature-branch' or 'username:feature-branch'. Useful for finding PRs from specific forks or branches."
           },
           base: {
             type: Type.STRING,
-            description: "Filter pull requests by base branch (default: repository's default branch). Used with get_pull_requests"
+            description: "Filter pull requests by base branch (default: repository's default branch). Common values: 'main', 'master', 'develop', 'release/v1.0'. Useful for release management and branch-specific analysis."
           },
           // User parameters
           includeRepositories: {
-            type: Type.BOOLEAN,
-            description: "Whether to include user's public repositories for get_user action (default: true)"
+            type: Type.STRING,
+            description: "Include user's public repositories for get_user action (default: true). Provides repository list with key metrics like stars, language, and update dates. Disable for faster response when only user profile needed."
           },
           includeOrganizations: {
-            type: Type.BOOLEAN,
-            description: "Whether to include user's organization memberships for get_user action (default: true)"
+            type: Type.STRING,
+            description: "Include user's organization memberships for get_user action (default: true). Shows organizations user belongs to, useful for understanding professional affiliations and open source involvement."
           },
           repoSort: {
             type: Type.STRING,
-            description: "Sort user repositories by: 'created', 'updated', 'pushed', 'full_name' for get_user action (default: updated)"
+            description: "Sort user repositories by activity criteria: 'created' (newest first), 'updated' (recently modified), 'pushed' (recent commits), 'full_name' (alphabetical). Default is 'updated' for showing most active projects."
           },
           repoType: {
             type: Type.STRING,
-            description: "Repository type filter for get_user: 'all', 'owner', 'member' (default: owner)"
+            description: "Repository type filter for get_user: 'all' (everything), 'owner' (user's own repos), 'member' (repos where user is collaborator). Default is 'owner' for showing user's primary projects."
           },
            // Webhook parameters
           webhookUrl: {
             type: Type.STRING,
-            description: "The URL to which the payloads will be delivered (required for create_webhook)."
+            description: "The URL endpoint where webhook payloads will be delivered (required for create_webhook). Must be publicly accessible HTTPS URL that can receive POST requests. Example: 'https://api.example.com/webhooks/github'."
           },
           webhookEvents: {
             type: Type.STRING,
-            description: "A comma-separated list of events to subscribe to (e.g., 'push,pull_request')."
+            description: "Comma-separated list of events to subscribe to (e.g., 'push,pull_request,issues'). Common events: 'push', 'pull_request', 'issues', 'release', 'deployment'. Choose events based on your automation needs."
           },
           webhookSecret: {
             type: Type.STRING,
-            description: "A secret to secure the webhook."
+            description: "Secret token for securing webhook payloads. Used to validate that requests come from GitHub. Should be a random string at least 20 characters long. Store securely and use for payload verification."
           },
           webhookActive: {
-            type: Type.BOOLEAN,
-            description: "Whether the webhook is active (default: true)."
+            type: Type.STRING,
+            description: "Whether the webhook is active and receiving events (default: true). When false, webhook is disabled but configuration is preserved. Useful for temporarily pausing webhook delivery."
           },
           webhookId: {
             type: Type.NUMBER,
-            description: "The ID of the webhook to update or delete."
+            description: "The numeric ID of the webhook to update or delete. Get this ID from list_webhooks response or webhook configuration page. Required for update_webhook and delete_webhook actions."
           },
           // Gist parameters
           gistId: {
             type: Type.STRING,
-            description: "The ID of the gist to get, update, delete, star, unstar, or fork."
+            description: "The unique ID of the gist to get, update, delete, star, unstar, or fork. Found in gist URLs: gist.github.com/username/this-value. Format: alphanumeric string like 'a1b2c3d4e5f6'."
           },
           gistDescription: {
             type: Type.STRING,
-            description: "The description for the gist."
+            description: "Description for the gist. Appears at the top of the gist page. Useful for explaining the purpose of code snippets, configuration examples, or data files. Maximum practical length is about 200 characters."
           },
           gistFiles: {
             type: Type.STRING,
-            description: "A JSON string representing the files in the gist, where keys are filenames and values are file content."
+            description: "JSON string representing files in the gist, where keys are filenames and values are file content. Example: '{\"config.json\": \"{\\\\\"key\\\\\": \\\\\"value\\\\\"}\", \"script.js\": \"console.log(\\\\\"hello\\\\\");\"}'. Supports multiple files with different extensions."
           },
           gistPublic: {
-            type: Type.BOOLEAN,
-            description: "Whether the gist is public (default: false)."
+            type: Type.STRING,
+            description: "Whether the gist is publicly visible (default: false). Public gists appear in search results and user profiles. Private gists are only accessible via direct link. Choose based on sharing requirements and content sensitivity."
           }
         },
         required: ["action"]

@@ -12,7 +12,7 @@ export class GmailTool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "gmail_operations",
-      description: "Interact with Gmail to send emails, read emails, search messages, and manage labels. Requires Gmail OAuth connection.",
+      description: "Access Gmail's complete email management capabilities through a unified interface. Send professional emails with rich HTML formatting as the primary method, search through your entire email history using powerful Gmail search syntax, organize messages with custom labels, and manage your inbox efficiently. Perfect for email automation, customer communication, newsletter management, and building email-based workflows. HTML formatting is recommended for professional emails with links, styling, and rich content, while plain text remains available for simple communications.",
       parameters: {
         type: Type.OBJECT,
         properties: {
@@ -25,53 +25,53 @@ export class GmailTool {
           to: {
             type: Type.ARRAY,
             items: { type: Type.STRING },
-            description: "Email recipients (required for send_email)"
+            description: "Primary email recipients (required for send_email). Accepts multiple email addresses in array format. Use standard email format: 'user@example.com', 'John Doe <john@example.com>'. Supports Gmail aliases and Google Workspace accounts."
           },
           cc: {
             type: Type.ARRAY,
             items: { type: Type.STRING },
-            description: "CC recipients (optional for send_email)"
+            description: "Carbon copy recipients (optional for send_email). Recipients visible to all other recipients. Use for transparency when multiple people need to see the email. Format same as 'to' field."
           },
           bcc: {
             type: Type.ARRAY,
             items: { type: Type.STRING },
-            description: "BCC recipients (optional for send_email)"
+            description: "Blind carbon copy recipients (optional for send_email). Recipients hidden from other recipients. Use for privacy when sending to multiple people who shouldn't see each other's addresses."
           },
           subject: {
             type: Type.STRING,
-            description: "Email subject (required for send_email)"
+            description: "Email subject line (required for send_email). Keep concise and descriptive. Appears in inbox preview. Supports Unicode characters and emojis. Maximum recommended length is 78 characters for optimal display across email clients."
           },
           body: {
             type: Type.STRING,
-            description: "Email body content (required for send_email)"
+            description: "Email body content (required for send_email). Supports plain text or HTML formatting. For HTML emails, set isHtml to true. Can include links, formatting, and basic HTML tags. Maximum size limit applies per Gmail API restrictions."
           },
           isHtml: {
             type: Type.BOOLEAN,
-            description: "Whether the email body is HTML (default: false)"
+            description: "Email format setting (default: false). When true, treats body as HTML content allowing rich formatting, links, images, and styling. When false, sends as plain text. Use HTML for professional emails with formatting requirements."
           },
           // List/search parameters
           query: {
             type: Type.STRING,
-            description: "Search query for messages (Gmail search syntax)"
+            description: "Gmail search query using Gmail's advanced search syntax. Examples: 'from:sender@example.com', 'subject:meeting', 'has:attachment', 'older_than:2d', 'label:inbox is:unread'. Combine multiple criteria with spaces. Supports operators like from:, to:, subject:, has:, older_than:, newer_than:, label:, is:starred/unread/read."
           },
           maxResults: {
             type: Type.NUMBER,
-            description: "Maximum number of results to return (default: 10, max: 100)"
+            description: "Maximum number of messages to return per request (default: 10, max: 100). Higher values reduce API calls but may impact performance. Use with nextPageToken for pagination when dealing with large result sets."
           },
           labelIds: {
             type: Type.ARRAY,
             items: { type: Type.STRING },
-            description: "Label IDs to filter messages"
+            description: "Gmail label IDs to filter messages. Use system labels like 'INBOX', 'UNREAD', 'STARRED' or custom label IDs from list_labels. Multiple labels act as AND filters. Common labels: 'INBOX', 'SENT', 'DRAFT', 'SPAM', 'TRASH'."
           },
           // Message ID for get_message
           messageId: {
             type: Type.STRING,
-            description: "Message ID to retrieve (required for get_message)"
+            description: "Unique Gmail message ID to retrieve specific email (required for get_message). Obtain from list_messages or search_messages responses. Format: alphanumeric string like '16a3c5e8d9f2b4a1'. Each message has a unique ID within your Gmail account."
           },
           // Label creation
           labelName: {
             type: Type.STRING,
-            description: "Name of the label to create (required for create_label)"
+            description: "Custom label name to create for organizing emails (required for create_label). Choose descriptive names for categorization like 'Work', 'Personal', 'Newsletters', 'Important'. Cannot duplicate existing label names. Supports spaces and special characters."
           }
         },
         required: ["action"]

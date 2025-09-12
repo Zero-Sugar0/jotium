@@ -298,7 +298,7 @@ export const createMarkdownComponents = (isSmallScreen: boolean, showTypewriter:
     <strong className="font-bold text-zinc-900 dark:text-zinc-100" {...props} />
   ),
   em: (props: any) => (
-    <em className="italic text-zinc-700 dark:text-zinc-300 max-w-full break-words overflow-wrap anywhere inline align-baseline" {...props} />
+    <em className="italic text-zinc-700 dark:text-zinc-300 max-w-full break-words overflow-wrap anywhere inline align-baseline leading-tight" {...props} />
   ),
   del: (props: any) => (
     <del className="line-through text-zinc-500 dark:text-zinc-500 decoration-red-500/70" {...props} />

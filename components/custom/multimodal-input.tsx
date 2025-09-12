@@ -123,6 +123,10 @@ export function MultimodalInput({
     transcribeAudio
   } = useAudio(setInput, textareaRef);
 
+  // Drag and drop state
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragCounter, setDragCounter] = useState(0);
+
   useEffect(() => {
     if (textareaRef.current) {
       adjustHeight();
@@ -231,6 +235,146 @@ export function MultimodalInput({
     [setAttachments],
   );
 
+  // Handle paste events for clipboard images
+  const handlePaste = useCallback(
+    async (event: ClipboardEvent) => {
+      const items = event.clipboardData?.items;
+      if (!items) return;
+
+      const files: File[] = [];
+      
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) {
+            files.push(file);
+          }
+        }
+      }
+
+      if (files.length > 0) {
+        event.preventDefault();
+        setUploadQueue(files.map((file) => file.name));
+
+        try {
+          const uploadPromises = files.map((file) => uploadFile(file));
+          const uploadedAttachments = await Promise.all(uploadPromises);
+          const successfullyUploadedAttachments = uploadedAttachments.filter(
+            (attachment) => attachment !== undefined,
+          );
+
+          setAttachments((currentAttachments) => [
+            ...currentAttachments,
+            ...successfullyUploadedAttachments,
+          ]);
+        } catch (error) {
+          console.error("Error uploading pasted files!", error);
+        } finally {
+          setUploadQueue([]);
+        }
+      }
+    },
+    [setAttachments],
+  );
+
+  // Handle drag and drop events
+  const handleDragEnter = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragCounter(prev => prev + 1);
+    
+    if (event.dataTransfer?.items && event.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragCounter(prev => prev - 1);
+    
+    if (dragCounter === 1) {
+      setIsDragging(false);
+      setDragCounter(0);
+    }
+  }, [dragCounter]);
+
+  const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback(async (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(false);
+    setDragCounter(0);
+
+    const files = Array.from(event.dataTransfer?.files || []);
+    const validFiles = files.filter(file => 
+      file.type.startsWith('image/') || 
+      file.type === 'application/pdf' ||
+      file.type.startsWith('audio/')
+    );
+
+    if (validFiles.length > 0) {
+      setUploadQueue(validFiles.map((file) => file.name));
+
+      try {
+        const uploadPromises = validFiles.map((file) => uploadFile(file));
+        const uploadedAttachments = await Promise.all(uploadPromises);
+        const successfullyUploadedAttachments = uploadedAttachments.filter(
+          (attachment) => attachment !== undefined,
+        );
+
+        setAttachments((currentAttachments) => [
+          ...currentAttachments,
+          ...successfullyUploadedAttachments,
+        ]);
+      } catch (error) {
+        console.error("Error uploading dropped files!", error);
+      } finally {
+        setUploadQueue([]);
+      }
+    }
+  }, [setAttachments]);
+
+  // Set up event listeners for paste and drag/drop
+  useEffect(() => {
+    const handleGlobalPaste = (event: ClipboardEvent) => {
+      // Only handle paste if the textarea is focused
+      if (document.activeElement === textareaRef.current) {
+        handlePaste(event);
+      }
+    };
+
+    const handleGlobalDrop = (event: DragEvent) => {
+      // Only handle drop if it's over our component
+      const target = event.target as Element;
+      if (target.closest('.multimodal-input-container')) {
+        handleDrop(event as any);
+      }
+    };
+
+    const handleGlobalDragOver = (event: DragEvent) => {
+      const target = event.target as Element;
+      if (target.closest('.multimodal-input-container')) {
+        handleDragOver(event as any);
+      }
+    };
+
+    document.addEventListener('paste', handleGlobalPaste);
+    document.addEventListener('drop', handleGlobalDrop);
+    document.addEventListener('dragover', handleGlobalDragOver);
+
+    return () => {
+      document.removeEventListener('paste', handleGlobalPaste);
+      document.removeEventListener('drop', handleGlobalDrop);
+      document.removeEventListener('dragover', handleGlobalDragOver);
+    };
+  }, [handlePaste, handleDrop, handleDragOver]);
+
   const hasContent = input.trim().length > 0 || attachments.length > 0 || !!audioBlob;
 
   const handleAudioClick = () => {
@@ -242,9 +386,9 @@ export function MultimodalInput({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 w-full bg-transparent z-30">
-      <div className="w-full flex justify-center">
-        <div className="relative w-full md:max-w-xl lg:max-w-xl xl:max-w-2xl flex flex-col gap-1 sm:gap-1">
+    <div className="fixed bottom-0 left-0 w-full bg-transparent z-30 mt-0">
+      <div className="w-full flex justify-center px-4 sm:px-0">
+        <div className="relative w-full md:max-w-xl lg:max-w-xl xl:max-w-2xl flex flex-col gap-1 sm:gap-1 multimodal-input-container">
           {/* Suggested Actions - Responsive grid */}
           <AnimatePresence>
             {messages.length === 0 &&
@@ -297,13 +441,29 @@ export function MultimodalInput({
             tabIndex={-1}
           />
 
-          {/* Input Container - Responsive sizing */}
-          <div className={`
-            relative bg-background/90 backdrop-blur-md border border-border/30 rounded-2xl sm:rounded-3xl
-            transition-all duration-300 ease-out shadow-sm hover:shadow-md
-            ${isFocused ? "border-primary/40 shadow-lg ring-2 sm:ring-4 ring-primary/20 scale-[1.01]" : "hover:border-border/60"}
-            ${input.trim().length > 0 ? "border-primary/25 shadow-md" : ""}
-          `} style={{ animation: 'glowing 3s infinite alternate' }}>
+          {/* Input Container - Responsive sizing with mobile padding */}
+          <div 
+            className={`
+              relative bg-background/90 backdrop-blur-md border border-border/30 rounded-2xl sm:rounded-3xl
+              transition-all duration-300 ease-out shadow-sm hover:shadow-md
+              ${isFocused ? "border-primary/40 shadow-lg ring-2 sm:ring-4 ring-primary/20 scale-[1.01]" : "hover:border-border/60"}
+              ${input.trim().length > 0 ? "border-primary/25 shadow-md" : ""}
+              ${isDragging ? "border-primary/50 bg-primary/5" : ""}
+            `} 
+            style={{ animation: 'glowing 3s infinite alternate' }}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+          >
+            {/* Drag overlay */}
+            {isDragging && (
+              <div className="absolute inset-0 bg-primary/10 border-2 border-dashed border-primary/50 rounded-2xl sm:rounded-3xl flex items-center justify-center z-10">
+                <div className="text-center">
+                  <div className="text-4xl mb-2">📁</div>
+                  <p className="text-primary font-medium">Drop files here to upload</p>
+                </div>
+              </div>
+            )}
+
             <MessageLimitBanner
               messageCount={messageCount}
               messageLimit={messageLimit}
@@ -351,7 +511,7 @@ export function MultimodalInput({
             ) : (
               <Textarea
                 ref={textareaRef}
-                placeholder="Ask Jotium anything..."
+                placeholder="Ask Jotium anything... "
                 value={input}
                 onChange={handleInput}
                 onFocus={() => setIsFocused(true)}

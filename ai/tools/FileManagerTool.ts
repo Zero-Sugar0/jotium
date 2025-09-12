@@ -13,7 +13,7 @@ export class FileManagerTool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "file_manager",
-      description: "Comprehensive local file management - read, write, list, delete, copy, move files and directories on the local machine.",
+      description: "Advanced comprehensive local file system management and automation platform for complete file operations, directory management, and intelligent file processing. Perform all essential file operations including reading, writing, appending, copying, moving, and deleting files and directories with recursive support and error handling. Navigate file systems with directory traversal, working directory management, and bookmarking capabilities. Search and discover files with pattern matching, recursive search, and advanced filtering options. Manage file compression and extraction with support for multiple archive formats (ZIP, TAR, GZIP, 7Z). Monitor file system changes with real-time file watching and event notifications. Calculate file hashes with multiple algorithms (MD5, SHA1, SHA256, SHA512) for integrity verification. Handle file permissions and access control with symbolic and octal permission management. Create symbolic links and manage file system references. Perform bulk operations including batch renaming, file merging, and file splitting. Analyze disk usage and file system statistics. Get detailed file metadata including size, permissions, timestamps, and file type information. Perfect for developers, system administrators, data analysts, and applications requiring sophisticated local file system management, automated file processing, backup operations, and comprehensive file system analytics.",
       parameters: {
         type: Type.OBJECT,
         properties: {

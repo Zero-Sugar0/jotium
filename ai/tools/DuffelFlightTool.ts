@@ -106,7 +106,7 @@ export class DuffelFlightTool implements Tool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "flight_booking",
-      description: "A comprehensive tool for searching, booking, and managing flights using Duffel API v2. Supports multi-passenger bookings, seat selection, baggage, and payment processing.",
+      description: "Complete flight booking and travel management platform powered by Duffel API v2 for comprehensive airline reservation systems. Search flights across multiple airlines with advanced filtering by price, duration, connections, and airline preferences. Book single or multi-passenger reservations with detailed passenger information including names, contact details, identity documents, and special requirements. Select seats with interactive seat maps, add baggage and additional services, process secure payments with multiple payment methods (credit cards, bank transfers, PayPal). Manage existing bookings with order status tracking, flight modifications, cancellations with refund processing, and baggage additions. Access comprehensive airport information including IATA codes, terminal details, and location data. Support for one-way and round-trip bookings, multiple cabin classes (economy, premium economy, business, first), passenger types (adults, children, infants), and real-time availability. Perfect for travel agencies, booking platforms, corporate travel management, and airline reservation systems with professional-grade flight search, booking automation, and travel itinerary management.",
       parameters: {
         type: Type.OBJECT,
         properties: {

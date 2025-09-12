@@ -17,7 +17,7 @@ export class AsanaTool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "asana_tool",
-      description: "A comprehensive tool for managing Asana resources and operations. Provides functionality to: Create/update/delete tasks and projects, manage workspaces and teams, handle user assignments and permissions, configure webhooks for real-time updates, and interact with project templates. Supports full CRUD operations on all major Asana entities with proper authentication, it will help find all ids.",
+      description: "Transform your team's productivity with Asana's powerful work management platform. Create, organize, and track tasks, projects, and workflows with intelligent automation, timeline views, and real-time collaboration. Perfect for marketing campaigns, product launches, client projects, sprint planning, or any work requiring detailed project tracking, team coordination, and progress visibility. Features include custom fields, dependencies, milestones, portfolios, goals, advanced search, and comprehensive reporting. Supports unlimited project hierarchies, automated workflows, and seamless integration with your favorite tools.",
       parameters: {
         type: Type.OBJECT,
         properties: {
@@ -122,7 +122,7 @@ export class AsanaTool {
           // Task parameters
           taskData: {
             type: Type.OBJECT,
-            description: "Task data for creating or updating tasks",
+            description: "Task data for creating or updating tasks. Create actionable tasks with clear names like 'Design landing page mockup' or 'Review Q3 budget proposal'. Use notes for detailed descriptions, requirements, and acceptance criteria. Set realistic due dates considering task complexity and team capacity. Assign to specific team members or leave unassigned for team pickup. Add tags for categorization and projects for organization. Set parent tasks for subtask creation and followers for stakeholder notifications.",
             properties: {
               name: { type: Type.STRING },
               notes: { type: Type.STRING },

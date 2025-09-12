@@ -40,8 +40,8 @@ export const Message = ({
   attachments?: Array<Attachment>;
   thoughts?: string;
   duration?: number;
-  executingTools?: string[]; // Updated prop type
-  isStreaming?: boolean; // New prop type
+  executingTools?: string[];
+  isStreaming?: boolean; 
   onEditMessage?: (newContent: string) => void;
   onUseAsInput?: (content: string) => void;
 }) => {
@@ -186,7 +186,8 @@ export const Message = ({
                 prose-headings:text-base lg:prose-headings:text-sm
                 prose-code:text-xs
                 prose-em:break-words
-                prose-em:overflow-wrap-anywhere
+                prose-em:overflow-wrap-break-word
+                prose-em:max-w-full
                 
 /* Tighter inline code styling */
                 prose-code:bg-muted/60
