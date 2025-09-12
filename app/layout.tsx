@@ -40,7 +40,7 @@ import "./globals.css";
 // });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://jotium.vercel.app"),
+  metadataBase: new URL("https://jotium.com"),
   title: "Jotium | The Digital Gennie",
   description: "Jotium Agent | Making your dreams come true.",
 };
@@ -110,3 +110,4 @@ return (
     </html>
   );
 }
+
