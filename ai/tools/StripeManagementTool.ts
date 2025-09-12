@@ -23,13 +23,13 @@ export class StripeManagementTool implements Tool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "stripe_management",
-      description: "A comprehensive tool for managing Stripe payments, products, customers, subscriptions, and more",
+      description: "Complete Stripe payment processing and business management platform. Handle every aspect of your payment infrastructure including customer management, product catalogs, pricing, payment processing, subscriptions, invoicing, webhooks, refunds, transfers, tax management, and financial reporting. Perfect for e-commerce platforms, SaaS applications, marketplace businesses, subscription services, and any application requiring payment processing. Supports complex billing scenarios, multi-party payments, international transactions, and comprehensive financial operations.",
       parameters: {
         type: Type.OBJECT,
         properties: {
           action: {
             type: Type.STRING,
-            description: "The action to perform",
+            description: "Stripe operation to perform. Choose from customer management (create_customer, list_customers), product catalog (create_product, list_products), payment processing (create_payment_intent, capture_payment_intent), subscription billing (create_subscription, list_subscriptions), invoicing (create_invoice, list_invoices), webhook automation (create_webhook, list_webhooks), financial operations (create_refund, list_transfers), tax management (create_tax_rate), checkout sessions (create_checkout_session), dispute handling (list_disputes), or account management (get_balance). Each action requires specific parameters.",
             enum: [
               "create_customer", "get_customer", "update_customer", "delete_customer", "list_customers",
               "create_product", "get_product", "update_product", "delete_product", "list_products",

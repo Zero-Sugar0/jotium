@@ -62,7 +62,7 @@ export class ClickUpTool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "clickup_tool",
-      description: "Comprehensive ClickUp project management tool for creating, managing, and organizing tasks, projects, and team workflows. Supports advanced features like custom fields, time tracking, and team collaboration.",
+      description: "Transform your team's productivity with ClickUp's all-in-one project management platform. Create and manage tasks, projects, and workflows with powerful features like time tracking, custom fields, goal setting, and team collaboration. Perfect for agile teams, marketing campaigns, product development, client work, or any complex project requiring detailed task management, progress tracking, and team coordination. Supports unlimited hierarchy levels from workspaces to subtasks, advanced automation, and real-time collaboration.",
       parameters: {
         type: Type.OBJECT,
         properties: {
@@ -144,38 +144,38 @@ export class ClickUpTool {
           },
           task_name: {
             type: Type.STRING,
-            description: "Name/title of the task"
+            description: "Name/title of the task - make it clear, actionable, and specific. Good examples: 'Design homepage mockup', 'Fix login validation bug', 'Write Q4 marketing report'. Avoid vague names like 'Task 1' or 'Update needed'"
           },
           task_description: {
             type: Type.STRING,
-            description: "Detailed description of the task"
+            description: "Detailed description of the task including requirements, context, acceptance criteria, and any relevant links or resources. Use markdown formatting for better readability with headers, lists, and links"
           },
           assignees: {
             type: Type.ARRAY,
             items: { type: Type.STRING },
-            description: "Array of user IDs to assign the task to"
+            description: "Array of user IDs to assign the task to. Use get_members to find user IDs. Assign multiple team members for collaborative tasks or leave empty for unassigned tasks"
           },
           status: {
             type: Type.STRING,
-            description: "Task status (e.g., 'to do', 'in progress', 'done')"
+            description: "Task status matching your ClickUp workspace configuration. Common statuses: 'to do', 'in progress', 'review', 'done', 'complete'. Check your space settings for available statuses"
           },
           priority: {
             type: Type.STRING,
-            description: "Task priority level",
+            description: "Task priority level determining urgency and importance. Urgent=Critical/blocking, High=Important/time-sensitive, Normal=Standard priority, Low=Nice-to-have/when time permits",
             enum: ["urgent", "high", "normal", "low"]
           },
           due_date: {
             type: Type.STRING,
-            description: "Due date in Unix timestamp (milliseconds) or ISO format"
+            description: "Due date in Unix timestamp (milliseconds) or ISO format (YYYY-MM-DD). Set realistic deadlines considering task complexity and team capacity. Leave empty for flexible timelines"
           },
           start_date: {
             type: Type.STRING,
-            description: "Start date in Unix timestamp (milliseconds) or ISO format"
+            description: "Start date in Unix timestamp (milliseconds) or ISO format (YYYY-MM-DD). Useful for planning work phases and setting task dependencies"
           },
           tags: {
             type: Type.ARRAY,
             items: { type: Type.STRING },
-            description: "Array of tags to add to the task"
+            description: "Array of tags to categorize and filter tasks. Examples: 'bug', 'feature', 'marketing', 'urgent', 'client-request', 'sprint-1'. Create consistent tagging conventions for your team"
           },
           
           // Dependencies

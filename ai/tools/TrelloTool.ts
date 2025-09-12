@@ -18,7 +18,7 @@ export class TrelloTool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "trello_tool",
-      description: "A comprehensive tool for Trello operations including boards, lists, cards, members, organizations, and more",
+      description: "Complete Trello project management and collaboration platform. Manage every aspect of your project workflow including boards for project organization, lists for workflow stages, cards for tasks and deliverables, checklists for task breakdown, labels for categorization, member assignments for team collaboration, due dates for scheduling, attachments for documentation, comments for communication, and organizations for team management. Perfect for agile project management, team collaboration, task tracking, workflow automation, and comprehensive project oversight. Supports advanced features like bulk operations, data export, webhook automation, and powerful search capabilities.",
       parameters: {
         type: Type.OBJECT,
         properties: {

@@ -10,6 +10,22 @@ import remarkMath from "remark-math";
 
 import { createMarkdownComponents } from './markdown-renderers';
 
+// Custom KaTeX settings for tight layout
+const katexOptions = {
+  throwOnError: false,
+  strict: false,
+  trust: true,
+  maxSize: 500,
+  maxExpand: 1000,
+  // Tight spacing for math elements
+  macros: {
+    "\\(": "\\mathopen{}",
+    "\\)": "\\mathclose{}",
+    "\\[": "\\mathopen{}",
+    "\\]": "\\mathclose{}"
+  }
+};
+
 const NonMemoizedMarkdown = ({ children, showTypewriter = true }: { children: string; showTypewriter?: boolean }) => {
   const [displayed, setDisplayed] = useState<string>("");
   const displayedRef = useRef<string>("");
@@ -72,7 +88,7 @@ const NonMemoizedMarkdown = ({ children, showTypewriter = true }: { children: st
     <div className="prose prose-zinc dark:prose-invert max-w-none w-full [&>*:first-child]:!mt-0 [&>*:last-child]:!mb-0">
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath, [remarkEmoji, { accessible: true }]]}
-        rehypePlugins={[rehypeKatex, rehypeRaw]}
+        rehypePlugins={[[rehypeKatex, katexOptions], rehypeRaw]}
         components={components}
       >
         {showTypewriter ? displayed : children}

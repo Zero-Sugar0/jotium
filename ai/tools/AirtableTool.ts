@@ -23,13 +23,13 @@ export class AirtableTool implements Tool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "airtable",
-      description: "A tool for managing Airtable bases, tables, and records with comprehensive CRUD operations",
+      description: "Comprehensive Airtable database management tool for creating, reading, updating, and deleting records, tables, and bases. Supports advanced features like batch operations, formula filtering, sorting, attachments, views, webhooks, and schema management. Perfect for database automation, data migration, CRM management, project tracking, inventory systems, and building custom database applications. Provides both simple CRUD operations and advanced database management capabilities.",
       parameters: {
         type: Type.OBJECT,
         properties: {
           action: {
             type: Type.STRING,
-            description: "The action to perform",
+            description: "Database operation to perform. Choose from record management (create_record, list_records, update_record, delete_record), batch operations (batch_create, batch_update, batch_delete), schema operations (get_base_schema, list_tables), table management (create_table, update_table), field management (create_field, update_field), search/filter (search_records, filter_records), views (create_view, update_view), webhooks (create_webhook, delete_webhook), or base operations (list_bases). Each action requires specific parameters.",
             enum: [
               "create_record", "get_record", "update_record", "delete_record", "list_records",
               "batch_create", "batch_update", "batch_delete",
@@ -45,45 +45,45 @@ export class AirtableTool implements Tool {
           },
           baseId: {
             type: Type.STRING,
-            description: "The Airtable base ID (required for most operations)"
+            description: "Airtable base ID - unique identifier for your database/project (required for most operations). Found in your Airtable URL: https://airtable.com/appXXXXXXXXXXXXXX or in base settings. Format: 'app' followed by 14 alphanumeric characters."
           },
           tableId: {
             type: Type.STRING,
-            description: "The table ID or name"
+            description: "Table ID or table name within your base. Can use either the table name (e.g., 'Contacts', 'Projects') or the table ID (e.g., 'tblXXXXXXXXXXXXXX'). Table names are case-sensitive and must match exactly."
           },
           recordId: {
             type: Type.STRING,
-            description: "The record ID for single record operations"
+            description: "Unique record identifier for single record operations (required for get_record, update_record, delete_record). Found in record URLs or returned from create operations. Format: 'rec' followed by 14 alphanumeric characters."
           },
           fields: {
             type: Type.OBJECT,
-            description: "Field values for record operations"
+            description: "Field values for record operations - key-value pairs where keys are field names and values are the data to store. Example: {'Name': 'John Doe', 'Email': 'john@example.com', 'Status': 'Active', 'Created': '2024-01-15T10:00:00Z'}. Field names must match your table schema exactly."
           },
           records: {
             type: Type.ARRAY,
             items: { type: Type.OBJECT },
-            description: "Array of records for batch operations"
+            description: "Array of record objects for batch operations (batch_create, batch_update, batch_delete). Each record should contain field data. Max 10 records per batch operation. Example: [{'Name': 'Alice', 'Email': 'alice@example.com'}, {'Name': 'Bob', 'Email': 'bob@example.com'}]"
           },
           filterByFormula: {
             type: Type.STRING,
-            description: "Airtable formula to filter records"
+            description: "Airtable formula expression to filter records using Airtable's formula syntax. Examples: '{Status} = 'Active'', 'AND({Created} > '2024-01-01', {Priority} = 'High')', 'SEARCH('john', {Name})'. Supports complex logical operators, date functions, and text operations."
           },
           sort: {
             type: Type.ARRAY,
             items: { type: Type.OBJECT },
-            description: "Array of sort objects with field and direction"
+            description: "Array of sort objects to order records. Each object needs 'field' (field name) and 'direction' ('asc' or 'desc'). Example: [{'field': 'Created', 'direction': 'desc'}, {'field': 'Name', 'direction': 'asc'}] sorts by creation date newest first, then alphabetically by name."
           },
           view: {
             type: Type.STRING,
-            description: "View ID or name to use"
+            description: "View ID or view name to use for filtering and sorting records. Uses the view's configured filters, sorts, and field visibility. Example: 'Grid view', 'Active Records', or view ID 'viwXXXXXXXXXXXXXX'. Leave empty to use the default table view."
           },
           maxRecords: {
             type: Type.NUMBER,
-            description: "Maximum number of records to return (default: 100)"
+            description: "Maximum number of records to return (default: 100, max: 100). Use for pagination and performance. Combine with offset parameter for retrieving large datasets in chunks. Example: 50 for a small dataset, 100 for maximum per request."
           },
           offset: {
             type: Type.STRING,
-            description: "Pagination offset token"
+            description: "Pagination offset token for retrieving the next page of results. Provided in previous API responses when more results are available. Use with maxRecords for efficient pagination through large datasets. Leave empty for first page."
           }
         },
         required: ["action"]

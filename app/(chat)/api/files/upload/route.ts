@@ -7,8 +7,8 @@ import { auth } from "@/app/(auth)/auth";
 const FileSchema = z.object({
   file: z
     .instanceof(File)
-    .refine((file) => file.size <= 5 * 1024 * 1024, {
-      message: "File size should be less than 5MB",
+    .refine((file) => file.size <= 10 * 1024 * 1024, {
+      message: "File size should be less than 10MB",
     })
     .refine(
       (file) =>

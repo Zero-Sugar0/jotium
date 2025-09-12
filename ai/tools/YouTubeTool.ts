@@ -6,7 +6,7 @@ export class YouTubeTool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "youtube_operations",
-      description: "Comprehensive YouTube operations including video search, channel info, trending videos, video details, comments, and more. Uses YouTube's internal APIs and HTML parsing - no API key required.",
+      description: "Complete YouTube data extraction and analysis platform for comprehensive video research, content discovery, and channel analytics. Search videos with advanced filtering, extract detailed video metadata including view counts, likes, duration, and descriptions. Get trending videos by region, analyze channel statistics and subscriber counts, retrieve video comments and engagement data, extract video transcripts and captions, search channels by keywords, and get comprehensive video details including thumbnails, publish dates, and channel information. Perfect for content creators, marketers, researchers, and developers needing YouTube data without API keys. Supports video URL parsing, channel handle recognition, view count formatting, duration conversion, and region-specific trending content. Ideal for competitive analysis, content research, trend monitoring, and automated YouTube data collection workflows.",
       parameters: {
         type: Type.OBJECT,
         properties: {

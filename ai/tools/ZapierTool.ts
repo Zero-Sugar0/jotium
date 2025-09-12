@@ -14,7 +14,7 @@ export class ZapierTool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "zapier_webhook",
-      description: "Trigger Zapier webhooks to automate tasks and integrate with 7000+ apps including Gmail, Slack, Google Sheets, Airtable, Trello, and more. Can send data to trigger automated workflows.",
+      description: "Advanced comprehensive enterprise-grade webhook automation and integration platform using Zapier for complete business process automation, system integration, and intelligent workflow orchestration across 7000+ applications. Trigger sophisticated automated workflows with intelligent data routing, conditional logic, and multi-step processing across popular business applications including Gmail, Slack, Google Sheets, Airtable, Trello, Salesforce, HubSpot, Microsoft Teams, Discord, social media platforms, e-commerce systems, and custom APIs. Send structured data payloads with automatic validation, retry mechanisms, and error handling for reliable workflow execution. Create reusable webhook templates for common business processes like email notifications, form submissions, data synchronization, social media posting, and report generation. Implement intelligent data transformation with field mapping, data formatting, and dynamic content generation. Handle webhook responses with comprehensive status monitoring, execution tracking, and performance analytics. Perfect for enterprises, developers, system integrators, and businesses requiring sophisticated webhook automation, business process integration, and intelligent workflow orchestration across multiple platforms and services without complex coding or infrastructure management.",
       parameters: {
         type: Type.OBJECT,
         properties: {

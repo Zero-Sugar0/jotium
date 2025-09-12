@@ -11,50 +11,50 @@ export class FireWebScrapeTool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "fire_web_scrape",
-      description: "Scrape, crawl, extract, or search web content using Firecrawl. Supports single URL scraping, full website crawling, structured data extraction, and web search with content retrieval.",
+      description: "Advanced web scraping and data extraction tool powered by Firecrawl. Extract content from any website with intelligent parsing that removes ads, navigation, and clutter while preserving the main content. Supports single URL scraping, comprehensive website crawling, structured data extraction with custom schemas, and intelligent web search. Perfect for content aggregation, data mining, competitor analysis, research automation, and building knowledge bases from web sources. Handles JavaScript-rendered content, PDFs, and provides clean, structured output in multiple formats.",
       parameters: {
         type: Type.OBJECT,
         properties: {
           action: {
             type: Type.STRING,
-            description: "Action to perform: 'scrape' (single URL), 'crawl' (multiple pages), 'extract' (structured data), 'search' (web search), or 'check_crawl_status' (check crawl job)"
+            description: "Web scraping operation to perform. Choose 'scrape' for single URL content extraction, 'crawl' for comprehensive website exploration, 'extract' for structured data with custom schemas, 'search' for intelligent web search with content retrieval, or 'check_crawl_status' to monitor ongoing crawl jobs. Each action is optimized for different use cases and data extraction needs."
           },
           url: {
             type: Type.STRING,
-            description: "URL to scrape/crawl (required for scrape, crawl, extract actions)"
+            description: "Target URL for scraping, crawling, or data extraction (required for scrape, crawl, extract actions). Supports any valid HTTP/HTTPS URL including dynamic JavaScript sites. Examples: 'https://example.com', 'https://docs.company.com/api', 'https://news.site.com/article'. Ensure URLs are accessible and properly formatted."
           },
           query: {
             type: Type.STRING,
-            description: "Search query (required for search action)"
+            description: "Search query for web search functionality (required for search action). Use natural language or keywords to find relevant web pages. Examples: 'latest AI developments 2024', 'company sustainability reports', 'machine learning tutorials'. The tool will find and extract content from the most relevant results."
           },
           jobId: {
             type: Type.STRING,
-            description: "Crawl job ID to check status (required for check_crawl_status action)"
+            description: "Crawl job identifier for checking status (required for check_crawl_status action). Obtained from crawl action responses. Format: unique string identifier. Use this to monitor progress of large crawl operations and retrieve results when complete."
           },
           formats: {
             type: Type.ARRAY,
             items: { type: Type.STRING },
-            description: "Output formats: ['markdown', 'html', 'json'] (default: ['markdown'])"
+            description: "Output format preferences for extracted content. Options: 'markdown' (clean, readable text), 'html' (raw HTML), 'json' (structured data). Default: ['markdown']. Choose based on your processing needs - markdown for content analysis, HTML for structure preservation, JSON for data extraction. Can combine multiple formats."
           },
           limit: {
             type: Type.NUMBER,
-            description: "Number of pages to crawl or search results to return (default: 10, max: 100 for crawl)"
+            description: "Maximum number of pages to process. For crawl: 1-100 pages (default: 10). For search: 1-20 results (default: 5). Higher limits provide more comprehensive data but take longer and use more credits. Consider your needs vs. processing time when setting this value."
           },
           onlyMainContent: {
             type: Type.BOOLEAN,
-            description: "Extract only main content, removing navigation, ads, etc. (default: true)"
+            description: "Intelligent content filtering that removes navigation menus, advertisements, footers, and other non-essential elements (default: true). When enabled, extracts only the main article/content body for cleaner, more relevant data. Disable if you need complete page structure including sidebars and navigation."
           },
           parsePDF: {
             type: Type.BOOLEAN,
-            description: "Parse PDF files if encountered (default: false)"
+            description: "Enable PDF file parsing when encountered (default: false). When true, will extract text content from PDF documents found during crawling or scraping. Useful for research, documentation sites, and academic content. May increase processing time for PDF-heavy sites."
           },
           maxAge: {
             type: Type.NUMBER,
-            description: "Maximum age of cached content in milliseconds (default: 14400000 = 4 hours)"
+            description: "Maximum age of cached content in milliseconds before fresh scraping (default: 14400000ms = 4 hours). Use to balance between fresh data and processing speed. Set to 0 for always fresh content, or higher values (up to 48 hours) for frequently accessed sites to improve performance and reduce API usage."
           },
           extractionSchema: {
             type: Type.OBJECT,
-            description: "JSON schema for structured data extraction (for extract action)"
+            description: "JSON schema definition for structured data extraction (required for extract action). Define the exact data structure you want to extract with field names, types, and descriptions. Example: {'type': 'object', 'properties': {'title': {'type': 'string'}, 'price': {'type': 'number'}, 'features': {'type': 'array'}}}. Enables precise data extraction from unstructured web content."
           }
         },
         required: ["action"]

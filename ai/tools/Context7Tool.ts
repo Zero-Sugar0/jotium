@@ -10,29 +10,29 @@ export class Context7Tool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "context7_docs",
-      description: "Fetch up-to-date, version-specific documentation and code examples for libraries using Context7. Provides accurate, current documentation directly from the source instead of relying on potentially outdated training data.",
+      description: "Access real-time, version-specific documentation and code examples for programming libraries through Context7's intelligent documentation platform. Get accurate, current information directly from official sources instead of relying on potentially outdated training data. Perfect for developers who need reliable, up-to-date library documentation, API references, code examples, and implementation guides. Supports popular libraries across multiple programming languages and frameworks with automatic version detection and comprehensive coverage.",
       parameters: {
         type: Type.OBJECT,
         properties: {
           action: {
             type: Type.STRING,
-            description: "Action to perform: 'resolve' to find library ID, 'get-docs' to fetch documentation, or 'search-and-get' to resolve then get docs in one call"
+            description: "Action to perform: 'resolve' to find library ID by searching for library names, 'get-docs' to fetch documentation using an exact library ID, or 'search-and-get' to automatically resolve the library ID and fetch documentation in one call. Use 'search-and-get' for the most convenient experience when you know the library name but not the exact ID."
           },
           libraryName: {
             type: Type.STRING,
-            description: "Name of the library to search for (used with 'resolve' or 'search-and-get' actions)"
+            description: "Name of the library to search for (used with 'resolve' or 'search-and-get' actions). Examples: 'react', 'express', 'mongodb', 'next.js', 'vue', 'django', 'spring-boot'. Use the common name of the library or framework you need documentation for."
           },
           context7CompatibleLibraryID: {
             type: Type.STRING,
-            description: "Exact Context7-compatible library ID (e.g., '/mongodb/docs', '/vercel/next.js') - used with 'get-docs' action"
+            description: "Exact Context7-compatible library ID (e.g., '/mongodb/docs', '/vercel/next.js', '/react/react', '/express/express') - used with 'get-docs' action. You can get this ID by first using the 'resolve' action with your library name."
           },
           topic: {
             type: Type.STRING,
-            description: "Optional: Focus the docs on a specific topic (e.g., 'routing', 'hooks', 'authentication')"
+            description: "Optional: Focus the documentation on a specific topic or feature. Examples: 'routing', 'hooks', 'authentication', 'middleware', 'database', 'forms', 'state-management', 'testing', 'deployment'. Helps narrow down large documentation to relevant sections."
           },
           tokens: {
             type: Type.NUMBER,
-            description: "Optional: Max number of tokens to return (default: 10000, minimum: 10000)"
+            description: "Optional: Maximum number of tokens to return (default: 10000, minimum: 10000). Higher values provide more comprehensive documentation but use more tokens. Use 10000-20000 for focused topics, 30000+ for comprehensive library documentation."
           }
         },
         required: ["action"]

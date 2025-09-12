@@ -115,13 +115,13 @@ export class S3Tool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "s3_storage",
-      description: "Comprehensive Amazon S3 cloud storage tool for file management, bucket operations, and advanced S3 features. Supports upload, download, delete, copy, multipart uploads, versioning, encryption, access control, and more.",
+      description: "Enterprise-grade Amazon S3 cloud storage management tool for comprehensive file operations, bucket management, and advanced S3 features. Handle everything from simple file uploads/downloads to complex operations like multipart uploads, cross-region replication, versioning, encryption, access control, lifecycle management, and website hosting. Supports all S3 storage classes, security features, and performance optimizations with intelligent defaults and error handling.",
       parameters: {
         type: Type.OBJECT,
         properties: {
           operation: {
             type: Type.STRING,
-            description: "S3 operation to perform",
+            description: "S3 operation to perform. Choose from basic file operations (upload, download, delete), bucket management (create_bucket, list_buckets), or advanced features (multipart_upload, generate_presigned_url). Each operation supports specific parameters - see the operation descriptions for details.",
             enum: [
               // Object operations
               "upload", "download", "delete", "copy", "move", "list_objects", "head_object",
@@ -147,134 +147,134 @@ export class S3Tool {
           },
           config: {
             type: Type.OBJECT,
-            description: "AWS credentials and configuration",
+            description: "AWS credentials and configuration for S3 access. Required for most operations unless using presigned URLs or public buckets. Contains your AWS access credentials and region settings.",
             properties: {
-              accessKeyId: { type: Type.STRING, description: "AWS Access Key ID" },
-              secretAccessKey: { type: Type.STRING, description: "AWS Secret Access Key" },
-              region: { type: Type.STRING, description: "AWS region (default: us-east-1)" },
-              sessionToken: { type: Type.STRING, description: "AWS session token (optional)" },
-              endpoint: { type: Type.STRING, description: "Custom S3 endpoint (for S3-compatible services)" }
+              accessKeyId: { type: Type.STRING, description: "AWS Access Key ID from your AWS IAM user credentials. Required for authentication. Get this from AWS IAM console under Users > Security credentials > Access keys." },
+              secretAccessKey: { type: Type.STRING, description: "AWS Secret Access Key from your AWS IAM user credentials. Required for authentication. Keep this secure and never share it publicly." },
+              region: { type: Type.STRING, description: "AWS region where your S3 resources are located (default: us-east-1). Examples: 'us-east-1', 'us-west-2', 'eu-west-1', 'ap-southeast-1'. Choose the region closest to your users for better performance." },
+              sessionToken: { type: Type.STRING, description: "AWS session token for temporary credentials (optional). Used with AWS STS temporary credentials or when assuming IAM roles." },
+              endpoint: { type: Type.STRING, description: "Custom S3 endpoint URL for S3-compatible services like MinIO, DigitalOcean Spaces, or Wasabi. Leave empty for standard AWS S3." }
             }
           },
           bucket: {
             type: Type.STRING,
-            description: "S3 bucket name"
+            description: "S3 bucket name - globally unique identifier for your storage container. Must be DNS-compliant (lowercase, numbers, hyphens only, 3-63 characters). Examples: 'my-app-assets', 'company-backups-2024', 'project-files-storage'"
           },
           key: {
             type: Type.STRING,
-            description: "Object key/path in S3"
+            description: "Object key/path in S3 - the unique identifier for your file within the bucket. Acts like a file path. Examples: 'images/photo.jpg', 'documents/report.pdf', 'data/export.csv', 'backup/database.sql'"
           },
           sourceKey: {
             type: Type.STRING,
-            description: "Source object key for copy/move operations"
+            description: "Source object key for copy/move operations. The key of the file you want to copy/move from. Example: 'old-folder/file.txt'"
           },
           sourceBucket: {
             type: Type.STRING,
-            description: "Source bucket for copy operations"
+            description: "Source bucket for copy operations. The bucket containing the file you want to copy from. Can be same as destination bucket for intra-bucket copies."
           },
           destinationBucket: {
             type: Type.STRING,
-            description: "Destination bucket for copy operations"
+            description: "Destination bucket for copy operations. The bucket where you want to copy the file to. Can be same as source bucket for intra-bucket copies."
           },
           content: {
             type: Type.STRING,
-            description: "File content (for uploads) - can be base64 encoded binary data"
+            description: "File content for uploads - can be plain text, JSON, or base64-encoded binary data. For binary files (images, PDFs, etc.), use base64 encoding with format: 'data:image/jpeg;base64,/9j/4AAQSkZJRg...'"
           },
           contentType: {
             type: Type.STRING,
-            description: "MIME type of the content (e.g., image/jpeg, text/plain)"
+            description: "MIME type of the content for proper file handling. Examples: 'image/jpeg' for JPEG images, 'text/plain' for text files, 'application/pdf' for PDFs, 'application/json' for JSON data, 'text/csv' for CSV files"
           },
           metadata: {
             type: Type.OBJECT,
-            description: "Object metadata as key-value pairs"
+            description: "Object metadata as key-value pairs for storing custom information with your files. Useful for storing file properties, user information, or processing instructions. Example: {'author': 'John Doe', 'department': 'Marketing', 'processed': 'true'}"
           },
           tags: {
             type: Type.OBJECT,
-            description: "Object or bucket tags as key-value pairs"
+            description: "Object or bucket tags as key-value pairs for categorization and cost tracking. Useful for organizing resources, access control, and billing allocation. Example: {'Environment': 'Production', 'Project': 'Website', 'Owner': 'Team-A'}"
           },
           storageClass: {
             type: Type.STRING,
-            description: "S3 storage class",
+            description: "S3 storage class determining cost and availability. STANDARD for frequent access, STANDARD_IA for infrequent access, GLACIER for archival, DEEP_ARCHIVE for long-term archival. Each class has different costs and retrieval times.",
             enum: ["STANDARD", "REDUCED_REDUNDANCY", "STANDARD_IA", "ONEZONE_IA", "INTELLIGENT_TIERING", "GLACIER", "DEEP_ARCHIVE", "GLACIER_IR"]
           },
           serverSideEncryption: {
             type: Type.STRING,
-            description: "Server-side encryption method",
+            description: "Server-side encryption method for data protection. AES256 for S3-managed keys, aws:kms for AWS KMS managed keys, aws:kms:dsse for dual-layer encryption. Required for compliance and security.",
             enum: ["AES256", "aws:kms", "aws:kms:dsse"]
           },
           kmsKeyId: {
             type: Type.STRING,
-            description: "KMS key ID for encryption"
+            description: "KMS key ID for encryption when using aws:kms server-side encryption. Format: 'arn:aws:kms:region:account:key/key-id' or key alias. Required when serverSideEncryption is 'aws:kms'."
           },
           acl: {
             type: Type.STRING,
-            description: "Access control list",
+            description: "Access control list for object/bucket permissions. 'private' for owner-only access, 'public-read' for public read access, 'authenticated-read' for AWS authenticated users. Use 'private' for security.",
             enum: ["private", "public-read", "public-read-write", "authenticated-read", "bucket-owner-read", "bucket-owner-full-control"]
           },
           prefix: {
             type: Type.STRING,
-            description: "Prefix filter for listing objects"
+            description: "Prefix filter for listing objects - acts like a folder path filter. Use to list only objects starting with specific path. Examples: 'images/' to list only images, '2024/' to list only 2024 files, 'user-123/' for specific user files"
           },
           maxKeys: {
             type: Type.NUMBER,
-            description: "Maximum number of keys to return (default: 1000)"
+            description: "Maximum number of objects to return when listing (default: 1000, max: 1000). Use for pagination and performance control. Lower values for faster responses with fewer results."
           },
           delimiter: {
             type: Type.STRING,
-            description: "Delimiter for grouping object names"
+            description: "Delimiter for grouping object names when listing - creates virtual folder hierarchy. Use '/' to group by folders. Useful for organizing large numbers of objects into logical groups."
           },
           versionId: {
             type: Type.STRING,
-            description: "Version ID for versioned objects"
+            description: "Version ID for versioned objects - required when working with specific versions of objects in versioned buckets. Get from list_object_versions operation."
           },
           corsConfiguration: {
             type: Type.OBJECT,
-            description: "CORS configuration for bucket"
+            description: "CORS (Cross-Origin Resource Sharing) configuration for bucket web hosting. Controls which websites can access your bucket content. Required for web applications accessing S3 content from browsers."
           },
           websiteConfiguration: {
             type: Type.OBJECT,
-            description: "Website configuration for bucket"
+            description: "Website configuration for bucket - enables static website hosting. Configure index document, error pages, and redirects. Turns your bucket into a static website host."
           },
           policy: {
             type: Type.STRING,
-            description: "Bucket policy JSON string"
+            description: "Bucket policy JSON string for fine-grained access control. IAM-style policy document controlling who can access what resources. More flexible than ACLs for complex permissions."
           },
           versioning: {
             type: Type.STRING,
-            description: "Versioning status",
+            description: "Versioning status for bucket - 'Enabled' to keep all versions of objects, 'Suspended' to disable versioning. Useful for backup, compliance, and preventing accidental overwrites.",
             enum: ["Enabled", "Suspended"]
           },
           encryptionConfiguration: {
             type: Type.OBJECT,
-            description: "Bucket encryption configuration"
+            description: "Bucket encryption configuration for default encryption settings. Automatically encrypts all new objects in the bucket. Supports SSE-S3, SSE-KMS, and SSE-KMS-DSSE encryption methods."
           },
           expiresIn: {
             type: Type.NUMBER,
-            description: "Expiration time in seconds for presigned URLs (default: 3600)"
+            description: "Expiration time in seconds for presigned URLs (default: 3600, max: 604800). Time until the URL becomes invalid. Use shorter times for security, longer for convenience. Examples: 3600 (1 hour), 86400 (24 hours), 604800 (7 days)"
           },
           restoreRequest: {
             type: Type.OBJECT,
-            description: "Restore request configuration for archived objects"
+            description: "Restore request configuration for archived objects from GLACIER or DEEP_ARCHIVE storage. Required to access archived files. Specifies retrieval tier (Expedited, Standard, Bulk) and duration."
           },
           selectExpression: {
             type: Type.STRING,
-            description: "SQL expression for S3 Select"
+            description: "SQL expression for S3 Select - queries CSV, JSON, or Parquet files directly in S3 without downloading. Example: 'SELECT * FROM s3object[*] WHERE column1 > 100'. Supports standard SQL syntax for data filtering and analysis."
           },
           inputSerialization: {
             type: Type.OBJECT,
-            description: "Input serialization format for S3 Select"
+            description: "Input serialization format for S3 Select - specifies how your data is formatted. Configure CSV delimiter, JSON path, or Parquet settings. Required for S3 Select operations."
           },
           outputSerialization: {
             type: Type.OBJECT,
-            description: "Output serialization format for S3 Select"
+            description: "Output serialization format for S3 Select - specifies how results should be formatted. Configure CSV/JSON output format, delimiters, and field mappings. Controls the format of your query results."
           },
           notificationConfiguration: {
             type: Type.OBJECT,
-            description: "Bucket notification configuration"
+            description: "Bucket notification configuration for event-driven workflows. Configure S3 to send notifications to Lambda, SNS, or SQS when objects are created, deleted, or modified. Enables automated processing pipelines."
           },
           progressCallback: {
             type: Type.BOOLEAN,
-            description: "Whether to return upload progress information"
+            description: "Whether to return upload progress information for large files. When enabled, shows percentage complete during upload. Useful for monitoring large file uploads and multipart operations."
           }
         },
         required: ["operation"]

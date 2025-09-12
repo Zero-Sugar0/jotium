@@ -17,7 +17,7 @@ export function ScrollToBottom({ onClick, isVisible, className }: ScrollToBottom
     <Button
       onClick={onClick}
       className={cn(
-        "fixed bottom-24 right-6 z-40 rounded-full p-2 h-10 w-10",
+        "fixed bottom-40 left-1/2 transform -translate-x-1/2 z-40 rounded-full p-2 h-10 w-10",
         "bg-background/90 backdrop-blur-sm border border-border/50",
         "hover:bg-background shadow-lg transition-all duration-300",
         "flex items-center justify-center",

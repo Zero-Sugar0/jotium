@@ -161,7 +161,7 @@ export default function Page() {
             <span className="w-full border-t border-gray-300 dark:border-zinc-600" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-gray-500 dark:text-zinc-400">
+            <span className="bg-background px-4 text-gray-500 dark:text-zinc-400">
               Or continue with email
             </span>
           </div>

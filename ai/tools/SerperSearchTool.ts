@@ -11,41 +11,41 @@ export class SerperSearchTool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "serper_search",
-      description: "Search Google using Serper.dev API for web results, images, places, news, and shopping. Provides comprehensive search capabilities with various result types.",
+      description: "Advanced Google search API powered by Serper.dev that provides comprehensive search capabilities across multiple content types. Access web results, images, places, news, shopping, and videos with intelligent filtering and localization. Perfect for research automation, content discovery, competitive analysis, local business intelligence, news monitoring, and visual content search. Supports geolocation targeting, language preferences, time-based filtering, and safe search controls for precise, relevant results.",
       parameters: {
         type: Type.OBJECT,
         properties: {
           query: {
             type: Type.STRING,
-            description: "The search query to find information about"
+            description: "Search query to find information about. Use natural language or keywords for best results. Examples: 'latest AI developments 2025', 'best restaurants near me', 'machine learning tutorials', 'company sustainability reports'. Supports complex queries with operators for precise results."
           },
           searchType: {
             type: Type.STRING,
-            description: "Type of search: 'search' (web), 'images', 'places', 'news', 'shopping', 'videos' (default: search)"
+            description: "Content type to search: 'search' (web pages with snippets, answer boxes, related searches), 'images' (photos with metadata and thumbnails), 'places' (local businesses with ratings, addresses, contact info), 'news' (recent articles with dates and sources), 'shopping' (products with prices, ratings, delivery info), 'videos' (video content with duration, channels, thumbnails). Default: 'search' for general web results."
           },
           num: {
             type: Type.NUMBER,
-            description: "Number of results to return (default: 10, max: 100)"
+            description: "Maximum number of results to return (default: 10, max: 100). Higher values provide more comprehensive data but may increase response time. Consider your needs vs. processing speed when setting this value."
           },
           gl: {
             type: Type.STRING,
-            description: "Country code for geolocation (e.g., 'us', 'uk', 'ca')"
+            description: "Country code for geolocation targeting (e.g., 'us' for United States, 'uk' for United Kingdom, 'ca' for Canada, 'de' for Germany). Use to get region-specific results, local businesses, or country-relevant content. Essential for local SEO research and market analysis."
           },
           hl: {
             type: Type.STRING,
-            description: "Language code (e.g., 'en', 'es', 'fr')"
+            description: "Language code for result localization (e.g., 'en' for English, 'es' for Spanish, 'fr' for French, 'de' for German). Ensures results are in the specified language and culturally appropriate for the target audience."
           },
           location: {
             type: Type.STRING,
-            description: "Location for local search (e.g., 'New York, NY' - mainly for places search)"
+            description: "Geographic location for local search (e.g., 'New York, NY', 'London, UK', 'Tokyo, Japan'). Primarily used with 'places' search type to find businesses, restaurants, services in specific areas. Format: 'City, State/Country' for best results."
           },
           tbs: {
             type: Type.STRING,
-            description: "Time-based search filters (e.g., 'qdr:d' for past day, 'qdr:w' for past week)"
+            description: "Time-based search filters to narrow results by date. Common formats: 'qdr:d' (past 24 hours), 'qdr:w' (past week), 'qdr:m' (past month), 'qdr:y' (past year). Useful for finding recent news, updates, or time-sensitive information. Combine with other filters for precise temporal targeting."
           },
           safe: {
             type: Type.STRING,
-            description: "Safe search setting: 'active' or 'off' (default: active)"
+            description: "Safe search content filtering: 'active' (filters adult content, default), 'off' (includes all content). Use 'active' for family-friendly applications, educational tools, or professional research. Disable only when specifically requiring unrestricted access."
           }
         },
         required: ["query"]

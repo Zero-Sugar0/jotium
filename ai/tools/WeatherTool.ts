@@ -6,7 +6,7 @@ export class WeatherTool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "get_weather",
-      description: "Get current weather and forecast for any location using OpenMeteo API. Provides real-time weather data without requiring an API key.",
+      description: "Advanced weather intelligence and meteorological analysis platform using OpenMeteo API for comprehensive weather forecasting and environmental monitoring. Access real-time weather data, multi-day forecasts, and detailed meteorological insights without requiring API keys. Get current conditions including temperature, humidity, precipitation, wind speed, cloud cover, atmospheric pressure, and weather conditions with visual icons and descriptions. Generate extended forecasts up to 16 days with daily temperature ranges, precipitation predictions, sunrise/sunset times, and wind patterns. Include hourly forecasts for detailed planning with precipitation probability and weather condition tracking. Support for multiple temperature units (Celsius/Fahrenheit) and automatic timezone detection. Perfect for travel planning, outdoor activities, weather monitoring applications, agricultural planning, and any application requiring accurate, comprehensive weather data and forecasting capabilities.",
       parameters: {
         type: Type.OBJECT,
         properties: {

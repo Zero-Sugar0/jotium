@@ -14,7 +14,7 @@ export class TelegramTool {
   getDefinition(): FunctionDeclaration {
     return {
       name: "telegram_bot",
-      description: "Send messages, photos, documents, and other content via Telegram Bot API. Supports all major Telegram bot features including inline keyboards, polls, location sharing, and more. Works with groups, channels, and private chats.",
+      description: "Complete Telegram Bot API integration for automated messaging, content delivery, and interactive bot development. Send text messages, photos, videos, documents, stickers, animations, polls, locations, contacts, and voice messages. Create interactive experiences with inline keyboards, custom reply keyboards, web apps, and callback queries. Supports all major Telegram features including message editing, forwarding, deletion, content protection, threaded conversations, and webhook automation. Perfect for customer service bots, notification systems, content delivery, interactive surveys, location-based services, and automated customer engagement. Works seamlessly with private chats, groups, channels, and forum-style discussions.",
       parameters: {
         type: Type.OBJECT,
         properties: {
