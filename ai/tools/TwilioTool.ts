@@ -928,6 +928,15 @@ export class TwilioTool {
     try {
       console.log(`📱 Sending SMS to ${args.to}`);
       
+      // Validate required parameters
+      if (!args.to || !args.body) {
+        return {
+          success: false,
+          error: "Missing required parameters: 'to' and 'body' are required",
+          to: args.to
+        };
+      }
+
       const messageOptions: any = {
         to: args.to,
         body: args.body
@@ -1043,6 +1052,16 @@ export class TwilioTool {
     try {
       console.log(`📞 Making voice call to ${args.to}`);
       
+      // Validate required parameters
+      if (!args.to || !args.from) {
+        return {
+          success: false,
+          error: "Missing required parameters: 'to' and 'from' are required",
+          to: args.to,
+          from: args.from
+        };
+      }
+
       const callOptions: any = {
         to: args.to,
         from: args.from
