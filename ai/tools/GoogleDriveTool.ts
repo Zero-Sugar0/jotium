@@ -123,7 +123,11 @@ export class GoogleDriveTool {
           // Batch operations parameters
           fileIds: {
             type: Type.ARRAY,
-            description: "Array of file IDs for batch operations (required for batch_delete, batch_share). Maximum 100 files per batch operation."
+            description: "Array of file IDs for batch operations (required for batch_delete, batch_share). Maximum 100 files per batch operation.",
+            items: {
+              type: Type.STRING,
+              description: "A single Google Drive file ID"
+            }
           },
           // Change monitoring parameters
           changePageToken: {
