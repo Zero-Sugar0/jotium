@@ -8,9 +8,21 @@ export class TwilioTool {
   constructor(accountSid: string, authToken: string) {
     this.accountSid = accountSid;
     this.authToken = authToken;
-    // Use proper import instead of require
-    const twilio = require('twilio');
-    this.twilio = twilio(accountSid, authToken);
+    
+    // Validate credentials before initializing
+    if (!accountSid || !authToken) {
+      throw new Error("Twilio account SID and auth token are required for initialization");
+    }
+    
+    try {
+      // Use proper import instead of require
+      const twilio = require('twilio');
+      this.twilio = twilio(accountSid, authToken);
+      console.log("✅ Twilio client initialized successfully");
+    } catch (error) {
+      console.error("❌ Failed to initialize Twilio client:", error);
+      throw new Error(`Twilio client initialization failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   // SMS Messaging functionality
