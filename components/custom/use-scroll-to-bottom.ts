@@ -1,12 +1,12 @@
-import { useEffect, useRef, RefObject, useCallback } from "react";
+import { useEffect, useRef, RefObject, useCallback, useState } from "react";
 
 export function useScrollToBottom<T extends HTMLElement>(
   deps: any[] = []
 ): [RefObject<T>, RefObject<T>, () => void, boolean] {
   const containerRef = useRef<T>(null);
   const endRef = useRef<T>(null);
-  // Ref to track if the user has scrolled up
-  const userScrolledUp = useRef(false);
+  // State to track if the user has scrolled up
+  const [hasScrolledUp, setHasScrolledUp] = useState(false);
 
   // Effect to handle user scroll behavior
   useEffect(() => {
@@ -15,15 +15,15 @@ export function useScrollToBottom<T extends HTMLElement>(
 
     const handleScroll = () => {
       const scrollFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-      // If user is more than 10px from the bottom, consider them scrolled up
-      if (scrollFromBottom > 10) {
-        userScrolledUp.current = true;
+      // If user is more than 100px from the bottom, show the scroll-to-bottom button
+      if (scrollFromBottom > 100) {
+        setHasScrolledUp(true);
       } else {
-        userScrolledUp.current = false;
+        setHasScrolledUp(false);
       }
     };
 
-    container.addEventListener("scroll", handleScroll);
+    container.addEventListener("scroll", handleScroll, { passive: true });
     return () => container.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -33,16 +33,16 @@ export function useScrollToBottom<T extends HTMLElement>(
 
     if (force) {
       // When forcing scroll, reset the scrolled up flag
-      userScrolledUp.current = false;
+      setHasScrolledUp(false);
       end.scrollIntoView({ behavior: "smooth", block: "end" });
       return;
     }
 
     // Auto-scroll only if the user hasn't scrolled up
-    if (!userScrolledUp.current) {
+    if (!hasScrolledUp) {
       end.scrollIntoView({ behavior: "smooth", block: "end" });
     }
-  }, []);
+  }, [hasScrolledUp]);
 
   const forceScrollToBottom = useCallback(() => {
     scrollToBottom(true);
@@ -59,5 +59,5 @@ export function useScrollToBottom<T extends HTMLElement>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
-  return [containerRef, endRef, forceScrollToBottom, userScrolledUp.current];
+  return [containerRef, endRef, forceScrollToBottom, hasScrolledUp];
 }

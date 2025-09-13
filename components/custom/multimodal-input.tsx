@@ -386,7 +386,7 @@ export function MultimodalInput({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 w-full bg-transparent z-30 mt-0">
+    <div className="fixed bottom-0 left-0 w-full bg-transparent z-30 mt-0 pb-4">
       <div className="w-full flex justify-center px-4 sm:px-0">
         <div className="relative w-full md:max-w-xl lg:max-w-xl xl:max-w-2xl flex flex-col gap-1 sm:gap-1 multimodal-input-container">
           {/* Suggested Actions - Responsive grid */}
