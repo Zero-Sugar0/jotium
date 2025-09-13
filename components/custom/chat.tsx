@@ -469,8 +469,8 @@ export function Chat({
                 ))}
               </AnimatePresence>
               
-              {/* Bottom spacing to ensure last message is visible above input - Reduced from h-40 to h-32 */}
-              <div className="h-32" />
+              {/* Bottom spacing to ensure last message is visible above input - Changed from h-32 to h-36 */}
+              <div className="h-36" />
               <div ref={messagesEndRef} />
             </div>
           </div>

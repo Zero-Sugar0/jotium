@@ -329,7 +329,7 @@ export const History = ({ user }: { user: User | undefined }) => {
                 onCloseSidebar={() => setIsHistoryVisible(false)} // Pass close handler to NavUser
               />
             )}
-            <div className="mt-1 text-center text-[10px] text-muted-foreground">jotium v0.1.9</div>
+            <div className="mt-1 text-center text-[10px] text-muted-foreground">jotium v1.1.9</div>
           </div>
         </SheetContent>
       </Sheet>
