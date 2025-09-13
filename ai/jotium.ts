@@ -61,6 +61,11 @@ import { DiscordTool } from './tools/DiscordTool';
 import { TelegramTool } from './tools/TelegramTool';
 import { FirebaseTool } from './tools/FirebaseTool';
 import { LinkedInTool } from './tools/LinkedInTool';
+import { MailchimpTool } from './tools/MailchimpTool';
+import { VercelTool } from './tools/VercelTool';
+import { ZendeskTool } from './tools/ZendeskTool';
+import { ZoomTool } from './tools/ZoomTool';
+import { WordPressTool } from './tools/WordPressTool';
 
 // Import Enhanced Agentic Engine
 import { EnhancedAgenticEngine, EnhancedActionIntent } from './actions';
@@ -463,6 +468,55 @@ export class AIAgent {
     if (sentryDsn) {
       const sentryTool = new SentryTool({ dsn: sentryDsn }, sentryApiToken);
       this.tools.set("sentry_operation", sentryTool);
+    }
+
+    // Mailchimp
+    const mailchimpKey = await getKey("Mailchimp", "MAILCHIMP_API_KEY");
+    if (mailchimpKey) {
+      const mailchimpTool = new MailchimpTool(mailchimpKey);
+      this.tools.set("mailchimp_marketing", mailchimpTool);
+    }
+
+    // Vercel
+    const vercelKey = await getKey("Vercel", "VERCEL_API_KEY");
+    if (vercelKey) {
+      const vercelTool = new VercelTool(vercelKey);
+      this.tools.set("vercel_deploy", vercelTool);
+    }
+
+    // Zendesk
+    const zendeskSubdomain = await getKey("Zendesk Subdomain", "ZENDESK_SUBDOMAIN");
+    const zendeskEmail = await getKey("Zendesk Email", "ZENDESK_EMAIL");
+    const zendeskApiToken = await getKey("Zendesk API Token", "ZENDESK_API_TOKEN");
+    if (zendeskSubdomain && zendeskEmail && zendeskApiToken) {
+      const zendeskTool = new ZendeskTool(zendeskSubdomain, zendeskEmail, zendeskApiToken);
+      this.tools.set("zendesk_management", zendeskTool);
+    }
+
+    // Zoom
+    let zoomOauthToken: string | null = null;
+    const zoomConfig: any = {};
+    const zoomApiKey = await getKey("Zoom", "ZOOM_API_KEY");
+    const zoomApiSecret = await getKey("Zoom", "ZOOM_API_SECRET");
+    if (zoomApiKey && zoomApiSecret) {
+      zoomConfig.apiKey = zoomApiKey;
+      zoomConfig.apiSecret = zoomApiSecret;
+    }
+    if (userId) {
+      zoomOauthToken = await getDecryptedOAuthAccessToken({ userId, service: "zoom" });
+    }
+    if ((zoomApiKey && zoomApiSecret) || zoomOauthToken) {
+      const zoomTool = new ZoomTool(zoomConfig, userId || "", zoomOauthToken);
+      this.tools.set("zoom_api", zoomTool);
+    }
+
+    // WordPress
+    const wordpressSiteUrl = await getKey("WordPress Site URL", "WORDPRESS_SITE_URL");
+    const wordpressUsername = await getKey("WordPress Username", "WORDPRESS_USERNAME");
+    const wordpressAppPassword = await getKey("WordPress Application Password", "WORDPRESS_APPLICATION_PASSWORD");
+    if (wordpressSiteUrl && wordpressUsername && wordpressAppPassword) {
+      const wordpressTool = new WordPressTool(wordpressSiteUrl, wordpressUsername, wordpressAppPassword);
+      this.tools.set("wordpress_management", wordpressTool);
     }
 
     // --- Group 4: OAuth Tools (require OAuth connection) ---

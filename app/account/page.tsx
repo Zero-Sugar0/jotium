@@ -35,6 +35,7 @@ const apiTools = [
   { name: "ClickUp", keyName: "clickupApiToken", placeholder: "pk_...", icon: "/logo/clickup.svg" },
   { name: "GitHub", keyName: "githubToken", placeholder: "ghp-...", icon: "/logo/github.svg" },
   { name: "Linear", keyName: "linearApiKey", placeholder: "lin_api_...", icon: "/logo/linear.svg" },
+  { name: "Mailchimp", keyName: "mailchimpApiKey", placeholder: "key-dc...", icon: "/logo/mailchimp.svg" },
   { name: "MongoDB", keyName: "mongoConnectionString", placeholder: "mongodb+srv://...", icon: "/logo/mongodb.svg" },
   { name: "n8n API Key", keyName: "n8nApiKey", placeholder: "n8n_...", icon: "/logo/n8n-color.svg" },
   { name: "n8n Base URL", keyName: "n8nBaseUrl", placeholder: "https://your-n8n-instance.com", icon: "/logo/n8n-color.svg" },
@@ -55,6 +56,13 @@ const apiTools = [
   { name: "Discord Bot Token", keyName: "discordBotToken", placeholder: "MTAx...", icon: "/logo/discord.svg" },
   { name: "Discord Default Guild ID", keyName: "discordDefaultGuildId", placeholder: "1234567890...", icon: "/logo/discord.svg" },
   { name: "Telegram Bot Token", keyName: "telegramBotToken", placeholder: "1234567890:...", icon: "/logo/telegram.svg" },
+  { name: "Vercel", keyName: "vercelApiKey", placeholder: "vercel_...", icon: "/logo/vercel.svg" },
+  { name: "WordPress Site URL", keyName: "wordpressSiteUrl", placeholder: "https://yoursite.com", icon: "/logo/wordpress.svg" },
+  { name: "WordPress Username", keyName: "wordpressUsername", placeholder: "admin", icon: "/logo/wordpress.svg" },
+  { name: "WordPress Application Password", keyName: "wordpressApplicationPassword", placeholder: "xxxx xxxx xxxx xxxx", icon: "/logo/wordpress.svg" },
+  { name: "Zendesk Subdomain", keyName: "zendeskSubdomain", placeholder: "yourcompany", icon: "/logo/zendesk.svg" },
+  { name: "Zendesk Email", keyName: "zendeskEmail", placeholder: "admin@company.com", icon: "/logo/zendesk.svg" },
+  { name: "Zendesk API Token", keyName: "zendeskApiToken", placeholder: "token_...", icon: "/logo/zendesk.svg" },
   { name: "Firebase Config", keyName: "firebaseConfig", placeholder: "{...}", icon: "/logo/api.svg" },
 ];
 
@@ -71,6 +79,7 @@ const oauthProviders = [
   // { name: "X", service: "x", icon: "/logo/x-twitter.svg" },
   { name: "ClickUp", service: "clickup", icon: "/logo/clickup.svg" }, 
   { name: "Shopify", service: "shopify", icon: "/logo/shopify.svg" },
+  { name: "Zoom", service: "zoom", icon: "/logo/zoom.svg" },
 ];
 
 export default function AccountPage() {

@@ -186,6 +186,20 @@ export async function GET(
       });
       break;
 
+    case "zoom":
+      clientId = process.env.ZOOM_CLIENT_ID;
+      clientSecret = process.env.ZOOM_CLIENT_SECRET;
+      tokenUrl = "https://zoom.us/oauth/token";
+      userInfoUrl = "https://api.zoom.us/v2/users/me";
+      tokenRequestBody = new URLSearchParams({
+        grant_type: "authorization_code",
+        code: code,
+        redirect_uri: redirectUri,
+        client_id: clientId || "",
+        client_secret: clientSecret || "",
+      });
+      break;
+
     default:
       return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/account?oauth_error=true`);
   }
@@ -357,6 +371,18 @@ export async function GET(
         const userData = await userRes.json();
         externalUserId = userData.sub; // LinkedIn uses 'sub' as the user ID
         externalUserName = userData.name || userData.email;
+      }
+    } else if (service === "zoom") {
+      const userRes = await fetch(userInfoUrl, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+        },
+      });
+      if (userRes.ok) {
+        const userData = await userRes.json();
+        externalUserId = userData.id; // Zoom uses 'id' as the user ID
+        externalUserName = userData.email || userData.first_name + " " + userData.last_name;
       }
     }
 
